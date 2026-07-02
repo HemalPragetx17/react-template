@@ -1,0 +1,169 @@
+@import "./theme/typography.css";
+@import "./theme/colors.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Thin Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.8);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	margin: 0;
+}
+
+input[type="number"] {
+	-moz-appearance: textfield;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 600ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes heroui-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.6) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: heroui-shimmer 2s infinite;
+}
+
+.dark .animate-shimmer::after {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 20%,
+    rgba(255, 255, 255, 0.15) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+@keyframes heroui-pulse {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-pulse-custom::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(255, 255, 255, 0.4);
+  animation: heroui-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.dark .animate-pulse-custom::after {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+@keyframes card-ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.25;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animate-card-ripple {
+  animation: card-ripple 1500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+body {
+  @apply bg-background text-foreground;
+}
+
+/* Smooth surface & layout transitions for theme switching */
+body,
+header,
+main,
+aside,
+nav,
+section,
+article,
+footer,
+table,
+tr,
+td,
+th,
+ul,
+li,
+form,
+input,
+select,
+textarea,
+button,
+a,
+.bg-background,
+.bg-content1,
+.bg-content2,
+.bg-default-50,
+.bg-default-100,
+.bg-default-200,
+.border-default-100,
+.border-default-200,
+.text-foreground {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}

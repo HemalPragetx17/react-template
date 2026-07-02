@@ -1,0 +1,771 @@
+/* ============================================
+   DateRangePicker.css
+   react-datepicker custom override
+   ============================================ */
+
+/* ── Root ── */
+.drp-root {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 14px;
+}
+
+/* ── Input trigger ── */
+.drp-input-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 240px;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--color-default-300);
+  border-radius: 16px;
+  background: var(--color-background);
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
+}
+
+.drp-input-wrap:hover {
+  border-color: var(--color-primary-300);
+}
+
+.drp-input-wrap:focus,
+.drp-input-wrap--open {
+  border-color: var(--color-primary-300);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+.drp-placeholder {
+  flex: 1;
+  color: var(--color-default-400);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drp-value {
+  flex: 1;
+  color: var(--color-default-900);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Icon slot ── */
+.drp-input-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.drp-calendar-icon {
+  color: var(--color-default-400);
+  display: block;
+  transition: color 0.15s;
+}
+
+.drp-input-wrap--open .drp-calendar-icon,
+.drp-input-wrap--filled .drp-calendar-icon {
+  color: var(--color-primary);
+}
+
+/* ── Clear button ── */
+.drp-clear-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  line-height: 0;
+  border-radius: 50%;
+  transition:
+    transform 0.12s,
+    opacity 0.12s;
+  opacity: 0.85;
+}
+
+.drp-clear-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.drp-clear-btn:hover svg circle {
+  fill: var(--color-default-400);
+}
+
+/* ── Calendar dropdown ── */
+.drp-calendar-wrap {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 9999;
+  border-radius: 22px;
+  border: 1px solid var(--color-default-200);
+  background: var(--color-background);
+  box-shadow: 0 24px 60px color-mix(in srgb, var(--color-default-900) 12%, transparent);
+  overflow: hidden;
+  animation: drp-in 0.16s ease;
+}
+
+@keyframes drp-in {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Mode bar ── */
+.drp-mode-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px 6px;
+  border-bottom: 1px solid var(--color-default-50);
+}
+
+.drp-mode-chip {
+  font-size: 12px;
+  color: var(--color-default-400);
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--color-default-200);
+  line-height: 1.4;
+  transition: all 0.15s;
+}
+
+.drp-mode-chip--active {
+  color: var(--color-primary-600);
+  border-color: var(--color-primary-200);
+  background: var(--color-primary-50);
+  font-weight: 600;
+}
+
+.drp-mode-sep {
+  font-size: 12px;
+  color: var(--color-default-300);
+}
+
+/* ============================================
+   react-datepicker overrides
+   ============================================ */
+
+.drp-calendar.react-datepicker {
+  border: none;
+  border-radius: 0;
+  font-family: inherit;
+  font-size: 13px;
+  background: #ffffff;
+  /* Lock to exactly 256px so calendar + drum overlay align perfectly */
+  width: 256px !important;
+  min-width: 256px !important;
+  max-width: 256px !important;
+  padding: 8px 8px 12px;
+  box-shadow: none;
+  box-sizing: border-box;
+}
+
+/* Header */
+.drp-calendar .react-datepicker__header {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.drp-calendar .react-datepicker__current-month,
+.drp-calendar .react-datepicker__navigation {
+  display: none;
+}
+
+/* Nav arrows */
+.drp-calendar .react-datepicker__navigation {
+  top: 14px;
+}
+
+.drp-calendar .react-datepicker__navigation-icon::before {
+  border-color: var(--color-default-500);
+  border-width: 2px 2px 0 0;
+}
+
+.drp-calendar
+  .react-datepicker__navigation:hover
+  .react-datepicker__navigation-icon::before {
+  border-color: var(--color-primary);
+}
+
+/* Month / Year dropdowns */
+.drp-calendar .react-datepicker__month-dropdown-container,
+.drp-calendar .react-datepicker__year-dropdown-container {
+  margin: 0 4px;
+}
+
+.drp-calendar .react-datepicker__month-read-view,
+.drp-calendar .react-datepicker__year-read-view {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-default-900);
+  border: 1px solid var(--color-default-200);
+  border-radius: 9999px;
+  padding: 8px 18px 8px 14px;
+  background: var(--color-default-50);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    background 0.15s;
+  min-width: 120px;
+  box-shadow: inset 0 0 0 1px transparent;
+}
+
+.drp-calendar .react-datepicker__month-read-view:hover,
+.drp-calendar .react-datepicker__year-read-view:hover {
+  border-color: var(--color-primary-300);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.drp-calendar .react-datepicker__month-read-view select,
+.drp-calendar .react-datepicker__year-read-view select {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+}
+
+.drp-calendar .react-datepicker__month-dropdown,
+.drp-calendar .react-datepicker__year-dropdown {
+  background: var(--color-background);
+  border: 1px solid var(--color-default-200);
+  border-radius: 16px;
+  box-shadow: 0 18px 50px color-mix(in srgb, var(--color-default-900) 8%, transparent);
+  font-size: 13px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+/* ============================================
+   iOS Drum-Roll Picker
+   ============================================ */
+
+/**
+ * .drp-drum-fade
+ * Wrapper for each drum column. Applies a top+bottom gradient mask so items
+ * outside the selection window fade out, giving the iOS "slot machine" look.
+ * The mask does NOT affect pointer events on the underlying scroll container.
+ */
+.drp-drum-fade {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 8%,
+    rgba(0, 0, 0, 0.4) 20%,
+    black 34%,
+    black 66%,
+    rgba(0, 0, 0, 0.4) 80%,
+    rgba(0, 0, 0, 0.1) 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.1) 8%,
+    rgba(0, 0, 0, 0.4) 20%,
+    black 34%,
+    black 66%,
+    rgba(0, 0, 0, 0.4) 80%,
+    rgba(0, 0, 0, 0.1) 92%,
+    transparent 100%
+  );
+}
+
+/**
+ * .drp-drum-scroll
+ * The actual scrollable list inside each drum column.
+ * Zero-width scrollbar, smooth scroll, snap-to-item.
+ */
+.drp-drum-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / Edge */
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+}
+
+.drp-drum-item {
+  scroll-snap-align: center;
+}
+
+.drp-drum-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+/* ── Keep legacy .month-picker-scroll / .year-picker-scroll working ── */
+.month-picker-scroll,
+.year-picker-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+}
+
+.month-picker-scroll::-webkit-scrollbar,
+.year-picker-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.month-picker-scroll button,
+.year-picker-scroll button {
+  scroll-snap-align: center;
+  min-height: 44px;
+  transition-property: background-color;
+  transition-duration: 150ms;
+}
+
+.month-picker-scroll button.bg-slate-100,
+.year-picker-scroll button.bg-slate-100 {
+  background-color: var(--color-default-50);
+}
+
+.drp-calendar .react-datepicker__month-option,
+.drp-calendar .react-datepicker__year-option {
+  padding: 10px 14px;
+  min-height: 40px;
+  line-height: 1.2;
+  color: var(--color-default-900);
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.drp-calendar .react-datepicker__year-option {
+  padding: 6px 12px;
+}
+
+.drp-calendar .react-datepicker__month-option:hover,
+.drp-calendar .react-datepicker__year-option:hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-600);
+}
+
+.drp-calendar .react-datepicker__month-read-view--down-arrow,
+.drp-calendar .react-datepicker__year-read-view--down-arrow {
+  border-color: var(--color-default-500);
+  border-width: 2px 2px 0 0;
+  top: 6px;
+}
+
+/* Day-of-week names */
+.drp-calendar .react-datepicker__day-names,
+.drp-calendar .react-datepicker__week {
+  display: grid;
+  grid-template-columns: repeat(7, 34px);
+  justify-content: center;
+  gap: 0;
+}
+
+.drp-calendar .react-datepicker__day-name {
+  color: var(--color-default-800);
+  font-size: 11px;
+  font-weight: 700;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ── Day cells base ── */
+.drp-calendar .react-datepicker__day {
+  width: 34px;
+  height: 34px;
+  margin: 0;
+  border-radius: 12px;
+  color: var(--color-default-700);
+  font-size: 13px;
+  font-weight: 500;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    transform 0.15s;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.drp-calendar .react-datepicker__day:hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  border-radius: 12px;
+  transform: translateY(-1px);
+}
+
+/* Today */
+.drp-calendar .react-datepicker__day--today {
+  font-weight: 700;
+  color: var(--color-primary-600);
+}
+
+/* Outside month */
+.drp-calendar .react-datepicker__day--outside-month {
+  color: var(--color-default-300);
+  pointer-events: none;
+}
+
+/* Keyboard selected */
+.drp-calendar .react-datepicker__day--keyboard-selected {
+  background: transparent;
+  color: inherit;
+}
+
+/* ── SELECTED / RANGE STYLING ── */
+.drp-calendar .react-datepicker__day--selected,
+.drp-calendar .react-datepicker__day.drp-day--selected-single,
+.drp-calendar .react-datepicker__day.drp-day--range-start,
+.drp-calendar .react-datepicker__day.drp-day--range-end {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+  font-weight: 600;
+  border-radius: 9999px !important;
+}
+
+.drp-calendar .react-datepicker__day--in-range,
+.drp-calendar .react-datepicker__day--in-selecting-range {
+  background: var(--color-primary-100) !important;
+  color: var(--color-primary-700) !important;
+  border-radius: 0 !important;
+}
+
+/* Hover state on already-selected/range days — keep styles */
+.drp-calendar .react-datepicker__day.drp-day--start:hover,
+.drp-calendar .react-datepicker__day.drp-day--end:hover {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+.drp-calendar .react-datepicker__day.drp-day--in-range:hover {
+  background: var(--color-primary-200) !important;
+  color: var(--color-primary-700) !important;
+}
+
+/* No triangle */
+.drp-calendar .react-datepicker__triangle {
+  display: none !important;
+}
+
+/* Week rows — remove default margin so strip connects edge-to-edge */
+.drp-calendar .react-datepicker__week {
+  display: grid;
+  grid-template-columns: repeat(7, 34px);
+  gap: 0;
+}
+
+.drp-calendar .react-datepicker__month {
+  margin: 4px 0 0;
+}
+
+/* ==========================================================================
+   Dynamic Color Themes
+   ========================================================================== */
+
+/* Primary theme */
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day--selected,
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day.drp-day--selected-single,
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day.drp-day--range-start,
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day.drp-day--range-end {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+}
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day--in-range,
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day--in-selecting-range {
+  background: var(--color-primary-100) !important;
+  color: var(--color-primary-700) !important;
+}
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day--today {
+  color: var(--color-primary-600) !important;
+}
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day:hover {
+  background: var(--color-primary-50) !important;
+  color: var(--color-primary-700) !important;
+}
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day.drp-day--range-start:hover,
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day.drp-day--range-end:hover {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+.drp-calendar-wrapper--primary .drp-calendar .react-datepicker__day.drp-day--in-range:hover {
+  background: var(--color-primary-200) !important;
+  color: var(--color-primary-700) !important;
+}
+
+/* Secondary theme */
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day--selected,
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day.drp-day--selected-single,
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day.drp-day--range-start,
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day.drp-day--range-end {
+  background: var(--color-secondary) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+}
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day--in-range,
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day--in-selecting-range {
+  background: var(--color-secondary-100) !important;
+  color: var(--color-secondary-700) !important;
+}
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day--today {
+  color: var(--color-secondary-600) !important;
+}
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day:hover {
+  background: var(--color-secondary-50) !important;
+  color: var(--color-secondary-700) !important;
+}
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day.drp-day--range-start:hover,
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day.drp-day--range-end:hover {
+  background: var(--color-secondary) !important;
+  color: #ffffff !important;
+}
+.drp-calendar-wrapper--secondary .drp-calendar .react-datepicker__day.drp-day--in-range:hover {
+  background: var(--color-secondary-200) !important;
+  color: var(--color-secondary-700) !important;
+}
+
+/* Success theme */
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day--selected,
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day.drp-day--selected-single,
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day.drp-day--range-start,
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day.drp-day--range-end {
+  background: var(--color-success) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+}
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day--in-range,
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day--in-selecting-range {
+  background: var(--color-success-100) !important;
+  color: var(--color-success-700) !important;
+}
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day--today {
+  color: var(--color-success-600) !important;
+}
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day:hover {
+  background: var(--color-success-50) !important;
+  color: var(--color-success-700) !important;
+}
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day.drp-day--range-start:hover,
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day.drp-day--range-end:hover {
+  background: var(--color-success) !important;
+  color: #ffffff !important;
+}
+.drp-calendar-wrapper--success .drp-calendar .react-datepicker__day.drp-day--in-range:hover {
+  background: var(--color-success-200) !important;
+  color: var(--color-success-700) !important;
+}
+
+/* Danger theme */
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day--selected,
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day.drp-day--selected-single,
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day.drp-day--range-start,
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day.drp-day--range-end {
+  background: var(--color-danger) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+}
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day--in-range,
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day--in-selecting-range {
+  background: var(--color-danger-100) !important;
+  color: var(--color-danger-700) !important;
+}
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day--today {
+  color: var(--color-danger-600) !important;
+}
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day:hover {
+  background: var(--color-danger-50) !important;
+  color: var(--color-danger-700) !important;
+}
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day.drp-day--range-start:hover,
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day.drp-day--range-end:hover {
+  background: var(--color-danger) !important;
+  color: #ffffff !important;
+}
+.drp-calendar-wrapper--danger .drp-calendar .react-datepicker__day.drp-day--in-range:hover {
+  background: var(--color-danger-200) !important;
+  color: var(--color-danger-700) !important;
+}
+
+/* Warning theme */
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day--selected,
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day.drp-day--selected-single,
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day.drp-day--range-start,
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day.drp-day--range-end {
+  background: var(--color-warning) !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+}
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day--in-range,
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day--in-selecting-range {
+  background: var(--color-warning-100) !important;
+  color: var(--color-warning-700) !important;
+}
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day--today {
+  color: var(--color-warning-600) !important;
+}
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day:hover {
+  background: var(--color-warning-50) !important;
+  color: var(--color-warning-700) !important;
+}
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day.drp-day--range-start:hover,
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day.drp-day--range-end:hover {
+  background: var(--color-warning) !important;
+  color: #ffffff !important;
+}
+.drp-calendar-wrapper--warning .drp-calendar .react-datepicker__day.drp-day--in-range:hover {
+  background: var(--color-warning-200) !important;
+  color: var(--color-warning-700) !important;
+}
+
+/* Default theme */
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day--selected,
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day.drp-day--selected-single,
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day.drp-day--range-start,
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day.drp-day--range-end {
+  background: #737373 !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+}
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day--in-range,
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day--in-selecting-range {
+  background: var(--color-default-100) !important;
+  color: var(--color-default-700) !important;
+}
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day--today {
+  color: #737373 !important;
+}
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day:hover {
+  background: var(--color-default-100) !important;
+  color: var(--color-default-900) !important;
+}
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day.drp-day--range-start:hover,
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day.drp-day--range-end:hover {
+  background: #737373 !important;
+  color: #ffffff !important;
+}
+.drp-calendar-wrapper--default .drp-calendar .react-datepicker__day.drp-day--in-range:hover {
+  background: var(--color-default-200) !important;
+  color: var(--color-default-800) !important;
+}
+
+/* ==========================================================================
+   Dark Mode Overrides for React DatePicker
+   ========================================================================== */
+
+.dark .drp-calendar.react-datepicker {
+  background: var(--color-content1) !important;
+  color: var(--color-foreground) !important;
+}
+
+.dark .react-datepicker__header {
+  background: transparent !important;
+}
+
+.dark .react-datepicker__day-name {
+  color: var(--color-default-700) !important;
+}
+
+.dark .react-datepicker__day {
+  color: var(--color-default-900) !important;
+}
+
+.dark .react-datepicker__day:hover {
+  background: var(--color-default-200) !important;
+  color: var(--color-default-900) !important;
+}
+
+.dark .react-datepicker__day--selected,
+.dark .react-datepicker__day.drp-day--selected-single,
+.dark .react-datepicker__day.drp-day--range-start,
+.dark .react-datepicker__day.drp-day--range-end {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+
+.dark .react-datepicker__day--in-range,
+.dark .react-datepicker__day--in-selecting-range {
+  background: var(--color-primary-100) !important;
+  color: var(--color-primary-700) !important;
+}
+
+.dark .react-datepicker__day--outside-month {
+  color: var(--color-default-300) !important;
+  opacity: 0.4;
+}
+
+.dark .react-datepicker__month-read-view,
+.dark .react-datepicker__year-read-view {
+  background: var(--color-default-100) !important;
+  border-color: var(--color-default-200) !important;
+  color: var(--color-default-900) !important;
+}
+
+.dark .react-datepicker__month-read-view:hover,
+.dark .react-datepicker__year-read-view:hover {
+  border-color: var(--color-primary-400) !important;
+}
+
+.dark .react-datepicker__month-dropdown,
+.dark .react-datepicker__year-dropdown {
+  background: var(--color-content1) !important;
+  border-color: var(--color-default-200) !important;
+}
+
+.dark .react-datepicker__month-option,
+.dark .react-datepicker__year-option {
+  color: var(--color-default-900) !important;
+}
+
+.dark .react-datepicker__month-option:hover,
+.dark .react-datepicker__year-option:hover {
+  background: var(--color-primary-100) !important;
+  color: var(--color-primary-700) !important;
+}
+
+.dark .react-datepicker__navigation-icon::before {
+  border-color: var(--color-default-700) !important;
+}
+
+.dark .react-datepicker__navigation:hover .react-datepicker__navigation-icon::before {
+  border-color: var(--color-primary) !important;
+}
+

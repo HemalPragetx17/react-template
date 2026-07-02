@@ -1,0 +1,22 @@
+.indented-cell-depth-1 { padding-left: 3rem !important; }
+.indented-cell-depth-2 { padding-left: 4.5rem !important; }
+
+.table-row-clickable {
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.table-row-clickable:hover {
+    color: var(--bs-table-hover-color) !important;
+    background-color: var(--bs-table-hover-bg) !important;
+}
+
+.table-hover-same-color {
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.table-hover-same-color:hover {
+    color: var(--bs-table-hover-color) !important;
+    background-color: rgba(0, 0, 0, 0.08) !important;
+}

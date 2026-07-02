@@ -1,0 +1,1530 @@
+import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useTransform,
+} from "framer-motion";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { createPortal } from "react-dom";
+import {
+  FaCalendar,
+  FaChevronDown,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
+import { FaXmark } from "react-icons/fa6";
+import Button from "../../button/Button";
+import "./index.css";
+
+/* -------------------------------------------------------------------------- */
+/*                                   Types                                    */
+/* -------------------------------------------------------------------------- */
+
+type PickerVariant = "flat" | "bordered" | "underlined" | "faded";
+type PickerSize = "sm" | "md" | "lg";
+type PickerRadius = "none" | "sm" | "md" | "lg" | "full";
+type PickerColor =
+  | "default"
+  | "primary"
+  | "secondary"
+  | "success"
+  | "warning"
+  | "danger";
+type PickerLabelPlacement = "inside" | "outside" | "outside-left" | "outside-top" | "outlined";
+
+export interface DateInputProps {
+  label?: string;
+  placeholder?: string;
+  selectsRange?: boolean;
+  isClearable?: boolean;
+  disabled?: boolean;
+  endDateName?: string;
+
+  // Custom static props if not using Formik
+  value?: any;
+  onChange?: ((dateOrRange: any) => void) | any;
+  onRangeChange?: (startDate: Date | null, endDate: Date | null) => void;
+
+  error?: string;
+  touched?: boolean;
+
+  // Premium HeroUI-style tokens
+  variant?: PickerVariant;
+  size?: PickerSize;
+  radius?: PickerRadius;
+  color?: PickerColor;
+  labelPlacement?: PickerLabelPlacement;
+
+  containerClassName?: string;
+  labelClassName?: string;
+  errorClassName?: string;
+  enableMonthYearPicker?: boolean;
+
+  // Formik integration
+  field?: FieldInputProps<any>;
+  form?: {
+    values: any;
+    errors: FormikErrors<any>;
+    touched: FormikTouched<any>;
+    setFieldValue?: (field: string, value: any, shouldValidate?: boolean) => void;
+    setFieldTouched?: (field: string, isTouched?: boolean, shouldValidate?: boolean) => void;
+    setValues?: (values: any, shouldValidate?: boolean) => void;
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Tokens & Helpers                              */
+/* -------------------------------------------------------------------------- */
+
+const radiusMap: Record<PickerRadius, string> = {
+  none: "rounded-none",
+  sm: "rounded-sm",
+  md: "rounded-md",
+  lg: "rounded-lg",
+  full: "rounded-full",
+};
+
+const monthOptions = [
+  { value: 0, label: "January" },
+  { value: 1, label: "February" },
+  { value: 2, label: "March" },
+  { value: 3, label: "April" },
+  { value: 4, label: "May" },
+  { value: 5, label: "June" },
+  { value: 6, label: "July" },
+  { value: 7, label: "August" },
+  { value: 8, label: "September" },
+  { value: 9, label: "October" },
+  { value: 10, label: "November" },
+  { value: 11, label: "December" },
+];
+
+const yearOptions = Array.from({ length: 60 }, (_, index) => {
+  const year = new Date().getFullYear() - 40 + index;
+  return { value: year, label: String(year) };
+});
+
+function stripTime(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function toLocalYYYYMMDD(date: Date): string {
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function isSameDate(a: Date | null, b: Date | null): boolean {
+  return (
+    !!a &&
+    !!b &&
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function formatDateDisplay(date: Date | null): string {
+  if (!date) return "";
+  return date.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatDisplayRange(start: Date | null, end: Date | null): string {
+  if (!start && !end) return "";
+  if (start && !end) return formatDateDisplay(start);
+  return `${formatDateDisplay(start)} – ${formatDisplayRange(end, null)}`;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Subcomponents                                 */
+/* -------------------------------------------------------------------------- */
+
+const applyImportant = (classes: string) => {
+  return classes
+    .split(" ")
+    .map((cls) => {
+      if (cls.includes(":")) {
+        const parts = cls.split(":");
+        const last = parts.pop();
+        return [...parts, `!${last}`].join(":");
+      }
+      return `!${cls}`;
+    })
+    .join(" ");
+};
+
+function CalendarIcon({ colorClass }: { colorClass?: string }) {
+  return (
+    <FaCalendar className={`w-4 h-4 shrink-0 transition-colors ${colorClass || "text-neutral-600 dark:text-neutral-350 group-hover:text-neutral-800 dark:group-hover:text-neutral-100"}`} aria-hidden />
+  );
+}
+
+function ClearIcon({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
+  return (
+    <Button
+      color="default"
+      size="xs"
+      variant="flat"
+      radius="full"
+      isIconOnly
+      tabIndex={-1}
+      onClick={onClick}
+    >
+      <FaXmark className="w-3.5 h-3.5" aria-hidden />
+    </Button>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*                         iOS Drum-Roll Picker Hook                          */
+/* -------------------------------------------------------------------------- */
+
+const ITEM_HEIGHT = 44; // px — height of each row in the drum
+const VISIBLE_ITEMS = 7; // must be odd so center = selected — 7 rows covers calendar date grid
+const DRUM_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 308px
+
+/**
+ * useDrumPicker
+ * - Trackpad: native scroll + CSS scroll-snap
+ * - Mouse wheel: exactly one item per notch (passive:false wheel handler)
+ * - Scroll-end: instant snap (no spring); spring reserved for click only
+ */
+function useDrumPicker<T extends { value: number; label: string }>(
+  items: T[],
+  currentValue: number,
+  onChange: (value: number) => void,
+) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const programmaticRef = useRef(false);
+  const lastEmittedRef = useRef<number | null>(null);
+  const scrollY = useMotionValue(0);
+  const PADDING = ((VISIBLE_ITEMS - 1) / 2) * ITEM_HEIGHT;
+
+  const indexToScrollTop = useCallback((idx: number) => idx * ITEM_HEIGHT, []);
+
+  const scrollTopToIndex = useCallback(
+    (scrollTop: number) => Math.round(scrollTop / ITEM_HEIGHT),
+    [],
+  );
+
+  const snapToIndex = useCallback(
+    (idx: number) => {
+      const el = containerRef.current;
+      if (!el) return -1;
+
+      const clamped = Math.max(0, Math.min(idx, items.length - 1));
+      const target = indexToScrollTop(clamped);
+
+      programmaticRef.current = true;
+      el.scrollTop = target;
+      scrollY.set(target);
+      programmaticRef.current = false;
+
+      return clamped;
+    },
+    [indexToScrollTop, scrollY, items.length],
+  );
+
+  const animateToIndex = useCallback(
+    (idx: number) => {
+      const el = containerRef.current;
+      if (!el) return;
+
+      const target = indexToScrollTop(idx);
+      programmaticRef.current = true;
+
+      animate(scrollY, target, {
+        type: "spring",
+        stiffness: 140,
+        damping: 24,
+        mass: 0.8,
+        restDelta: 0.2,
+        restSpeed: 0.2,
+        onUpdate: (v) => {
+          if (el) el.scrollTop = v;
+        },
+        onComplete: () => {
+          programmaticRef.current = false;
+        },
+      });
+    },
+    [indexToScrollTop, scrollY],
+  );
+
+  const emitChange = useCallback(
+    (idx: number) => {
+      const item = items[idx];
+      if (!item || item.value === currentValue) return;
+      lastEmittedRef.current = item.value;
+      onChange(item.value);
+    },
+    [items, currentValue, onChange],
+  );
+
+  /* Sync scroll position only for external value changes (break onChange loop). */
+  useEffect(() => {
+    if (lastEmittedRef.current === currentValue) {
+      lastEmittedRef.current = null;
+      return;
+    }
+
+    const idx = items.findIndex((it) => it.value === currentValue);
+    if (idx === -1) return;
+
+    const el = containerRef.current;
+    if (!el) return;
+
+    if (scrollTopToIndex(el.scrollTop) === idx) return;
+
+    programmaticRef.current = true;
+    el.scrollTop = indexToScrollTop(idx);
+    scrollY.set(indexToScrollTop(idx));
+    programmaticRef.current = false;
+  }, [currentValue, items, indexToScrollTop, scrollTopToIndex, scrollY]);
+
+  const handleScroll = useCallback(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    scrollY.set(el.scrollTop);
+    if (programmaticRef.current) return;
+
+    if (scrollTimerRef.current) clearTimeout(scrollTimerRef.current);
+
+    scrollTimerRef.current = setTimeout(() => {
+      if (programmaticRef.current) return;
+
+      const idx = Math.max(
+        0,
+        Math.min(scrollTopToIndex(el.scrollTop), items.length - 1),
+      );
+
+      snapToIndex(idx);
+      emitChange(idx);
+    }, 80);
+  }, [scrollY, scrollTopToIndex, items.length, snapToIndex, emitChange]);
+
+  const handleWheel = useCallback(
+    (e: WheelEvent) => {
+      const el = containerRef.current;
+      if (!el) return;
+
+      const isLineOrPage =
+        e.deltaMode === WheelEvent.DOM_DELTA_LINE ||
+        e.deltaMode === WheelEvent.DOM_DELTA_PAGE;
+      const isLargePixelDelta =
+        e.deltaMode === WheelEvent.DOM_DELTA_PIXEL && Math.abs(e.deltaY) >= 40;
+
+      /* Trackpad: small pixel deltas — let native scroll + CSS snap handle it. */
+      if (!isLineOrPage && !isLargePixelDelta) return;
+
+      e.preventDefault();
+
+      const direction = e.deltaY > 0 ? 1 : -1;
+      const currentIdx = scrollTopToIndex(el.scrollTop);
+      const nextIdx = Math.max(
+        0,
+        Math.min(currentIdx + direction, items.length - 1),
+      );
+
+      snapToIndex(nextIdx);
+      emitChange(nextIdx);
+    },
+    [scrollTopToIndex, items.length, snapToIndex, emitChange],
+  );
+
+  const handleItemClick = useCallback(
+    (idx: number) => {
+      animateToIndex(idx);
+      emitChange(idx);
+    },
+    [animateToIndex, emitChange],
+  );
+
+  return {
+    containerRef,
+    handleScroll,
+    handleWheel,
+    handleItemClick,
+    scrollY,
+    PADDING,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/*                           DateInput Component                       */
+/* -------------------------------------------------------------------------- */
+
+const DateInput: React.FC<DateInputProps> = ({
+  field,
+  form,
+  label,
+  placeholder,
+  selectsRange = false,
+  isClearable = false,
+  disabled = false,
+  value,
+  onChange,
+  onRangeChange,
+  error,
+  touched,
+  endDateName,
+
+  variant = "bordered",
+  size = "md",
+  radius = "md",
+  color = "primary",
+  labelPlacement = "outside",
+
+  containerClassName = "",
+  labelClassName = "",
+  errorClassName = "",
+
+  enableMonthYearPicker = true,
+}) => {
+  const resolvedVariant = labelPlacement === "outlined" ? "bordered" : variant;
+
+  // Color-specific configurations
+  const flatColorClasses = {
+    default: "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 focus-within:bg-neutral-200 dark:focus-within:bg-neutral-700 text-foreground",
+    primary: "bg-primary-50 dark:bg-primary-950/20 hover:bg-primary-100 dark:hover:bg-primary-950/40 focus-within:bg-primary-100 dark:focus-within:bg-primary-950/40 text-primary",
+    secondary: "bg-secondary-50 dark:bg-secondary-950/20 hover:bg-secondary-100 dark:hover:bg-secondary-950/40 focus-within:bg-secondary-100 dark:focus-within:bg-secondary-950/40 text-secondary",
+    success: "bg-success-50 dark:bg-success-950/20 hover:bg-success-100 dark:hover:bg-success-950/40 focus-within:bg-success-100 dark:focus-within:bg-success-950/40 text-success",
+    warning: "bg-warning-50 dark:bg-warning-950/20 hover:bg-warning-100 dark:hover:bg-warning-950/40 focus-within:bg-warning-100 dark:focus-within:bg-warning-950/40 text-warning",
+    danger: "bg-danger-50 dark:bg-danger-950/20 hover:bg-danger-100 dark:hover:bg-danger-950/40 focus-within:bg-danger-100 dark:focus-within:bg-danger-950/40 text-danger",
+  };
+
+  const borderedColorClasses = {
+    default: "border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 focus-within:border-neutral-500 dark:focus-within:border-neutral-500 text-foreground",
+    primary: "border-neutral-300 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-400 focus-within:border-primary text-primary",
+    secondary: "border-neutral-300 dark:border-neutral-700 hover:border-secondary-300 dark:hover:border-secondary-400 focus-within:border-secondary text-secondary",
+    success: "border-neutral-300 dark:border-neutral-700 hover:border-success-300 dark:hover:border-success-400 focus-within:border-success text-success",
+    warning: "border-neutral-300 dark:border-neutral-700 hover:border-warning-300 dark:hover:border-warning-400 focus-within:border-warning text-warning",
+    danger: "border-neutral-300 dark:border-neutral-700 hover:border-danger-300 dark:hover:border-danger-400 focus-within:border-danger text-danger",
+  };
+
+  const underlinedColorClasses = {
+    default: "border-b-neutral-200 focus-within:border-b-neutral-500 text-foreground",
+    primary: "border-b-primary-200 focus-within:border-b-primary text-primary",
+    secondary: "border-b-secondary-200 focus-within:border-b-secondary text-secondary",
+    success: "border-b-success-200 focus-within:border-b-success text-success",
+    warning: "border-b-warning-200 focus-within:border-b-warning text-warning",
+    danger: "border-b-danger-200 focus-within:border-b-danger text-danger",
+  };
+
+  const fadedColorClasses = {
+    default: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-neutral-400 text-foreground",
+    primary: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-primary text-primary",
+    secondary: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-secondary text-secondary",
+    success: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-success text-success",
+    warning: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-warning text-warning",
+    danger: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-danger text-danger",
+  };
+
+  const focusTextColors = {
+    default: "text-foreground",
+    primary: "text-primary",
+    secondary: "text-secondary-700 dark:text-secondary",
+    success: "text-success",
+    warning: "text-warning",
+    danger: "text-danger",
+  };
+
+  const underlineColors = {
+    default: "bg-neutral-500",
+    primary: "bg-primary",
+    secondary: "bg-secondary",
+    success: "bg-success",
+    warning: "bg-warning",
+    danger: "bg-danger",
+  };
+
+  const focusBorderColors = {
+    default: "border-neutral-500",
+    primary: "border-primary",
+    secondary: "border-secondary-700 dark:border-secondary",
+    success: "border-success",
+    warning: "border-warning",
+    danger: "border-danger",
+  };
+
+  const fieldsetBorderColors = {
+    default: "border-neutral-300 dark:border-neutral-700 group-hover:border-neutral-400 dark:group-hover:border-neutral-500 focus-within:border-neutral-500",
+    primary: "border-neutral-300 dark:border-neutral-700 group-hover:border-primary-300 dark:group-hover:border-primary-800 focus-within:border-primary",
+    secondary: "border-neutral-300 dark:border-neutral-700 group-hover:border-secondary-300 dark:group-hover:border-secondary-800 focus-within:border-secondary",
+    success: "border-neutral-300 dark:border-neutral-700 group-hover:border-success-300 dark:group-hover:border-success-800 focus-within:border-success",
+    warning: "border-neutral-300 dark:border-neutral-700 group-hover:border-warning-300 dark:group-hover:border-warning-800 focus-within:border-warning",
+    danger: "border-neutral-300 dark:border-neutral-700 group-hover:border-danger-300 dark:group-hover:border-danger-800 focus-within:border-danger",
+  };
+
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const [dropdownCoords, setDropdownCoords] = useState<{
+    top: number | "auto";
+    bottom: number | "auto";
+    left: number;
+    position: "top" | "bottom";
+  } | null>(null);
+
+  const updateCoords = useCallback(() => {
+    if (!wrapperRef.current) return;
+    const rect = wrapperRef.current.getBoundingClientRect();
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const dropdownHeight = 370; // standard calendar height + margin
+
+    let top: number | "auto" = 0;
+    let bottom: number | "auto" = "auto";
+    let position: "top" | "bottom" = "bottom";
+
+    if (spaceBelow < dropdownHeight && rect.top > spaceBelow) {
+      top = "auto";
+      bottom = window.innerHeight - rect.top - 16;
+      position = "top";
+    } else {
+      top = rect.bottom + 6;
+      bottom = "auto";
+      position = "bottom";
+    }
+
+    const popoverWidth = 256;
+    let left = rect.left;
+    if (left + popoverWidth > window.innerWidth) {
+      left = window.innerWidth - popoverWidth - 12;
+    }
+    if (left < 12) left = 12;
+
+    setDropdownCoords({
+      top,
+      bottom,
+      left,
+      position,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener("scroll", updateCoords, true);
+      window.addEventListener("resize", updateCoords);
+      return () => {
+        window.removeEventListener("scroll", updateCoords, true);
+        window.removeEventListener("resize", updateCoords);
+      };
+    }
+  }, [isOpen, updateCoords]);
+
+  // Field Name extraction
+  const fieldName = field?.name || "";
+
+  // Resolved values
+  const parseDate = (val: any): Date | null => {
+    if (!val) return null;
+    if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+    const parsed = new Date(val);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const resolvedValue = value !== undefined ? value : field?.value;
+
+  const startDate = selectsRange
+    ? endDateName
+      ? parseDate(resolvedValue)
+      : Array.isArray(resolvedValue)
+        ? parseDate(resolvedValue[0])
+        : null
+    : parseDate(resolvedValue);
+
+  const endDate = selectsRange
+    ? endDateName
+      ? parseDate(form?.values?.[endDateName])
+      : Array.isArray(resolvedValue)
+        ? parseDate(resolvedValue[1])
+        : null
+    : null;
+
+  const hasValue = selectsRange ? !!(startDate && endDate) : !!startDate;
+  const displayString = selectsRange
+    ? formatDisplayRange(startDate, endDate)
+    : formatDateDisplay(startDate);
+
+  const isOutlined = labelPlacement === "outlined";
+  const isFloating = labelPlacement === "inside" || labelPlacement === "outside";
+  const shouldFloat = isOpen || hasValue || (isFloating && !!placeholder) || (isOutlined && !!placeholder);
+  const resolvedPlaceholder = placeholder || (isFloating || isOutlined ? "" : "Select Date");
+
+  const sizeConfigs = {
+    sm: {
+      wrapperPadding: labelPlacement === "inside" && label ? "py-1 px-2.5" : "py-1.5 px-2.5",
+      textSize: "text-xs",
+      labelSize: "text-[10px]",
+      insideHeight: "h-12",
+      outsideHeight: "h-10",
+      floatY: labelPlacement === "inside" && label ? -20 : -10,
+      floatX: labelPlacement === "inside" && label ? -2 : 0,
+      initialY: -8,
+      initialX: -1,
+      floatYOutside: -41,
+      floatXOutside: -14,
+      floatScale: 0.83,
+      outlinedFloatY: -28.5,
+      outlinedInitialY: -8,
+    },
+    md: {
+      wrapperPadding: labelPlacement === "inside" && label ? "py-1.5 px-3" : "py-2.5 px-3",
+      textSize: "text-sm",
+      labelSize: "text-xs",
+      insideHeight: "h-14",
+      outsideHeight: "h-12",
+      floatY: labelPlacement === "inside" && label ? -23 : -12,
+      floatX: labelPlacement === "inside" && label ? 0 : 0,
+      initialY: -10,
+      initialX: 1,
+      floatYOutside: -47,
+      floatXOutside: -14,
+      floatScale: 0.85,
+      outlinedFloatY: -35,
+      outlinedInitialY: -10,
+    },
+    lg: {
+      wrapperPadding: labelPlacement === "inside" && label ? "py-2 px-4" : "py-3.5 px-4",
+      textSize: "text-base",
+      labelSize: "text-sm",
+      insideHeight: "h-16",
+      outsideHeight: "h-14",
+      floatY: labelPlacement === "inside" && label ? -26 : -14,
+      floatX: labelPlacement === "inside" && label ? 4 : 0,
+      initialY: -12,
+      initialX: 5,
+      floatYOutside: -54,
+      floatXOutside: -14,
+      floatScale: 0.87,
+      outlinedFloatY: -41,
+      outlinedInitialY: -12,
+    },
+  };
+
+  const sz = sizeConfigs[size] || sizeConfigs.md;
+
+  // Determine Formik errors / touched state safely
+  const startError =
+    fieldName && form?.errors?.[fieldName]
+      ? String(form.errors[fieldName])
+      : error;
+  const startTouched = fieldName && form?.touched?.[fieldName] ? true : touched;
+
+  const endError =
+    endDateName && form?.errors?.[endDateName]
+      ? String(form.errors[endDateName])
+      : undefined;
+  const endTouched = endDateName && form?.touched?.[endDateName] ? true : false;
+
+  // Since it's a range picker, if either field is touched, we treat the whole component as touched.
+  const isTouched = selectsRange ? (startTouched || endTouched) : startTouched;
+
+  const fieldError = isTouched ? (startError || endError) : undefined;
+  const hasError = !!fieldError;
+
+  // Track if the picker has been opened to set touched when closed
+  const wasOpenedRef = useRef(false);
+  useEffect(() => {
+    if (isOpen) {
+      wasOpenedRef.current = true;
+    } else if (wasOpenedRef.current) {
+      if (form?.setFieldTouched && fieldName) {
+        form.setFieldTouched(fieldName, true);
+        if (endDateName) {
+          form.setFieldTouched(endDateName, true);
+        }
+      }
+    }
+  }, [isOpen, fieldName, endDateName, form]);
+
+  // Click outside listener
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node;
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(target) &&
+        calendarRef.current &&
+        !calendarRef.current.contains(target)
+      ) {
+        if (isOpen) {
+          setIsOpen(false);
+        }
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  // Date selection change event
+  const handleDateChange = (dates: any) => {
+    if (selectsRange) {
+      const [start, end] = Array.isArray(dates) ? dates : [dates, null];
+      const cleanStart = start ? stripTime(start) : null;
+      const cleanEnd = end ? stripTime(end) : null;
+
+      if (endDateName) {
+        const formattedStart = cleanStart ? toLocalYYYYMMDD(cleanStart) : null;
+        const formattedEnd = cleanEnd ? toLocalYYYYMMDD(cleanEnd) : null;
+
+        if (form?.setValues) {
+          form.setValues({
+            ...form.values,
+            [fieldName]: formattedStart,
+            [endDateName]: formattedEnd,
+          });
+        } else if (form?.setFieldValue && fieldName) {
+          form.setFieldValue(fieldName, formattedStart);
+          form.setFieldValue(endDateName, formattedEnd);
+        }
+        onRangeChange?.(cleanStart, cleanEnd);
+        if (onChange) onChange([formattedStart, formattedEnd]);
+
+        if (cleanStart && cleanEnd) {
+          if (form?.setFieldTouched) {
+            form.setFieldTouched(fieldName, true, false);
+            form.setFieldTouched(endDateName, true, false);
+          }
+          setTimeout(() => setIsOpen(false), 80);
+        }
+      } else {
+        const valArr = [
+          cleanStart ? toLocalYYYYMMDD(cleanStart) : null,
+          cleanEnd ? toLocalYYYYMMDD(cleanEnd) : null,
+        ];
+
+        if (form?.setFieldValue && fieldName) {
+          form.setFieldValue(fieldName, valArr);
+        }
+        onRangeChange?.(cleanStart, cleanEnd);
+        if (onChange) onChange(valArr);
+
+        if (cleanStart && cleanEnd) {
+          if (form?.setFieldTouched && fieldName) {
+            form.setFieldTouched(fieldName, true, false);
+          }
+          setTimeout(() => setIsOpen(false), 80);
+        }
+      }
+    } else {
+      const singleDate = Array.isArray(dates) ? dates[0] : dates;
+      const cleanDate = singleDate ? stripTime(singleDate) : null;
+      const valStr = cleanDate ? toLocalYYYYMMDD(cleanDate) : "";
+
+      if (form?.setFieldValue && fieldName) {
+        form.setFieldValue(fieldName, valStr);
+        if (form.setFieldTouched) {
+          form.setFieldTouched(fieldName, true, false);
+        }
+      } else if (field?.onChange) {
+        const syntheticEvent = {
+          target: { name: fieldName, value: valStr },
+        } as unknown as React.ChangeEvent<HTMLInputElement>;
+        field.onChange(syntheticEvent);
+      }
+      if (onChange) onChange(valStr);
+
+      setTimeout(() => setIsOpen(false), 80);
+    }
+  };
+
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (selectsRange) {
+      if (endDateName) {
+        if (form?.setValues) {
+          form.setValues({
+            ...form.values,
+            [fieldName]: null,
+            [endDateName]: null,
+          });
+          if (form.setFieldTouched) {
+            form.setFieldTouched(fieldName, true, false);
+            form.setFieldTouched(endDateName, true, false);
+          }
+        } else if (form?.setFieldValue && fieldName) {
+          form.setFieldValue(fieldName, null);
+          form.setFieldValue(endDateName, null);
+          if (form.setFieldTouched) {
+            form.setFieldTouched(fieldName, true, false);
+            form.setFieldTouched(endDateName, true, false);
+          }
+        }
+        onRangeChange?.(null, null);
+        if (onChange) onChange([null, null]);
+      } else {
+        if (form?.setFieldValue && fieldName) {
+          form.setFieldValue(fieldName, []);
+          if (form.setFieldTouched) {
+            form.setFieldTouched(fieldName, true, false);
+          }
+        }
+        onRangeChange?.(null, null);
+        if (onChange) onChange([]);
+      }
+    } else {
+      if (form?.setFieldValue && fieldName) {
+        form.setFieldValue(fieldName, "");
+        if (form.setFieldTouched) {
+          form.setFieldTouched(fieldName, true, false);
+        }
+      } else if (field?.onChange) {
+        const syntheticEvent = {
+          target: { name: fieldName, value: "" },
+        } as unknown as React.ChangeEvent<HTMLInputElement>;
+        field.onChange(syntheticEvent);
+      }
+      if (onChange) onChange("");
+    }
+  };
+
+  const variantClass = isOutlined
+    ? "bg-transparent border-none"
+    : resolvedVariant === "flat"
+      ? `border-2 border-transparent ${flatColorClasses[color] || flatColorClasses.default}`
+      : resolvedVariant === "bordered"
+        ? `border-2 ${borderedColorClasses[color] || borderedColorClasses.default}`
+        : resolvedVariant === "underlined"
+          ? `border-b rounded-none relative ${underlinedColorClasses[color] || underlinedColorClasses.default}`
+          : `border-2 ${fadedColorClasses[color] || fadedColorClasses.default}`;
+  const radiusClass =
+    resolvedVariant === "underlined" ? "rounded-none" : radiusMap[radius];
+
+  const isOutsideLeft = labelPlacement === "outside-left";
+
+  const renderOutsideLabel = () => {
+    if (!label || isFloating || isOutlined) return null;
+    return (
+      <label
+        htmlFor={fieldName}
+        className={`block font-medium select-none transition-colors duration-200 ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
+          } ${sz.labelSize} ${labelClassName} ${
+            isOpen && color !== "default"
+              ? (focusTextColors[color] || "text-primary")
+              : isOpen
+                ? "text-neutral-800 dark:text-neutral-200"
+                : "text-neutral-700 dark:text-neutral-300"
+          }`}
+      >
+        {label}
+      </label>
+    );
+  };
+
+  const [showMonthYearPicker, setShowMonthYearPicker] = useState(false);
+
+  /* -------------------------------------------------------------------------- */
+  /* CUSTOM HEADER */
+  /* -------------------------------------------------------------------------- */
+
+  const renderHeader = ({
+    date,
+    decreaseMonth,
+    increaseMonth,
+    prevMonthButtonDisabled,
+    nextMonthButtonDisabled,
+    changeMonth,
+    changeYear,
+  }: any) => {
+    const currentMonth = date.getMonth();
+    const currentYear = date.getFullYear();
+
+    const monthYearLabel = `${date.toLocaleString("en-US", {
+      month: "short",
+    })} ${currentYear}`;
+
+    return (
+      <div className="relative flex flex-col bg-white dark:bg-content1">
+        {/* HEADER ROW */}
+        <div className="relative flex items-center justify-between w-full px-2 pt-3 pb-2">
+          {/* LEFT */}
+          <div className="flex items-center justify-center w-9 h-9">
+            <AnimatePresence mode="wait">
+              {!showMonthYearPicker && (
+                <motion.button
+                  key="prev-btn"
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.92 }}
+                  transition={{ duration: 0.15 }}
+                  type="button"
+                  onClick={decreaseMonth}
+                  disabled={prevMonthButtonDisabled}
+                  className="
+                  flex items-center justify-center
+                  w-9 h-9
+                  rounded-full
+                  border border-default-200
+                  bg-default-50
+                  text-default-600
+                  hover:bg-default-100
+                  disabled:opacity-40
+                  transition-colors
+                "
+                >
+                  <FaChevronLeft className="w-4 h-4" aria-hidden />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* MONTH YEAR BUTTON */}
+          <div className="relative flex-1 flex justify-center">
+            {enableMonthYearPicker ? (
+              <>
+                <motion.button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMonthYearPicker((prev) => !prev);
+                  }}
+                  whileTap={{ scale: 0.96 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 24,
+                  }}
+                  className={`
+          inline-flex items-center justify-center gap-2
+          px-4 py-2
+          text-sm font-semibold
+          transition-all duration-300 ease-out
+
+          ${showMonthYearPicker
+                      ? `
+                rounded-full
+                border border-default-200
+                bg-default-100
+                shadow-none
+                text-default-900
+              `
+                      : `
+                rounded-full
+                border border-default-200
+                bg-default-50
+                shadow-sm
+                text-default-900
+                hover:bg-default-100
+              `
+                    }
+        `}
+                >
+                  <motion.span
+                    key={monthYearLabel}
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 380,
+                      damping: 26,
+                    }}
+                  >
+                    {monthYearLabel}
+                  </motion.span>
+
+                  <motion.div
+                    className="w-3.5 h-3.5 flex items-center justify-center"
+                    animate={{
+                      rotate: showMonthYearPicker ? 180 : 0,
+                    }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 320,
+                      damping: 24,
+                    }}
+                  >
+                    <FaChevronDown className="w-3.5 h-3.5" aria-hidden />
+                  </motion.div>
+                </motion.button>
+
+                {/* DRUM OVERLAY */}
+                <AnimatePresence>
+                  {showMonthYearPicker && (
+                    <motion.div
+                      initial={{
+                        opacity: 0,
+                        y: -8,
+                        scale: 0.98,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                        scale: 1,
+                      }}
+                      exit={{
+                        opacity: 0,
+                        y: -8,
+                        scale: 0.98,
+                      }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 320,
+                        damping: 28,
+                      }}
+                      style={{
+                        position: "absolute",
+                        left: "50%",
+                        top: "calc(100% + 8px)",
+                        x: "-50%",
+                        zIndex: 50,
+                      }}
+                    >
+                      <DrumOverlay
+                        currentMonth={currentMonth}
+                        currentYear={currentYear}
+                        onMonthChange={(m) => {
+                          changeMonth(m);
+                        }}
+                        onYearChange={(y) => {
+                          changeYear(y);
+                        }}
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
+            ) : (
+              <div
+                className="
+        inline-flex items-center justify-center
+        px-4 py-2
+        text-sm font-semibold
+        rounded-full
+        border border-default-200
+        bg-default-50
+        text-default-900
+      "
+              >
+                {monthYearLabel}
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT */}
+          <div className="flex items-center justify-center w-9 h-9">
+            <AnimatePresence mode="wait">
+              {!showMonthYearPicker && (
+                <motion.button
+                  key="next-btn"
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.92 }}
+                  transition={{ duration: 0.15 }}
+                  type="button"
+                  onClick={increaseMonth}
+                  disabled={nextMonthButtonDisabled}
+                  className="
+                  flex items-center justify-center
+                  w-9 h-9
+                  rounded-full
+                  border border-default-200
+                  bg-default-50
+                  text-default-600
+                  hover:bg-default-100
+                  disabled:opacity-40
+                  transition-colors
+                "
+                >
+                  <FaChevronRight className="w-4 h-4" aria-hidden />
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const getDayClass = (date: Date) => {
+    const cleanDate = stripTime(date);
+    if (selectsRange) {
+      if (isSameDate(cleanDate, startDate)) return "drp-day--range-start";
+      if (isSameDate(cleanDate, endDate)) return "drp-day--range-end";
+      if (startDate && endDate && cleanDate > startDate && cleanDate < endDate)
+        return "drp-day--in-range";
+    } else {
+      if (isSameDate(cleanDate, startDate)) return "drp-day--selected-single";
+    }
+    return "";
+  };
+
+  return (
+    <div className={`w-full flow-root ${containerClassName}`} ref={wrapperRef}>
+      <div
+        className={isOutsideLeft ? "flex items-center gap-3 w-full" : "w-full"}
+      >
+        {renderOutsideLabel()}
+
+        <div
+          className={`
+            relative flex items-center justify-between w-full transition-all duration-200 ease-in-out select-none box-border group
+            ${variantClass}
+            ${radiusClass}
+            ${sz.wrapperPadding}
+            ${labelPlacement === "inside" ? sz.insideHeight : `${sz.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`}
+            ${hasError && !isOutlined ? "!border-danger" : ""}
+            ${isOpen && !hasError && !isOutlined
+              ? resolvedVariant === "bordered" || resolvedVariant === "faded"
+                ? applyImportant(focusBorderColors[color] || "border-primary")
+                : ""
+              : ""
+            }
+            ${disabled ? "opacity-50 cursor-default" : "cursor-pointer"}
+          `}
+          onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        >
+          {/* ── Outlined Fieldset Border + Legend Notch ────────────────────── */}
+          {isOutlined && (
+            <fieldset
+              className={`
+                absolute inset-0 pointer-events-none transition-all duration-200 m-0 p-0
+                ${radiusClass}
+                ${hasError
+                  ? "border-2 border-red-500 dark:border-red-500"
+                  : isOpen
+                    ? `border-2 ${focusBorderColors[color] || "border-primary"}`
+                    : `border-2 ${fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700 group-hover:border-neutral-400 dark:group-hover:border-neutral-500"}`
+                }
+              `}
+            >
+              {label && (
+                <legend
+                  className={`
+                    ml-2 font-medium transition-all duration-200 ease-out block whitespace-nowrap overflow-hidden invisible
+                    ${shouldFloat || isOpen || hasValue ? "max-w-full px-1" : "max-w-0 px-0"}
+                  `}
+                  style={{
+                    fontSize: `${size === "sm" ? 9 : size === "lg" ? 12 : 10.5}px`,
+                    height: 0,
+                  }}
+                >
+                  <span>{label}</span>
+                </legend>
+              )}
+            </fieldset>
+          )}
+
+          {/* Floating Label */}
+          {(isFloating || isOutlined) && label && (
+            <motion.label
+              htmlFor={fieldName}
+              initial={false}
+              animate={{
+                y: shouldFloat || (isOutlined && (isOpen || hasValue))
+                  ? isOutlined
+                    ? sz.outlinedFloatY
+                    : labelPlacement === "inside"
+                      ? sz.floatY
+                      : sz.floatYOutside
+                  : isOutlined
+                    ? sz.outlinedInitialY
+                    : sz.initialY,
+                x: shouldFloat || (isOutlined && (isOpen || hasValue))
+                  ? isOutlined
+                    ? 0
+                    : labelPlacement === "inside"
+                      ? sz.floatX
+                      : sz.floatXOutside
+                  : sz.initialX,
+                scale: shouldFloat || (isOutlined && (isOpen || hasValue))
+                  ? isOutlined ? 0.75 : sz.floatScale
+                  : 1,
+              }}
+              transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+              className={`
+                absolute left-3 top-1/2 z-10 font-medium pointer-events-none origin-left transition-colors duration-200
+                ${sz.textSize} ${labelClassName} ${
+                  isOpen && color !== "default"
+                    ? (focusTextColors[color] || "text-primary")
+                    : (shouldFloat || (isOutlined && (isOpen || hasValue)))
+                      ? isOpen
+                        ? "text-neutral-800 dark:text-neutral-200"
+                        : "text-neutral-700 dark:text-neutral-300"
+                      : "text-neutral-400 dark:text-neutral-500"
+                }
+              `}
+              style={{ transformOrigin: isOutlined ? "left" : "top left" }}
+            >
+              {label}
+            </motion.label>
+          )}
+
+          {/* Central Stack: Label + Value */}
+          <div
+            className={`
+              flex flex-col flex-1 min-w-0 justify-center
+              ${labelPlacement === "inside" && isFloating && shouldFloat ? (size === "sm" ? "mt-3" : size === "lg" ? "mt-5" : "mt-4") : ""}
+            `}
+          >
+            {labelPlacement === "inside" && !isFloating && label && (
+              <span
+                className={`
+                  block font-medium select-none mb-0.5 text-default-500
+                  ${sz.labelSize} ${labelClassName}
+                `}
+              >
+                {label}
+              </span>
+            )}
+
+            <div
+              className={`
+                flex-1 min-w-0 truncate pr-2
+              `}
+            >
+              {!displayString ? (
+                <span
+                  className={`text-default-500 truncate select-none ${sz.textSize}`}
+                >
+                  {((!isFloating || shouldFloat) && resolvedPlaceholder) ? resolvedPlaceholder : "\u200b"}
+                </span>
+              ) : (
+                <span
+                  className={`text-neutral-800 dark:text-neutral-200 truncate select-none ${sz.textSize}`}
+                >
+                  {displayString}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Action icon: Clear or Calendar */}
+          <div className="flex items-center justify-center shrink-0 ml-1">
+            {isClearable && hasValue && !disabled ? (
+              <ClearIcon onClick={handleClear} />
+            ) : (
+              <CalendarIcon colorClass={isOpen && color !== "default" ? (focusTextColors[color] || "text-primary") : ""} />
+            )}
+          </div>
+
+          {/* Dropdown Calendar Portal Wrapper */}
+          {createPortal(
+            <AnimatePresence>
+              {isOpen && !disabled && dropdownCoords && (
+                <motion.div
+                  ref={calendarRef}
+                  initial={{
+                    opacity: 0,
+                    y: dropdownCoords.position === "bottom" ? -10 : 10,
+                    scale: 0.97,
+                  }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    scale: 1,
+                  }}
+                  exit={{
+                    opacity: 0,
+                    y: dropdownCoords.position === "bottom" ? -10 : 10,
+                    scale: 0.97,
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 28,
+                  }}
+                  className={`fixed z-[99999] bg-background border border-default-200 rounded-xl shadow-xl overflow-hidden drp-calendar-wrapper--${color}`}
+                  style={{
+                    width: 256,
+                    height: 325,
+                    top: dropdownCoords.top,
+                    bottom: dropdownCoords.bottom,
+                    left: dropdownCoords.left,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DatePicker
+                    {...({
+                      selected: startDate,
+                      onChange: handleDateChange,
+                      startDate: startDate,
+                      endDate: endDate,
+                      selectsRange: selectsRange,
+                      shouldCloseOnSelect: false,
+                      inline: true,
+                      calendarClassName:
+                        "drp-calendar !border-none !rounded-xl !shadow-none",
+                      dayClassName: getDayClass,
+                      renderCustomHeader: renderHeader,
+                      fixedHeight: true,
+                    } as any)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body
+          )}
+
+          {/* Underline Animation for Underlined Variant */}
+          {resolvedVariant === "underlined" && (
+            <motion.div
+              className={`absolute bottom-0 left-0 right-0 h-[2px] z-20 ${hasError ? "bg-danger" : (underlineColors[color] || "bg-primary")}`}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: isOpen ? 1 : 0 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              style={{ originX: 0.5 }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Error Message */}
+      <AnimatePresence>
+        {hasError && (
+          <motion.p
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className={`mt-1.5 text-sm text-red-500 ${errorClassName}`}
+          >
+            {fieldError}
+          </motion.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+DateInput.displayName = "DateInput";
+
+export default DateInput;
+
+/* -------------------------------------------------------------------------- */
+/*                           DrumOverlay Component                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * DrumOverlay
+ * Renders two side-by-side iOS-style drum columns (month | year).
+ * - Fixed selection band sits at the vertical centre (pointer-events: none)
+ * - Month and year lists scroll independently behind it
+ * - Fade masks at top/bottom created via CSS (see index.css .drp-drum-*)
+ */
+interface DrumOverlayProps {
+  currentMonth: number;
+  currentYear: number;
+  onMonthChange: (month: number) => void;
+  onYearChange: (year: number) => void;
+}
+
+/* -------------------------------------------------------------------------- */
+/* DRUM OVERLAY */
+/* -------------------------------------------------------------------------- */
+
+const DrumOverlay: React.FC<DrumOverlayProps> = ({
+  currentMonth,
+  currentYear,
+  onMonthChange,
+  onYearChange,
+}) => {
+  const {
+    containerRef: monthRef,
+    handleScroll: handleMonthScroll,
+    handleWheel: handleMonthWheel,
+    handleItemClick: handleMonthClick,
+    scrollY: monthScrollY,
+    PADDING,
+  } = useDrumPicker(monthOptions, currentMonth, onMonthChange);
+
+  const {
+    containerRef: yearRef,
+    handleScroll: handleYearScroll,
+    handleWheel: handleYearWheel,
+    handleItemClick: handleYearClick,
+    scrollY: yearScrollY,
+  } = useDrumPicker(yearOptions, currentYear, onYearChange);
+
+  return (
+    <div
+      className="
+        relative
+        overflow-hidden
+        bg-default-100
+        border-0
+        shadow-none
+      "
+      style={{
+        width: 256,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* ACTIVE CENTER BAND */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-2 right-2"
+        style={{
+          top: "50%",
+          height: ITEM_HEIGHT - 4,
+          transform: "translateY(-50%)",
+          zIndex: 0,
+          borderRadius: 16,
+
+          background: "color-mix(in srgb, var(--color-background) 85%, transparent)",
+          backdropFilter: "blur(10px)",
+          border: "1px solid color-mix(in srgb, var(--color-background) 75%, transparent)",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        }}
+      />
+
+      {/* DRUMS */}
+      <div
+        className="flex"
+        style={{
+          height: DRUM_HEIGHT,
+        }}
+      >
+        {/* MONTH */}
+        <DrumColumn
+          items={monthOptions}
+          selectedValue={currentMonth}
+          containerRef={monthRef}
+          onScroll={handleMonthScroll}
+          onWheel={handleMonthWheel}
+          onItemClick={handleMonthClick}
+          scrollY={monthScrollY}
+          padding={PADDING}
+          align="center"
+        />
+
+        {/* YEAR */}
+        <DrumColumn
+          items={yearOptions}
+          selectedValue={currentYear}
+          containerRef={yearRef}
+          onScroll={handleYearScroll}
+          onWheel={handleYearWheel}
+          onItemClick={handleYearClick}
+          scrollY={yearScrollY}
+          padding={PADDING}
+          align="center"
+        />
+      </div>
+    </div>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/*                           DrumColumn Component                             */
+/* -------------------------------------------------------------------------- */
+
+interface DrumColumnProps {
+  items: { value: number; label: string }[];
+  selectedValue: number;
+  containerRef: React.RefObject<HTMLDivElement>;
+  onScroll: () => void;
+  onWheel: (e: WheelEvent) => void;
+  onItemClick: (idx: number) => void;
+  scrollY: ReturnType<typeof useMotionValue<number>>;
+  padding: number;
+  align: "left" | "center" | "right";
+}
+
+const DrumColumn: React.FC<DrumColumnProps> = ({
+  items,
+  selectedValue,
+  containerRef,
+  onScroll,
+  onWheel,
+  onItemClick,
+  scrollY,
+  padding,
+  align,
+}) => {
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [containerRef, onWheel]);
+
+  return (
+    /* Outer wrapper: clips content + applies fade mask via CSS class */
+    <div className="relative flex-1 overflow-hidden drp-drum-fade">
+      {/* Scrollable list — CSS scroll-snap for trackpad; wheel handler for mouse */}
+      <div
+        ref={containerRef}
+        onScroll={onScroll}
+        className="drp-drum-scroll h-full overflow-y-scroll"
+      >
+        {/* Top padding spacer so first item can reach centre */}
+        <div style={{ height: padding, flexShrink: 0 }} />
+
+        {items.map((item, idx) => {
+          /**
+           * Per-item animated transforms driven by scrollY MotionValue.
+           * scrollY tracks live scrollTop, so these update on every scroll frame.
+           *
+           * itemCenter  = exact scrollTop where this item is centred
+           * offset      = distance of item from the current centre (in px)
+           * We map |offset| → opacity and scale so items physically recede.
+           */
+          const itemCenter = idx * ITEM_HEIGHT;
+
+          // useTransform requires a MotionValue — derive opacity + scale live
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const opacity = useTransform(
+            scrollY,
+            [
+              itemCenter - ITEM_HEIGHT * 3,
+              itemCenter - ITEM_HEIGHT,
+              itemCenter,
+              itemCenter + ITEM_HEIGHT,
+              itemCenter + ITEM_HEIGHT * 3,
+            ],
+            [0.25, 0.55, 1, 0.55, 0.25],
+          );
+          // eslint-disable-next-line react-hooks/rules-of-hooks
+          const scale = useTransform(
+            scrollY,
+            [
+              itemCenter - ITEM_HEIGHT * 2,
+              itemCenter,
+              itemCenter + ITEM_HEIGHT * 2,
+            ],
+            [0.88, 1, 0.88],
+          );
+
+          const isSelected = item.value === selectedValue;
+
+          return (
+            <motion.div
+              key={item.value}
+              onClick={() => onItemClick(idx)}
+              style={{
+                height: ITEM_HEIGHT,
+                opacity,
+                scale,
+              }}
+              className={`
+                drp-drum-item relative z-10 flex items-center cursor-pointer px-4 text-base
+                ${align === "left" ? "justify-start" : align === "right" ? "justify-end" : "justify-center"}
+                ${isSelected ? "text-default-900 font-semibold" : "text-default-700 font-medium"}
+              `}
+            >
+              {item.label}
+            </motion.div>
+          );
+        })}
+
+        {/* Bottom padding spacer so last item can reach centre */}
+        <div style={{ height: padding, flexShrink: 0 }} />
+      </div>
+    </div>
+  );
+};
