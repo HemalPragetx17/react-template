@@ -15,23 +15,46 @@ const LoginTwoColumn = () => {
   const dispatch = useDispatch()
 
   const initialValues: ILoginRequestModel = {
-    email: "admin@metamed.ie",
+    email: "admin@gmail.com",
     password: "Admin@123",
   };
 
   const handleSubmit = async (values: ILoginRequestModel) => {
+    console.log("🚀 ~ handleSubmit ~ values:", values)
+
+    // bypass the api call
     dispatch(handleFormLoader(true));
-    await accountService
-      .login(values)
-      .then(async (response) => {
-        if (response) {
-          toast.success("Login successful");
-          dispatch(adminLogin(response as any));
-          navigate(Routing.Dashboard)
-        }
-      })
-      .catch((error: Error) => console.log(error?.message))
-      .finally(() => dispatch(handleFormLoader(false)))
+    const response = {
+      token: "mock-jwt-token-xyz123",
+      user: {
+        id: "mock-user-id-001",
+        email: values.email || "admin@gmail.com",
+        phone: "1234567890",
+        role: "admin",
+        is_active: true,
+        first_name: "Admin",
+        last_name: "User"
+      }
+    }
+    toast.success("Login successful");
+    dispatch(adminLogin(response as any));
+    navigate(Routing.Dashboard)
+    dispatch(handleFormLoader(false))
+
+    // original api call
+
+    // dispatch(handleFormLoader(true));
+    // await accountService
+    //   .login(values)
+    //   .then(async (response) => {
+    //     if (response) {
+    //       toast.success("Login successful");
+    //       dispatch(adminLogin(response as any));
+    //       navigate(Routing.Dashboard)
+    //     }
+    //   })
+    //   .catch((error: Error) => console.log(error?.message))
+    //   .finally(() => dispatch(handleFormLoader(false)))
   };
 
   return (
@@ -41,23 +64,23 @@ const LoginTwoColumn = () => {
         <div className='absolute inset-0 bg-primary-100 opacity-20 pointer-events-none'></div>
         <div className='relative z-10 flex items-center gap-2'>
           <img src="/favicon.svg" alt='Logo' className='w-auto h-10' />
-          <span className='text-3xl font-extrabold text-slate-800 tracking-tight'>Admin Portal</span>
+          <span className='text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight'>Admin Portal</span>
         </div>
         <div className='relative z-10 flex-1 flex flex-col justify-center px-4 lg:px-12'>
-          <h2 className='text-3xl lg:text-4xl font-semibold text-slate-800 leading-snug mb-6'>
+          <h2 className='text-3xl lg:text-4xl font-semibold text-slate-800 dark:text-slate-100 leading-snug mb-6'>
             “Built for teams that lead industries.”
           </h2>
-          <p className='text-xl text-slate-400 font-medium italic'>
+          <p className='text-xl text-slate-400 dark:text-slate-300 font-medium italic'>
             John Doe
           </p>
         </div>
       </div>
 
       {/* Right Column */}
-      <div className='flex-1 flex justify-center items-center p-8 bg-white'>
-        <div className="w-full max-w-md bg-white p-8 sm:p-10 rounded-2xl">
+      <div className='flex-1 flex justify-center items-center p-8 bg-background'>
+        <div className="w-full max-w-md bg-content1 border border-default-200/50 dark:border-default-100/10 p-8 sm:p-10 rounded-2xl shadow-sm">
           <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold text-slate-900 leading-snug">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 leading-snug">
               Please sign in to your<br />admin account!
             </h1>
           </div>

@@ -26,6 +26,181 @@ const formatDate = (value?: string) => {
 const getFullName = (firstName?: string, lastName?: string) =>
   `${firstName ?? ""} ${lastName ?? ""}`.trim();
 
+const STATIC_APPOINTMENTS: IAppointmentModal[] = [
+  {
+    _id: "apt-1",
+    appointmentNo: 1001,
+    appointmentDate: "2026-07-05T09:00:00Z",
+    acuityLevel: 2,
+    status: 2, // Confirmed
+    heartRate: 72,
+    systolicBp: "120",
+    diastolicBp: "80",
+    patient: {
+      reference: "pat-1",
+      firstName: "Alice",
+      lastName: "Johnson",
+      email: "alice.johnson@example.com",
+      userType: 1
+    },
+    specialist: {
+      reference: "spec-1",
+      firstName: "Dr. Robert",
+      lastName: "Chen",
+      email: "robert.chen@example.com",
+      userType: 2
+    },
+    referredBy: {
+      reference: "ref-1",
+      firstName: "Dr. Sarah",
+      lastName: "Adams",
+      email: "sarah.adams@example.com",
+      userType: 2
+    },
+    timeSlots: {
+      reference: "slot-1",
+      startTime: "09:00 AM",
+      endTime: "09:30 AM",
+      duration: 30
+    },
+    pill: [],
+    media: [],
+    ecgReports: [],
+    medicalTests: [],
+    hrRate: [],
+    bpRate: []
+  },
+  {
+    _id: "apt-2",
+    appointmentNo: 1002,
+    appointmentDate: "2026-07-05T10:00:00Z",
+    acuityLevel: 1,
+    status: 3, // Completed
+    heartRate: 68,
+    systolicBp: "115",
+    diastolicBp: "75",
+    patient: {
+      reference: "pat-2",
+      firstName: "Bob",
+      lastName: "Smith",
+      email: "bob.smith@example.com",
+      userType: 1
+    },
+    specialist: {
+      reference: "spec-2",
+      firstName: "Dr. Emily",
+      lastName: "Taylor",
+      email: "emily.taylor@example.com",
+      userType: 2
+    },
+    referredBy: {
+      reference: "ref-2",
+      firstName: "Dr. James",
+      lastName: "Carter",
+      email: "james.carter@example.com",
+      userType: 2
+    },
+    timeSlots: {
+      reference: "slot-2",
+      startTime: "10:00 AM",
+      endTime: "10:30 AM",
+      duration: 30
+    },
+    pill: [],
+    media: [],
+    ecgReports: [],
+    medicalTests: [],
+    hrRate: [],
+    bpRate: []
+  },
+  {
+    _id: "apt-3",
+    appointmentNo: 1003,
+    appointmentDate: "2026-07-06T11:00:00Z",
+    acuityLevel: 3,
+    status: 1, // Pending
+    heartRate: 85,
+    systolicBp: "135",
+    diastolicBp: "88",
+    patient: {
+      reference: "pat-3",
+      firstName: "Charlie",
+      lastName: "Brown",
+      email: "charlie.brown@example.com",
+      userType: 1
+    },
+    specialist: {
+      reference: "spec-1",
+      firstName: "Dr. Robert",
+      lastName: "Chen",
+      email: "robert.chen@example.com",
+      userType: 2
+    },
+    referredBy: {
+      reference: "ref-3",
+      firstName: "Dr. Mary",
+      lastName: "Watson",
+      email: "mary.watson@example.com",
+      userType: 2
+    },
+    timeSlots: {
+      reference: "slot-3",
+      startTime: "11:00 AM",
+      endTime: "11:30 AM",
+      duration: 30
+    },
+    pill: [],
+    media: [],
+    ecgReports: [],
+    medicalTests: [],
+    hrRate: [],
+    bpRate: []
+  },
+  {
+    _id: "apt-4",
+    appointmentNo: 1004,
+    appointmentDate: "2026-07-07T14:00:00Z",
+    acuityLevel: 2,
+    status: 4, // Cancelled
+    heartRate: 75,
+    systolicBp: "122",
+    diastolicBp: "78",
+    patient: {
+      reference: "pat-4",
+      firstName: "Diana",
+      lastName: "Prince",
+      email: "diana.prince@example.com",
+      userType: 1
+    },
+    specialist: {
+      reference: "spec-3",
+      firstName: "Dr. Bruce",
+      lastName: "Wayne",
+      email: "bruce.wayne@example.com",
+      userType: 2
+    },
+    referredBy: {
+      reference: "ref-4",
+      firstName: "Dr. Clark",
+      lastName: "Kent",
+      email: "clark.kent@example.com",
+      userType: 2
+    },
+    timeSlots: {
+      reference: "slot-4",
+      startTime: "02:00 PM",
+      endTime: "02:30 PM",
+      duration: 30
+    },
+    pill: [],
+    media: [],
+    ecgReports: [],
+    medicalTests: [],
+    hrRate: [],
+    bpRate: []
+  }
+];
+
 const UserDetails = () => {
   const navigate = useNavigate();
 
@@ -35,6 +210,16 @@ const UserDetails = () => {
   const [loading, setLoading] = useState(false);
 
   const getAppointments = useCallback(async (limit: number) => {
+    setLoading(true);
+
+    // Static bypass logic:
+    setTimeout(() => {
+      setTotalRecords(STATIC_APPOINTMENTS.length);
+      setAppointments(STATIC_APPOINTMENTS.slice(0, limit));
+      setLoading(false);
+    }, 200);
+
+    /* Commented API call:
     const params: Record<string, unknown> = {
       pageNo: 1,
       limit,
@@ -44,7 +229,6 @@ const UserDetails = () => {
       searchTerm: "",
     };
 
-    setLoading(true);
     await userService
       .getAllAppointments(params)
       .then((response) => {
@@ -62,6 +246,7 @@ const UserDetails = () => {
       })
       .catch((error: Error) => console.log(error?.message))
       .finally(() => setLoading(false));
+    */
   }, []);
 
   useEffect(() => {

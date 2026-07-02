@@ -27,6 +27,69 @@ const initialFilter: IUsersFilter = {
   status: '',
 };
 
+let cachedUsersList: IUserModal[] = [
+  {
+    _id: "user-1",
+    firstName: "John",
+    lastName: "Doe",
+    email: "john.doe@example.com",
+    phoneCountry: "+1",
+    phone: "555-0199",
+    active: true,
+    _createdAt: "2026-01-10T08:30:00.000Z",
+  },
+  {
+    _id: "user-2",
+    firstName: "Jane",
+    lastName: "Smith",
+    email: "jane.smith@example.com",
+    phoneCountry: "+44",
+    phone: "7700-900077",
+    active: true,
+    _createdAt: "2026-02-15T09:15:00.000Z",
+  },
+  {
+    _id: "user-3",
+    firstName: "Michael",
+    lastName: "Johnson",
+    email: "michael.j@example.com",
+    phoneCountry: "+91",
+    phone: "98765-43210",
+    active: false,
+    _createdAt: "2026-03-01T11:00:00.000Z",
+  },
+  {
+    _id: "user-4",
+    firstName: "Emily",
+    lastName: "Brown",
+    email: "emily.b@example.com",
+    phoneCountry: "+1",
+    phone: "555-0143",
+    active: true,
+    _createdAt: "2026-04-05T14:20:00.000Z",
+  },
+  {
+    _id: "user-5",
+    firstName: "David",
+    lastName: "Wilson",
+    email: "david.wilson@example.com",
+    phoneCountry: "+61",
+    phone: "491-570-156",
+    active: true,
+    _createdAt: "2026-05-12T10:45:00.000Z",
+  },
+  {
+    _id: "user-6",
+    firstName: "Sarah",
+    lastName: "Miller",
+    email: "sarah.m@example.com",
+    phoneCountry: "+49",
+    phone: "172-555-019",
+    active: false,
+    _createdAt: "2026-06-20T16:00:00.000Z",
+  },
+];
+
 const Users = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -45,6 +108,8 @@ const Users = () => {
   const handleConfirmDialogCloseForDelete = useCallback(() => setOpenConfirmDialogDelete(false), []);
 
   const handleStatusToggle = useCallback(async (userId: string, newStatus: boolean) => {
+    // Commented API call:
+    /*
     await userService
       .toggleUserStatus(userId, { status: newStatus })
       .then(() => {
@@ -54,6 +119,12 @@ const Users = () => {
       .catch((error: any) => {
         toast.error(error || "Failed to update status.");
       })
+    */
+
+    // Static bypass logic:
+    toast.success("User status updated successfully!");
+    cachedUsersList = cachedUsersList.map((user) => user._id === userId ? { ...user, active: newStatus } : user);
+    setUsersList((prev) => prev.map((user) => user._id === userId ? { ...user, active: newStatus } : user));
   }, []);
 
   const handleView = useCallback((user: IUserModal) => {
@@ -218,6 +289,41 @@ const Users = () => {
   }, []);
 
   const getUsers = async (filter: IUsersFilter, page: number = pagination.page, limit: number = pagination.limit) => {
+    dispatch(handleTableLoader(true));
+
+    // Static bypass logic:
+    setTimeout(() => {
+      let filtered = [...cachedUsersList];
+
+      // Apply search filter
+      if (filter?.search) {
+        const searchLower = filter.search.toLowerCase();
+        filtered = filtered.filter(
+          (u) =>
+            u.firstName.toLowerCase().includes(searchLower) ||
+            u.lastName.toLowerCase().includes(searchLower) ||
+            u.email.toLowerCase().includes(searchLower) ||
+            u.phone.includes(searchLower)
+        );
+      }
+
+      // Apply status filter
+      if (filter?.status && filter.status !== '') {
+        const activeOnly = filter.status === "true";
+        filtered = filtered.filter((u) => u.active === activeOnly);
+      }
+
+      setTotalRecords(filtered.length);
+
+      // Paginate
+      const start = (page - 1) * limit;
+      const end = start + limit;
+      setUsersList(filtered.slice(start, end));
+
+      dispatch(handleTableLoader(false));
+    }, 200);
+
+    /* Commented API call:
     const params: any = {
       pageNo: page,
       limit: limit,
@@ -231,7 +337,6 @@ const Users = () => {
       params.active = filter.status === "true";
     }
 
-    dispatch(handleTableLoader(true));
     await userService
       .getAllUsers(params)
       .then((response: any) => {
@@ -245,6 +350,7 @@ const Users = () => {
       })
       .catch((error: Error) => console.log(error?.message))
       .finally(() => dispatch(handleTableLoader(false)));
+    */
   };
 
   const handlePageChange = useCallback((newPagination: { page: number; limit: number }) => {

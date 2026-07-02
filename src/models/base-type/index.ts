@@ -2,12 +2,12 @@ import type { ORDER_BY_ENUM, ORDER_BY_TYPE } from "../../shared/constants/pagina
 
 export interface IBaseCreateRequest {
     _createdBy?: number;
-    _createdAt?: Date;
+    _createdAt?: Date | string;
 }
 
 export interface IBaseUpdateRequest {
     _updatedBy?: number;
-    _updatedAt?: Date;
+    _updatedAt?: Date | string;
 }
 
 export interface IColumn {

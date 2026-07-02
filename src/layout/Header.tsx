@@ -42,13 +42,18 @@ const Header: React.FC<HeaderProps> = ({ withSidebar = true }) => {
   const location = useLocation();
 
   const handleLogoutClick = async () => {
-    await accountService
-      .logout()
-      .then(async () => {
-        dispatch(adminLogout());
-        navigate(Routing.Login);
-      })
-      .catch((error: Error) => console.log(error?.message));
+    // bypass the api call
+    dispatch(adminLogout());
+    navigate(Routing.Login);
+
+    // original api call
+    // await accountService
+    //   .logout()
+    //   .then(async () => {
+    //     dispatch(adminLogout());
+    //     navigate(Routing.Login);
+    //   })
+    //   .catch((error: Error) => console.log(error?.message));
   };
 
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);

@@ -74,7 +74,7 @@ const ChangePassword: React.FC<ChangePasswordFormProps> = ({ handleDialogClose }
           />
 
           {/* Footer Action Area */}
-          <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-default-100">
             <Button type="button" variant="bordered" color="danger" onClick={handleDialogClose}>
               Cancel
             </Button>

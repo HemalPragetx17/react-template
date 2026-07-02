@@ -5,8 +5,8 @@ import { Routing } from "../../routes/routing";
 
 const ErrorPage = () => {
   return (
-    <div className="flex h-screen items-center justify-center bg-background px-6 py-12">
-      <div className="w-full max-w-md rounded-2xl bg-white px-6 py-10 shadow-xl sm:px-8">
+    <div className="flex h-screen items-center justify-center bg-background px-6 py-12 text-foreground">
+      <div className="w-full max-w-md rounded-2xl bg-content1 px-6 py-10 shadow-xl border border-default-200/50 dark:border-default-100/10 sm:px-8">
         <div className="flex justify-center">
           <div className="rounded-full bg-primary/10 p-4">
             <div className="flex items-center justify-center">
@@ -15,11 +15,11 @@ const ErrorPage = () => {
           </div>
         </div>
         <div className="mt-6 text-center">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             500
           </h1>
-          <h3 className="mt-4 text-xl font-bold tracking-tight text-gray-900">Internal Server Error</h3>
-          <p className="mt-2 text-base text-gray-600">
+          <h3 className="mt-4 text-xl font-bold tracking-tight text-foreground">Internal Server Error</h3>
+          <p className="mt-2 text-base text-default-600">
             Something went wrong on our end. Please try again later.
           </p>
         </div>
