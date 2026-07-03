@@ -1,12 +1,13 @@
 import React, { forwardRef, useState, useEffect } from "react";
 import { FaUser } from "react-icons/fa";
+import { getRadiusClass, type Radius } from "../shared/radius";
 
 export interface AvatarProps extends React.HTMLAttributes<HTMLDivElement> {
   src?: string;
   name?: string;
   icon?: React.ReactNode;
   size?: "sm" | "md" | "lg";
-  radius?: "none" | "sm" | "md" | "lg" | "full";
+  radius?: Radius;
   color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
   isBordered?: boolean;
   isDisabled?: boolean;
@@ -46,16 +47,8 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>((props, ref) => {
     lg: "w-14 h-14 text-base",
   };
 
-  // Radius configurations
-  const radiusClasses = {
-    none: "rounded-none",
-    sm: "rounded-sm",
-    md: "rounded-md",
-    lg: "rounded-lg",
-    full: "rounded-full",
-  };
-
-  // Color configurations for fallback backgrounds
+  // Radius configurations use shared tokens (default remains circular)
+  const currentRadiusClass = getRadiusClass(radius);
   const colorClasses = {
     default: "bg-default-200 text-default-foreground dark:bg-default-800",
     primary: "bg-primary text-primary-foreground",
@@ -76,7 +69,6 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>((props, ref) => {
   };
 
   const currentSizeClass = sizeClasses[size] || sizeClasses.md;
-  const currentRadiusClass = radiusClasses[radius] || radiusClasses.full;
   const currentColorClass = colorClasses[color] || colorClasses.default;
 
   const ringStyles = isBordered

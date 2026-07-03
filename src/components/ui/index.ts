@@ -1,6 +1,26 @@
 // ── Accordion ────────────────────────────────────────────────────────────────
 export { Accordion, AccordionItem } from "./accordion/Accordion";
 
+// ── Shared tokens ────────────────────────────────────────────────────────────
+export type { Radius } from "./shared/radius";
+export {
+  DEFAULT_RADIUS,
+  DEFAULT_RADIUS_CSS_VAR,
+  getCornerRadiusClass,
+  getRadiusCssVar,
+  getRadiusClass,
+  radiusCssVars,
+  syncDefaultRadiusCssVariable,
+} from "./shared/radius";
+export {
+  errorClasses,
+  labelClasses,
+  labelFloatingClasses,
+  labelGroupClasses,
+  requiredIndicatorClasses,
+} from "./shared/fieldStyles";
+export { FieldLabelContent } from "./shared/FieldLabelContent";
+
 // ── Avatar ───────────────────────────────────────────────────────────────────
 export { default as Avatar } from "./avatar/Avatar";
 

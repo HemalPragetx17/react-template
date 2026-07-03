@@ -2,11 +2,12 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FaXmark } from 'react-icons/fa6';
 import { createPortal } from 'react-dom';
 import Button from '../button/Button';
+import { DEFAULT_RADIUS, getFooterRadiusClass, getRadiusClass, type Radius } from '../shared/radius';
 
 type ModalSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full';
 type ModalBackdrop = 'transparent' | 'opaque' | 'blur';
 type ModalScrollBehavior = 'inside' | 'outside';
-type ModalRadius = 'none' | 'sm' | 'md' | 'lg';
+type ModalRadius = Radius;
 type ModalShadow = 'none' | 'sm' | 'md' | 'lg';
 
 interface ModalProps {
@@ -33,20 +34,6 @@ interface ModalProps {
   radius?: ModalRadius;
   shadow?: ModalShadow;
 }
-
-const radiusClasses: Record<ModalRadius, string> = {
-  none: 'rounded-none',
-  sm: 'rounded-sm',
-  md: 'rounded-md',
-  lg: 'rounded-2xl',
-};
-
-const footerRadiusClasses: Record<ModalRadius, string> = {
-  none: 'rounded-b-none',
-  sm: 'rounded-b-sm',
-  md: 'rounded-b-md',
-  lg: 'rounded-b-2xl',
-};
 
 const shadowClasses: Record<ModalShadow, string> = {
   none: 'shadow-none',
@@ -89,7 +76,7 @@ const Modal: React.FC<ModalProps> = ({
   secondaryButtonColor = 'danger',
   isDismissable = false,
   isKeyboardDismissDisabled = true,
-  radius = 'lg',
+  radius = DEFAULT_RADIUS,
   shadow = 'lg',
 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -229,7 +216,7 @@ const Modal: React.FC<ModalProps> = ({
           className={`
             relative w-full flex flex-col bg-white dark:bg-content1 text-foreground pointer-events-auto
             ${shadowClasses[shadow]}
-            ${size === 'full' ? 'rounded-none min-h-screen' : radiusClasses[radius]}
+            ${size === 'full' ? 'rounded-none min-h-screen' : getRadiusClass(radius)}
             ${sizeClasses[size]}
             ${scrollBehavior === 'inside' ? 'max-h-[calc(100vh-4rem)] md:max-h-[calc(100vh-8rem)]' : 'h-fit mb-8'}
             ${className}
@@ -266,7 +253,7 @@ const Modal: React.FC<ModalProps> = ({
 
           {/* Modal Footer Slot */}
           {(footer || primaryActionText || secondaryActionText) && (
-            <div className={`modal-footer px-6 py-4 border-t border-gray-100 dark:border-default-100/50 shrink-0 bg-white dark:bg-content1 ${size === 'full' ? 'rounded-none' : footerRadiusClasses[radius]}`}>
+            <div className={`modal-footer px-6 py-4 border-t border-gray-100 dark:border-default-100/50 shrink-0 bg-white dark:bg-content1 ${size === 'full' ? 'rounded-none' : getFooterRadiusClass(radius)}`}>
               {renderFooter()}
             </div>
           )}

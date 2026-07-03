@@ -1,6 +1,9 @@
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { forwardRef, useRef, useId } from "react";
+import { getRadiusClass } from "../shared/radius";
+import { errorClasses, labelClasses } from "../shared/fieldStyles";
+import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 interface OTPInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "form" | "onChange" | "size"> {
@@ -11,6 +14,7 @@ interface OTPInputProps
   inputClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
   numInputs?: number;
   onChange?: ((value: string) => void) | any;
   size?: "sm" | "md" | "lg";
@@ -32,6 +36,7 @@ const OTPInput = forwardRef<HTMLInputElement, OTPInputProps>((props, ref) => {
     inputClassName = "",
     labelClassName = "",
     errorClassName = "",
+    isRequired = false,
     numInputs = 6,
     size = "md",
     field,
@@ -176,9 +181,9 @@ const OTPInput = forwardRef<HTMLInputElement, OTPInputProps>((props, ref) => {
       {label && (
         <label
           htmlFor={fieldName || props.id}
-          className={`block font-medium text-neutral-700 dark:text-neutral-300 ${labelSizeClasses[size]} ${labelClassName}`}
+          className={`${labelClasses} text-neutral-700 dark:text-neutral-300 ${labelSizeClasses[size]} ${labelClassName}`}
         >
-          {label}
+          <FieldLabelContent label={label} isRequired={isRequired} />
         </label>
       )}
 
@@ -220,7 +225,7 @@ const OTPInput = forwardRef<HTMLInputElement, OTPInputProps>((props, ref) => {
               className={`
                 ${sizeClasses[size]}
                 text-center font-semibold
-                rounded-md border-2 border-neutral-300 dark:border-neutral-700
+                ${getRadiusClass()} border-2 border-neutral-300 dark:border-neutral-700
                 bg-transparent text-neutral-800 dark:text-neutral-100
                 outline-none transition
                 focus:border-primary focus:ring-0
@@ -244,7 +249,7 @@ const OTPInput = forwardRef<HTMLInputElement, OTPInputProps>((props, ref) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className={`mt-1.5 text-sm text-red-500 flex justify-center ${errorClassName}`}
+            className={`${errorClasses} flex justify-center ${errorClassName}`}
           >
             {fieldError}
           </motion.p>

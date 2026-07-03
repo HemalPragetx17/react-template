@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from "react";
 import clsx from "clsx";
+import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../shared/radius";
 
 // Create a context to share card settings with sub-components
 interface CardContextProps {
@@ -17,17 +18,9 @@ const shadowClasses = {
   lg: "shadow-xl",
 };
 
-const radiusClasses = {
-  none: "rounded-none",
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-2xl",
-  full: "rounded-full",
-};
-
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   shadow?: "none" | "sm" | "md" | "lg";
-  radius?: "none" | "sm" | "md" | "lg" | "full";
+  radius?: Radius;
   isHoverable?: boolean;
   isPressable?: boolean;
   isBlurred?: boolean;
@@ -43,7 +36,7 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const Card: React.FC<CardProps> = ({
   shadow = "md",
-  radius = "lg",
+  radius = DEFAULT_RADIUS,
   isHoverable = false,
   isPressable = false,
   isBlurred = false,
@@ -128,7 +121,7 @@ export const Card: React.FC<CardProps> = ({
             ? "bg-content1 border border-default-100 dark:border-default-800/40" 
             : "backdrop-blur-xl bg-white/20 dark:bg-black/30 border border-white/20 dark:border-default-100/10",
           shadowClasses[shadow],
-          radiusClasses[radius],
+          getRadiusClass(radius),
           isDisabled && "opacity-60 pointer-events-none select-none",
           fullWidth ? "w-full" : "w-fit",
           interactiveClasses,

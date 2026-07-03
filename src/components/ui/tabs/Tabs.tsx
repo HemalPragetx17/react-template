@@ -1,5 +1,6 @@
 import React, { useState, useId } from "react";
 import { motion } from "framer-motion";
+import { DEFAULT_RADIUS, radiusClasses, type Radius } from "../shared/radius";
 
 export interface TabItem {
     id: string;
@@ -52,7 +53,7 @@ export interface TabsProps {
      * The border radius of the tab buttons container/items.
      * @default "md"
      */
-    radius?: "none" | "sm" | "md" | "lg" | "full";
+    radius?: Radius;
     /**
      * Optional custom key to control active state from parent.
      */
@@ -120,7 +121,7 @@ export const Tabs: React.FC<TabsProps> = ({
     variant = "solid",
     color = "primary",
     size = "md",
-    radius = "md",
+    radius = DEFAULT_RADIUS,
     activeKey: controlledActiveKey,
     selectedKey,
     defaultSelectedKey,
@@ -206,13 +207,7 @@ export const Tabs: React.FC<TabsProps> = ({
         },
     }[size];
 
-    const radiusClasses = {
-        none: "rounded-none",
-        sm: "rounded-sm",
-        md: "rounded-md",
-        lg: "rounded-lg",
-        full: "rounded-full",
-    }[radius];
+    const currentRadiusClass = radiusClasses[radius] ?? radiusClasses[DEFAULT_RADIUS];
 
     // Build the tab list container styles
     const getTabListClasses = () => {
@@ -356,7 +351,7 @@ export const Tabs: React.FC<TabsProps> = ({
             <div className={isVerticalLayout ? "shrink-0 min-w-[140px]" : "w-full"}>
                 <div
                     role="tablist"
-                    className={`${getTabListClasses()} ${variant !== "underlined" ? radiusClasses : ""} ${sizeClasses.container}`}
+                    className={`${getTabListClasses()} ${variant !== "underlined" ? currentRadiusClass : ""} ${sizeClasses.container}`}
                 >
                     {resolvedItems.map((item) => {
                         const isActive = item.id === activeKey;
@@ -372,7 +367,7 @@ export const Tabs: React.FC<TabsProps> = ({
                                 className={`
                                     relative select-none outline-none font-medium flex items-center justify-center cursor-pointer
                                     disabled:opacity-40 disabled:cursor-not-allowed transition-colors duration-300
-                                    ${sizeClasses.tab} ${variant !== "underlined" ? radiusClasses : "rounded-none"}
+                                    ${sizeClasses.tab} ${variant !== "underlined" ? currentRadiusClass : "rounded-none"}
                                     ${isActive ? activeTextClass : inactiveTextClass}
                                     ${isVerticalLayout ? "w-full text-left" : ""}
                                 `}
@@ -381,7 +376,7 @@ export const Tabs: React.FC<TabsProps> = ({
                                 {isActive && (
                                     <motion.div
                                         layoutId={`activeTabIndicator-${uniqueId}`}
-                                        className={`${indicatorClass} ${variant !== "underlined" ? radiusClasses : ""}`}
+                                        className={`${indicatorClass} ${variant !== "underlined" ? currentRadiusClass : ""}`}
                                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                                     />
                                 )}

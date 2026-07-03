@@ -7,6 +7,9 @@ import {
   type CheckboxSize,
   type CheckboxRadius,
 } from "./Checkbox";
+import { DEFAULT_RADIUS } from "../shared/radius";
+import { errorClasses, labelGroupClasses } from "../shared/fieldStyles";
+import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -55,6 +58,7 @@ interface CheckboxGroupProps
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
 
   // Formik integration
   field?: FieldInputProps<any>;
@@ -77,7 +81,7 @@ const CheckboxGroup = forwardRef<HTMLDivElement, CheckboxGroupProps>(
       orientation = "vertical",
       size = "md",
       color = "primary",
-      radius = "md",
+      radius = DEFAULT_RADIUS,
       isIndeterminate = false,
       lineThrough = false,
       icon,
@@ -86,6 +90,7 @@ const CheckboxGroup = forwardRef<HTMLDivElement, CheckboxGroupProps>(
       containerClassName = "",
       labelClassName = "",
       errorClassName = "",
+      isRequired = false,
       field,
       form,
       disabled = false,
@@ -149,9 +154,9 @@ const CheckboxGroup = forwardRef<HTMLDivElement, CheckboxGroupProps>(
         {label && (
           <p
             id={`${fieldName}-group-label`}
-            className={`font-medium text-neutral-600 dark:text-neutral-400 select-none ${labelSizeClass} ${labelClassName}`}
+            className={`${labelGroupClasses} ${labelSizeClass} ${labelClassName}`}
           >
-            {label}
+            <FieldLabelContent label={label} isRequired={isRequired} />
           </p>
         )}
 
@@ -197,7 +202,7 @@ const CheckboxGroup = forwardRef<HTMLDivElement, CheckboxGroupProps>(
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.15 }}
-              className={`mt-1.5 text-sm text-red-500 ${errorClassName}`}
+              className={`${errorClasses} ${errorClassName}`}
             >
               {fieldError}
             </motion.p>

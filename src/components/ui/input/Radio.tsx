@@ -1,6 +1,8 @@
 import React, { forwardRef, useId } from "react";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
+import { errorClasses, labelGroupClasses } from "../shared/fieldStyles";
+import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -23,6 +25,7 @@ interface RadioProps
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
   orientation?: RadioOrientation;
   color?: RadioColor;
   size?: "sm" | "md" | "lg";
@@ -75,6 +78,7 @@ const Radio = forwardRef<HTMLDivElement, RadioProps>((props, ref) => {
     containerClassName = "",
     labelClassName = "",
     errorClassName = "",
+    isRequired = false,
     orientation = "vertical",
     color = "primary",
     size = "md",
@@ -147,14 +151,15 @@ const Radio = forwardRef<HTMLDivElement, RadioProps>((props, ref) => {
       {/* Group Label */}
       {label && (
         <p
-          className={`font-medium text-neutral-600 dark:text-neutral-400 select-none ${currentLabelSize} ${labelClassName}`}
+          className={`${labelGroupClasses} ${currentLabelSize} ${labelClassName}`}
         >
-          {label}
+          <FieldLabelContent label={label} isRequired={isRequired} />
         </p>
       )}
 
       {/* Radio Options */}
       <div
+        role="radiogroup"
         className={`flex ${isHorizontal ? "flex-row flex-wrap" : "flex-col"} ${gapClass}`}
       >
         {options.map((opt, i) => {
@@ -237,7 +242,7 @@ const Radio = forwardRef<HTMLDivElement, RadioProps>((props, ref) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className={`mt-1.5 text-sm text-red-500 ${errorClassName}`}
+            className={`${errorClasses} ${errorClassName}`}
           >
             {fieldError}
           </motion.p>

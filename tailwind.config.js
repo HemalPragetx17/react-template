@@ -7,6 +7,23 @@ export default {
   ],
   theme: {
     extend: {
+      borderRadius: {
+        none: "var(--radius-none)",
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
+        lg: "var(--radius-lg)",
+        xl: "var(--radius-xl)",
+        "2xl": "var(--radius-2xl)",
+        "3xl": "var(--radius-3xl)",
+        "4xl": "var(--radius-4xl)",
+        "5xl": "var(--radius-5xl)",
+        "6xl": "var(--radius-6xl)",
+        "7xl": "var(--radius-7xl)",
+        "8xl": "var(--radius-8xl)",
+        full: "var(--radius-full)",
+        DEFAULT: "var(--radius)",
+      },
+
       // Typography tokens powered by CSS variables — edit src/theme/typography.css
       fontFamily: {
         sans: ['var(--font-family-sans)'],
@@ -257,5 +274,17 @@ export default {
     },
   },
   plugins: [],
+  safelist: [
+    "rounded",
+    "!rounded",
+    {
+      pattern:
+        /^rounded-(none|sm|md|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|full)$/,
+    },
+    {
+      pattern:
+        /^rounded-(t|b|l|r)-(none|sm|md|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|full)$/,
+    },
+  ],
 }
 

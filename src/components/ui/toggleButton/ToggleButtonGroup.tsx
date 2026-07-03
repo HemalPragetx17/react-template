@@ -1,6 +1,7 @@
 import React from "react";
 import clsx from "clsx";
 import { type ToggleButtonProps } from "./ToggleButton";
+import { getCornerRadiusClass, getRadiusClass } from "../shared/radius";
 
 export interface ToggleButtonGroupProps {
   value: any;
@@ -79,11 +80,11 @@ const ToggleButtonGroup: React.FC<ToggleButtonGroupProps> = ({
         // Compute roundness classes based on position and orientation
         let roundnessClass = "rounded-none";
         if (validChildren.length === 1) {
-          roundnessClass = "rounded-lg";
+          roundnessClass = getRadiusClass();
         } else if (isFirst) {
-          roundnessClass = isVertical ? "rounded-t-lg rounded-b-none" : "rounded-l-lg rounded-r-none";
+          roundnessClass = isVertical ? `${getCornerRadiusClass("t")} rounded-b-none` : `${getCornerRadiusClass("l")} rounded-r-none`;
         } else if (isLast) {
-          roundnessClass = isVertical ? "rounded-b-lg rounded-t-none" : "rounded-r-lg rounded-l-none";
+          roundnessClass = isVertical ? `${getCornerRadiusClass("b")} rounded-t-none` : `${getCornerRadiusClass("r")} rounded-l-none`;
         }
 
         // Avoid double borders by applying negative margin to sibling buttons

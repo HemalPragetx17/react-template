@@ -5,6 +5,9 @@ import React from 'react';
 import RPI from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import "./index.css";
+import { DEFAULT_RADIUS, getImportantRadiusClass, type Radius } from "../../shared/radius";
+import { errorClasses, labelClasses, labelFloatingClasses } from "../../shared/fieldStyles";
+import { FieldLabelContent } from "../../shared/FieldLabelContent";
 
 // @ts-ignore
 const PhoneInput = (RPI.default || RPI) as any;
@@ -18,9 +21,10 @@ interface PhoneNumberInputProps extends Partial<FieldProps> {
     buttonClassName?: string;
     labelClassName?: string;
     errorClassName?: string;
+    isRequired?: boolean;
     size?: "sm" | "md" | "lg";
     variant?: "flat" | "bordered" | "underlined" | "faded";
-    radius?: "none" | "sm" | "md" | "lg" | "full";
+    radius?: Radius;
     color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
     labelPlacement?: "inside" | "outside" | "outside-left" | "outside-top" | "outlined";
     dropdownPosition?: "top" | "bottom";
@@ -103,9 +107,10 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         buttonClassName,
         labelClassName,
         errorClassName,
+        isRequired = false,
         size = "md",
         variant = "bordered",
-        radius = "md",
+        radius = DEFAULT_RADIUS,
         color = "primary",
         labelPlacement = "outside",
         dropdownPosition,
@@ -455,16 +460,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
 
     const currentSize = sizeConfigs[size] || sizeConfigs.md;
 
-    // Radius Configurations matching Input.tsx (using standard Tailwind values)
-    const radiusConfigs = {
-        none: "!rounded-none",
-        sm: "!rounded-sm",
-        md: "!rounded-md",
-        lg: "!rounded-lg",
-        full: "!rounded-full",
-    };
-
-    const currentRadiusClass = resolvedVariant === "underlined" ? "!rounded-none" : (radiusConfigs[radius] || radiusConfigs.md);
+    const currentRadiusClass = resolvedVariant === "underlined" ? "!rounded-none" : getImportantRadiusClass(radius);
 
     // Merge standard classes with the dynamic border-radius utility class
     const finalInputClass = `${singleBorder ? "!rounded-none" : currentRadiusClass} ${focusTextColors.default} ${inputClassName}`.trim();
@@ -496,7 +492,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         return (
             <label
                 htmlFor={fieldName}
-                className={`block font-medium select-none transition-colors duration-200 ${isOutsideLeft ? "mb-0 shrink-0" : "mb-1.5"
+                className={`${labelClasses} ${isOutsideLeft ? "mb-0 shrink-0" : "mb-1.5"
                     } ${currentSize.labelSize} ${labelClassName} ${
                     isFocused && color !== "default"
                         ? "text-[var(--color-primary,#2196f3)]"
@@ -505,7 +501,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                             : "text-neutral-700 dark:text-neutral-300"
                 }`}
             >
-                {label}
+                <FieldLabelContent label={label} isRequired={isRequired} />
             </label>
         );
     };
@@ -550,7 +546,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                                         height: 0,
                                     }}
                                 >
-                                    <span>{label}</span>
+                                    <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
                                 </legend>
                             )}
                         </fieldset>
@@ -583,7 +579,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                             }}
                             transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
                             className={`
-                                absolute left-3 font-medium ${currentSize.top} z-20 pointer-events-none origin-left transition-colors duration-200
+                                absolute left-3 ${labelFloatingClasses} ${currentSize.top} z-20 transition-colors duration-200
                                 ${currentSize.textSize} ${labelClassName} ${
                                     isFocused && color !== "default"
                                         ? "text-[var(--color-primary,#2196f3)]"
@@ -596,7 +592,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                             `}
                             style={{ transformOrigin: isOutlined ? "left" : "top left" }}
                         >
-                            {label}
+                            <FieldLabelContent label={label} isRequired={isRequired} />
                         </motion.label>
                     )}
 
@@ -638,7 +634,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.15 }}
-                        className={`mt-1.5 text-sm text-red-500 ${errorClassName}`}
+                        className={`${errorClasses} ${errorClassName}`}
                     >
                         {fieldError}
                     </motion.p>

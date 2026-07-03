@@ -1,5 +1,6 @@
 import React from "react";
 import Popover, { type PopoverProps } from "../popover/Popover";
+import { DEFAULT_RADIUS } from "../shared/radius";
 
 export interface TooltipProps extends Omit<PopoverProps, "trigger" | "children" | "triggerMode"> {
   /** The content to show inside the tooltip */
@@ -14,7 +15,7 @@ const Tooltip: React.FC<TooltipProps> = ({
   placement = "top",
   color = "foreground",
   size = "md",
-  radius = "md",
+  radius = DEFAULT_RADIUS,
   shadow = "md",
   showArrow = true,
   offset = 8,

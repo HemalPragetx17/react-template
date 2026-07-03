@@ -1,9 +1,12 @@
 import React, { useRef, useState, useEffect } from "react";
 import clsx from "clsx";
 import Tooltip from "../tooltip/Tooltip";
+import { radiusClasses, type Radius } from "../shared/radius";
+import { labelClasses } from "../shared/fieldStyles";
 
 export interface SliderProps {
   label?: React.ReactNode;
+  labelClassName?: string;
   name?: string;
   minValue?: number;
   maxValue?: number;
@@ -14,7 +17,7 @@ export interface SliderProps {
   onChangeEnd?: (value: number | number[]) => void;
   color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger" | "foreground";
   size?: "sm" | "md" | "lg";
-  radius?: "none" | "sm" | "md" | "lg" | "full";
+  radius?: Radius;
   isDisabled?: boolean;
   orientation?: "horizontal" | "vertical";
   showSteps?: boolean;
@@ -110,16 +113,9 @@ const sizeClasses = {
   },
 };
 
-const radiusClasses = {
-  none: "rounded-none",
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-lg",
-  full: "rounded-full",
-};
-
 const Slider: React.FC<SliderProps> = ({
   label,
+  labelClassName,
   name,
   minValue = 0,
   maxValue = 100,
@@ -377,7 +373,11 @@ const Slider: React.FC<SliderProps> = ({
       {/* Header (Label & Value) */}
       {(!hideValue || label) && !isVertical && (
         <div className="flex justify-between items-center mb-1.5 w-full">
-          {label && <span className={clsx("font-medium text-neutral-700 dark:text-neutral-300", sizes.label)}>{label}</span>}
+          {label && (
+            <span className={clsx(labelClasses, "text-neutral-700 dark:text-neutral-300", sizes.label, labelClassName)}>
+              {label}
+            </span>
+          )}
           {!hideValue && (
             <span className={clsx("font-semibold text-neutral-800 dark:text-neutral-200", sizes.value)}>
               {getDisplayValue()}

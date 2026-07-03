@@ -1,6 +1,9 @@
 import React, { forwardRef, useId } from "react";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
+import { DEFAULT_RADIUS, radiusClasses, type Radius } from "../shared/radius";
+import { errorClasses, labelGroupClasses } from "../shared/fieldStyles";
+import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -13,7 +16,7 @@ export type CheckboxColor =
   | "danger";
 
 export type CheckboxSize = "sm" | "md" | "lg";
-export type CheckboxRadius = "none" | "sm" | "md" | "lg" | "full";
+export type CheckboxRadius = Radius;
 
 interface CheckboxProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "form" | "onChange" | "size"> {
@@ -24,6 +27,7 @@ interface CheckboxProps
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
   indeterminate?: boolean;
   onChange?: ((value: any) => void) | any;
 
@@ -81,13 +85,7 @@ export const sizeMap: Record<CheckboxSize, { box: string; icon: number; text: st
   lg: { box: "w-6 h-6",   icon: 14, text: "text-base" },
 };
 
-export const radiusMap: Record<CheckboxRadius, string> = {
-  none: "rounded-none",
-  sm:   "rounded-sm",
-  md:   "rounded-md",
-  lg:   "rounded-lg",
-  full: "rounded-full",
-};
+export const radiusMap = radiusClasses;
 
 
 // ─── Single Checkbox Atom (exported for reuse in CheckboxGroup) ───────
@@ -264,9 +262,10 @@ const Checkbox = forwardRef<HTMLDivElement, CheckboxProps>((props, ref) => {
     containerClassName = "",
     labelClassName = "",
     errorClassName = "",
+    isRequired = false,
     size = "md",
     color = "primary",
-    radius = "md",
+    radius = DEFAULT_RADIUS,
     isIndeterminate: propIsIndeterminate = false,
     indeterminate = false,
     lineThrough = false,
@@ -334,16 +333,18 @@ const Checkbox = forwardRef<HTMLDivElement, CheckboxProps>((props, ref) => {
     <div className={`${isMulti ? "w-full" : "w-fit"} ${containerClassName}`} ref={ref}>
       {/* Group label (only for multi) */}
       {label && isMulti && (
-        <p className={`font-medium text-neutral-600 dark:text-neutral-400 select-none ${
+        <p className={`${labelGroupClasses} ${
           size === "sm" ? "text-[10px] mb-1.5" : size === "lg" ? "text-sm mb-1.5" : "text-xs mb-1.5"
         } ${labelClassName}`}>
-          {label}
+          <FieldLabelContent label={label} isRequired={isRequired} />
         </p>
       )}
 
       {/* Multi-select group */}
       {isMulti ? (
-        <div className={`flex flex-wrap ${
+        <div
+          role="group"
+          className={`flex flex-wrap ${
           size === "sm" ? "gap-x-4 gap-y-2" : size === "lg" ? "gap-x-8 gap-y-4" : "gap-x-6 gap-y-3"
         }`}>
           {options.map((opt, i) => {
@@ -379,7 +380,7 @@ const Checkbox = forwardRef<HTMLDivElement, CheckboxProps>((props, ref) => {
           checked={restProps.checked !== undefined ? !!restProps.checked : !!currentValue}
           onToggle={handleSingleToggle}
           onBlur={field?.onBlur || props.onBlur}
-          label={label}
+          label={<FieldLabelContent label={label} isRequired={isRequired} />}
           size={size}
           color={color}
           radius={radius}
@@ -400,7 +401,7 @@ const Checkbox = forwardRef<HTMLDivElement, CheckboxProps>((props, ref) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className={`mt-1.5 text-sm text-red-500 ${errorClassName}`}
+            className={`${errorClasses} ${errorClassName}`}
           >
             {fieldError}
           </motion.p>

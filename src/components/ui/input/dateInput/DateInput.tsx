@@ -18,6 +18,9 @@ import {
 } from "react-icons/fa";
 import { FaXmark } from "react-icons/fa6";
 import Button from "../../button/Button";
+import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../../shared/radius";
+import { errorClasses, labelClasses, labelFloatingClasses } from "../../shared/fieldStyles";
+import { FieldLabelContent } from "../../shared/FieldLabelContent";
 import "./index.css";
 
 /* -------------------------------------------------------------------------- */
@@ -26,7 +29,6 @@ import "./index.css";
 
 type PickerVariant = "flat" | "bordered" | "underlined" | "faded";
 type PickerSize = "sm" | "md" | "lg";
-type PickerRadius = "none" | "sm" | "md" | "lg" | "full";
 type PickerColor =
   | "default"
   | "primary"
@@ -55,13 +57,14 @@ export interface DateInputProps {
   // Premium HeroUI-style tokens
   variant?: PickerVariant;
   size?: PickerSize;
-  radius?: PickerRadius;
+  radius?: Radius;
   color?: PickerColor;
   labelPlacement?: PickerLabelPlacement;
 
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
   enableMonthYearPicker?: boolean;
 
   // Formik integration
@@ -79,14 +82,6 @@ export interface DateInputProps {
 /* -------------------------------------------------------------------------- */
 /*                              Tokens & Helpers                              */
 /* -------------------------------------------------------------------------- */
-
-const radiusMap: Record<PickerRadius, string> = {
-  none: "rounded-none",
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-lg",
-  full: "rounded-full",
-};
 
 const monthOptions = [
   { value: 0, label: "January" },
@@ -382,13 +377,14 @@ const DateInput: React.FC<DateInputProps> = ({
 
   variant = "bordered",
   size = "md",
-  radius = "md",
+  radius = DEFAULT_RADIUS,
   color = "primary",
   labelPlacement = "outside",
 
   containerClassName = "",
   labelClassName = "",
   errorClassName = "",
+  isRequired = false,
 
   enableMonthYearPicker = true,
 }) => {
@@ -802,7 +798,7 @@ const DateInput: React.FC<DateInputProps> = ({
           ? `border-b rounded-none relative ${underlinedColorClasses[color] || underlinedColorClasses.default}`
           : `border-2 ${fadedColorClasses[color] || fadedColorClasses.default}`;
   const radiusClass =
-    resolvedVariant === "underlined" ? "rounded-none" : radiusMap[radius];
+    resolvedVariant === "underlined" ? "rounded-none" : getRadiusClass(radius);
 
   const isOutsideLeft = labelPlacement === "outside-left";
 
@@ -811,7 +807,7 @@ const DateInput: React.FC<DateInputProps> = ({
     return (
       <label
         htmlFor={fieldName}
-        className={`block font-medium select-none transition-colors duration-200 ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
+        className={`${labelClasses} ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
           } ${sz.labelSize} ${labelClassName} ${
             isOpen && color !== "default"
               ? (focusTextColors[color] || "text-primary")
@@ -820,7 +816,7 @@ const DateInput: React.FC<DateInputProps> = ({
                 : "text-neutral-700 dark:text-neutral-300"
           }`}
       >
-        {label}
+        <FieldLabelContent label={label} isRequired={isRequired} />
       </label>
     );
   };
@@ -1112,7 +1108,7 @@ const DateInput: React.FC<DateInputProps> = ({
                     height: 0,
                   }}
                 >
-                  <span>{label}</span>
+                  <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
                 </legend>
               )}
             </fieldset>
@@ -1146,7 +1142,7 @@ const DateInput: React.FC<DateInputProps> = ({
               }}
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
               className={`
-                absolute left-3 top-1/2 z-10 font-medium pointer-events-none origin-left transition-colors duration-200
+                absolute left-3 top-1/2 z-10 ${labelFloatingClasses} transition-colors duration-200
                 ${sz.textSize} ${labelClassName} ${
                   isOpen && color !== "default"
                     ? (focusTextColors[color] || "text-primary")
@@ -1159,7 +1155,7 @@ const DateInput: React.FC<DateInputProps> = ({
               `}
               style={{ transformOrigin: isOutlined ? "left" : "top left" }}
             >
-              {label}
+              <FieldLabelContent label={label} isRequired={isRequired} />
             </motion.label>
           )}
 
@@ -1173,11 +1169,11 @@ const DateInput: React.FC<DateInputProps> = ({
             {labelPlacement === "inside" && !isFloating && label && (
               <span
                 className={`
-                  block font-medium select-none mb-0.5 text-default-500
+                  ${labelFloatingClasses} mb-0.5 text-default-500
                   ${sz.labelSize} ${labelClassName}
                 `}
               >
-                {label}
+                <FieldLabelContent label={label} isRequired={isRequired} />
               </span>
             )}
 
@@ -1290,7 +1286,7 @@ const DateInput: React.FC<DateInputProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className={`mt-1.5 text-sm text-red-500 ${errorClassName}`}
+            className={`${errorClasses} ${errorClassName}`}
           >
             {fieldError}
           </motion.p>
@@ -1372,7 +1368,7 @@ const DrumOverlay: React.FC<DrumOverlayProps> = ({
           height: ITEM_HEIGHT - 4,
           transform: "translateY(-50%)",
           zIndex: 0,
-          borderRadius: 16,
+          borderRadius: "var(--radius)",
 
           background: "color-mix(in srgb, var(--color-background) 85%, transparent)",
           backdropFilter: "blur(10px)",

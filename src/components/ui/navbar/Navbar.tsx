@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { HTMLMotionProps } from 'framer-motion';
 import clsx from 'clsx';
+import { getRadiusClass } from '../shared/radius';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -369,7 +370,7 @@ export const NavbarMenuToggle: React.FC<NavbarMenuToggleProps> = ({
       aria-label={srOnlyText}
       aria-expanded={activeState}
       className={clsx(
-        'group flex items-center justify-center w-9 h-9 rounded-lg p-2 text-default-600 dark:text-default-400 hover:bg-default-100 dark:hover:bg-default-800 focus:outline-none transition-colors cursor-pointer',
+        `group flex items-center justify-center w-9 h-9 ${getRadiusClass()} p-2 text-default-600 dark:text-default-400 hover:bg-default-100 dark:hover:bg-default-800 focus:outline-none transition-colors cursor-pointer`,
         classNames.toggle,
         className
       )}
@@ -442,7 +443,7 @@ export const NavbarMenuItem: React.FC<NavbarMenuItemProps> = ({
   return (
     <li
       className={clsx(
-        'w-full text-base font-medium py-1.5 px-3 rounded-md transition-colors text-default-700 dark:text-default-300 hover:bg-default-100 dark:hover:bg-default-800 cursor-pointer',
+        `w-full text-base font-medium py-1.5 px-3 ${getRadiusClass()} transition-colors text-default-700 dark:text-default-300 hover:bg-default-100 dark:hover:bg-default-800 cursor-pointer`,
         isActive && 'text-primary font-semibold bg-primary-50 dark:bg-primary-900/20',
         classNames.menuItem,
         className

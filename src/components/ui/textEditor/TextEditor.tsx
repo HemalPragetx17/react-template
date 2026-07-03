@@ -2,6 +2,7 @@ import Quill from "quill";
 import "quill/dist/quill.snow.css";
 import React, { useEffect, useRef } from "react";
 import "./index.css";
+import { getRadiusClass } from "../shared/radius";
 
 interface TextEditorProps {
   value: string;
@@ -105,7 +106,7 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`text-editor-container border border-neutral-200 dark:border-neutral-700 rounded-lg overflow-hidden ${className}`}
+      className={`text-editor-container border border-neutral-200 dark:border-neutral-700 ${getRadiusClass()} overflow-hidden ${className}`}
     />
   );
 };

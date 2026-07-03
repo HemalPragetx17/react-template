@@ -4,13 +4,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { HTMLMotionProps } from "framer-motion";
 import { FaXmark } from "react-icons/fa6";
 import clsx from "clsx";
+import { DEFAULT_RADIUS, getDrawerRadiusClass, type DrawerPlacement, type Radius } from "../shared/radius";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type DrawerPlacement = "top" | "right" | "bottom" | "left";
+export type { DrawerPlacement };
+export type DrawerRadius = Radius;
 export type DrawerSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "5xl" | "full";
 export type DrawerBackdrop = "transparent" | "opaque" | "blur";
-export type DrawerRadius = "none" | "sm" | "md" | "lg";
 export type DrawerShadow = "none" | "sm" | "md" | "lg";
 export type DrawerScrollBehavior = "inside" | "outside";
 
@@ -73,34 +74,6 @@ const shadowClasses = {
   sm: "shadow-sm",
   md: "shadow-md",
   lg: "shadow-2xl",
-};
-
-const getRadiusClasses = (radius: DrawerRadius, placement: DrawerPlacement): string => {
-  if (radius === "none") return "rounded-none";
-
-  const map: Record<DrawerPlacement, Record<Exclude<DrawerRadius, "none">, string>> = {
-    left: {
-      sm: "rounded-r-sm",
-      md: "rounded-r-md",
-      lg: "rounded-r-2xl",
-    },
-    right: {
-      sm: "rounded-l-sm",
-      md: "rounded-l-md",
-      lg: "rounded-l-2xl",
-    },
-    top: {
-      sm: "rounded-b-sm",
-      md: "rounded-b-md",
-      lg: "rounded-b-2xl",
-    },
-    bottom: {
-      sm: "rounded-t-sm",
-      md: "rounded-t-md",
-      lg: "rounded-t-2xl",
-    },
-  };
-  return map[placement][radius];
 };
 
 // Size classes mapping:
@@ -199,7 +172,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   placement = "right",
   size = "md",
   backdrop = "opaque",
-  radius = "lg",
+  radius = DEFAULT_RADIUS,
   shadow = "lg",
   isDismissable = true,
   isKeyboardDismissDisabled = false,
@@ -348,7 +321,7 @@ export const DrawerContent: React.FC<DrawerContentProps> = ({
                 "relative flex flex-col bg-white dark:bg-content1 pointer-events-auto text-neutral-900 dark:text-neutral-100 overflow-hidden",
                 "border border-neutral-200/80 dark:border-neutral-800/80",
                 shadowClasses[shadow],
-                getRadiusClasses(radius, placement),
+                getDrawerRadiusClass(placement, radius),
                 sizeClasses[placement][size],
                 scrollBehavior === "inside" ? "h-full" : "h-fit",
                 drawerClassName,

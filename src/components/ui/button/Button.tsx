@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { useSelector } from "react-redux";
 import type { IApplicationState } from "../../../store/state/app-state";
 import Spinner from "../spinner/Spinner";
+import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../shared/radius";
 
 
 interface ButtonProps
@@ -10,7 +11,7 @@ interface ButtonProps
   variant?: "solid" | "bordered" | "light" | "flat" | "faded" | "shadow" | "ghost";
   color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
   size?: "xs" | "sm" | "md" | "lg";
-  radius?: "none" | "sm" | "md" | "lg" | "full";
+  radius?: Radius;
   startContent?: React.ReactNode;
   endContent?: React.ReactNode;
   isIconOnly?: boolean;
@@ -34,14 +35,6 @@ const iconOnlySizeClasses = {
   sm: "w-9 h-9 p-0 justify-center aspect-square",
   md: "w-10 h-10 p-0 justify-center aspect-square",
   lg: "w-12 h-12 p-0 justify-center aspect-square",
-};
-
-const radiusClasses = {
-  none: "rounded-none",
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-lg",
-  full: "rounded-full",
 };
 
 const baseClasses =
@@ -110,7 +103,7 @@ const Button: React.FC<ButtonProps> = ({
   variant = "solid",
   color = "primary",
   size = "md",
-  radius = "md",
+  radius = DEFAULT_RADIUS,
   startContent,
   endContent,
   isIconOnly = false,
@@ -167,7 +160,7 @@ const Button: React.FC<ButtonProps> = ({
         "disabled:pointer-events-none disabled:opacity-50",
 
         comboClasses,
-        radiusClasses[radius],
+        getRadiusClass(radius),
         isIconOnly ? iconOnlySizeClasses[size] : sizeClasses[size],
 
         fullWidth && "w-full",

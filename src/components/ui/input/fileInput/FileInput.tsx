@@ -9,6 +9,9 @@ import {
 import { FaRegTrashCan, FaUserLarge, FaXmark } from "react-icons/fa6";
 import { FiUpload } from "react-icons/fi";
 import Button from "../../button/Button";
+import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../../shared/radius";
+import { errorClasses, labelClasses, labelFloatingClasses } from "../../shared/fieldStyles";
+import { FieldLabelContent } from "../../shared/FieldLabelContent";
 import PdfPreview from "./PdfPreview";
 import "./index.css";
 
@@ -47,12 +50,13 @@ export interface FileInputProps {
   // Styling / Theme variants (for "normal" mode)
   variant?: "flat" | "bordered" | "underlined" | "faded";
   size?: "sm" | "md" | "lg";
-  radius?: "none" | "sm" | "md" | "lg" | "full";
+  radius?: Radius;
   color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
   labelPlacement?: "inside" | "outside" | "outside-left" | "outside-top" | "outlined";
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
   inputClassName?: string;
 
   // Formik integration
@@ -119,14 +123,14 @@ const ImagePreviewItem = ({
   isPreviewOn,
   disabled,
   size = "md",
-  radius = "lg",
+  radius = DEFAULT_RADIUS,
 }: {
   image: Image;
   onDelete: () => void;
   isPreviewOn?: boolean;
   disabled?: boolean;
   size?: "sm" | "md" | "lg";
-  radius?: "none" | "sm" | "md" | "lg" | "full";
+  radius?: Radius;
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -176,14 +180,7 @@ const ImagePreviewItem = ({
   const dropzoneSize = dropzoneSizeConfigs[size] || dropzoneSizeConfigs.md;
   const dropzoneSizeVal = dropzoneSize.val;
 
-  const dropzoneRadiusConfigs = {
-    none: "rounded-none",
-    sm: "rounded-sm",
-    md: "rounded-md",
-    lg: "rounded-lg",
-    full: "rounded-full",
-  };
-  const dropzoneRadiusClass = dropzoneRadiusConfigs[radius] || "rounded-lg";
+  const dropzoneRadiusClass = getRadiusClass(radius);
 
   return (
     <div className="relative" style={{ width: `${dropzoneSizeVal}px`, height: `${dropzoneSizeVal}px` }}>
@@ -283,13 +280,13 @@ const ImagePreviewItem = ({
                     src={previewUrl}
                     controls
                     autoPlay
-                    className="max-w-full max-h-full rounded-lg shadow-2xl object-contain bg-black"
+                    className={`max-w-full max-h-full ${getRadiusClass()} shadow-2xl object-contain bg-black`}
                   />
                 ) : isImage ? (
                   <img
                     src={previewUrl}
                     alt="Full Preview"
-                    className="max-w-full max-h-full rounded-lg shadow-2xl object-contain bg-neutral-900"
+                    className={`max-w-full max-h-full ${getRadiusClass()} shadow-2xl object-contain bg-neutral-900`}
                   />
                 ) : null}
               </motion.div>
@@ -329,12 +326,13 @@ const FileInput = ({
   // Styles
   variant = "bordered",
   size = "md",
-  radius = "md",
+  radius = DEFAULT_RADIUS,
   color = "primary",
   labelPlacement = "outside",
   containerClassName = "",
   labelClassName = "",
   errorClassName = "",
+  isRequired = false,
 
   // Formik props
   field,
@@ -617,18 +615,11 @@ const FileInput = ({
     faded: `border-2 ${fadedColorClasses[color] || fadedColorClasses.default}`,
   };
 
-  const radiusConfigs = {
-    none: "rounded-none",
-    sm: "rounded-sm",
-    md: "rounded-md",
-    lg: "rounded-lg",
-    full: "rounded-full",
-  };
+  const radiusClass = resolvedVariant === "underlined" ? "rounded-none" : getRadiusClass(radius);
 
   const isOutlined = labelPlacement === "outlined";
   const sz = sizeConfigs[size] || sizeConfigs.md;
   const variantClass = isOutlined ? "bg-transparent border-none" : (variantConfigs[resolvedVariant] || variantConfigs.bordered);
-  const radiusClass = resolvedVariant === "underlined" ? "rounded-none" : radiusConfigs[radius] || radiusConfigs.md;
 
   const profileSizeConfigs = {
     sm: 96,
@@ -637,14 +628,7 @@ const FileInput = ({
   };
   const profileSizeVal = profileSizeConfigs[size] || 144;
 
-  const profileRadiusConfigs = {
-    none: "rounded-none",
-    sm: "rounded-sm",
-    md: "rounded-md",
-    lg: "rounded-lg",
-    full: "rounded-full",
-  };
-  const profileRadiusClass = radius ? (profileRadiusConfigs[radius] || "rounded-full") : "rounded-full";
+  const profileRadiusClass = radius ? getRadiusClass(radius) : "rounded-full";
 
   const dropzoneSizeConfigs = {
     sm: {
@@ -666,14 +650,7 @@ const FileInput = ({
   const dropzoneSize = dropzoneSizeConfigs[size] || dropzoneSizeConfigs.md;
   const dropzoneSizeVal = dropzoneSize.val;
 
-  const dropzoneRadiusConfigs = {
-    none: "rounded-none",
-    sm: "rounded-sm",
-    md: "rounded-md",
-    lg: "rounded-lg",
-    full: "rounded-full",
-  };
-  const dropzoneRadiusClass = radius ? (dropzoneRadiusConfigs[radius] || "rounded-lg") : "rounded-lg";
+  const dropzoneRadiusClass = getRadiusClass(radius);
 
   const isOutsideLeft = labelPlacement === "outside-left";
   const isFloating = labelPlacement === "inside" || labelPlacement === "outside";
@@ -686,7 +663,7 @@ const FileInput = ({
     return (
       <label
         htmlFor={fieldName}
-        className={`block font-medium select-none transition-colors duration-200 ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
+        className={`${labelClasses} ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
           } ${sz.labelSize} ${labelClassName} ${
             isFocused && color !== "default"
               ? (focusTextColors[color] || "text-primary")
@@ -695,7 +672,7 @@ const FileInput = ({
                 : "text-neutral-700 dark:text-neutral-300"
           }`}
       >
-        {label}
+        <FieldLabelContent label={label} isRequired={isRequired} />
       </label>
     );
   };
@@ -757,7 +734,7 @@ const FileInput = ({
           {label && (
             <div className="w-full text-center mt-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="label">
-                {label}
+                <FieldLabelContent label={label} isRequired={isRequired} />
               </label>
             </div>
           )}
@@ -772,7 +749,7 @@ const FileInput = ({
         <div>
           {label && (
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="label">
-              {label}
+              <FieldLabelContent label={label} isRequired={isRequired} />
             </label>
           )}
           {!previewUrl || !isSupported ? (
@@ -848,7 +825,7 @@ const FileInput = ({
         <div className="w-full">
           {label && (
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {label}
+              <FieldLabelContent label={label} isRequired={isRequired} />
             </label>
           )}
           <div className="flex mt-2 gap-6 flex-wrap">
@@ -929,7 +906,7 @@ const FileInput = ({
                       height: 0,
                     }}
                   >
-                    <span>{label}</span>
+                    <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
                   </legend>
                 )}
               </fieldset>
@@ -963,7 +940,7 @@ const FileInput = ({
                 }}
                 transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
                 className={`
-                  absolute left-3 top-1/2 z-10 font-medium pointer-events-none origin-left transition-colors duration-200
+                  absolute left-3 top-1/2 z-10 ${labelFloatingClasses} transition-colors duration-200
                   ${sz.textSize} ${labelClassName} ${
                     isFocused && color !== "default"
                       ? (focusTextColors[color] || "text-primary")
@@ -976,7 +953,7 @@ const FileInput = ({
                 `}
                 style={{ transformOrigin: isOutlined ? "left" : "top left" }}
               >
-                {label}
+                <FieldLabelContent label={label} isRequired={isRequired} />
               </motion.label>
             )}
 
@@ -997,11 +974,11 @@ const FileInput = ({
               {labelPlacement === "inside" && !isFloating && label && (
                 <span
                   className={`
-                    block font-medium select-none mb-0.5 text-neutral-500
+                    ${labelFloatingClasses} mb-0.5 text-neutral-500
                     ${sz.labelSize} ${labelClassName}
                   `}
                 >
-                  {label}
+                  <FieldLabelContent label={label} isRequired={isRequired} />
                 </span>
               )}
 
@@ -1098,13 +1075,13 @@ const FileInput = ({
                     src={previewUrl}
                     controls
                     autoPlay
-                    className="max-w-full max-h-full rounded-lg shadow-2xl object-contain bg-black"
+                    className={`max-w-full max-h-full ${getRadiusClass()} shadow-2xl object-contain bg-black`}
                   />
                 ) : isImage ? (
                   <img
                     src={previewUrl}
                     alt="Full Preview"
-                    className="max-w-full max-h-full rounded-lg shadow-2xl object-contain bg-neutral-900"
+                    className={`max-w-full max-h-full ${getRadiusClass()} shadow-2xl object-contain bg-neutral-900`}
                   />
                 ) : null}
               </motion.div>
@@ -1121,7 +1098,7 @@ const FileInput = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className={`mt-1.5 text-sm text-red-500 ${mode === "profile" ? "flex justify-center text-center" : ""
+            className={`${errorClasses} ${mode === "profile" ? "flex justify-center text-center" : ""
               } ${errorClassName}`}
           >
             {resolvedError as string}

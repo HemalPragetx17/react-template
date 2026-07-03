@@ -22,6 +22,9 @@ import {
 } from "react-icons/fa";
 import { FaXmark } from "react-icons/fa6";
 import Button from "../../button/Button";
+import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../../shared/radius";
+import { errorClasses, labelClasses, labelFloatingClasses } from "../../shared/fieldStyles";
+import { FieldLabelContent } from "../../shared/FieldLabelContent";
 import "../timePicker/index.css";
 
 const applyImportant = (classes: string) => {
@@ -44,7 +47,6 @@ const applyImportant = (classes: string) => {
 
 type PickerVariant = "flat" | "bordered" | "underlined" | "faded";
 type PickerSize = "sm" | "md" | "lg";
-type PickerRadius = "none" | "sm" | "md" | "lg" | "full";
 type PickerColor =
   | "default"
   | "primary"
@@ -73,7 +75,7 @@ export interface DateTimePickerProps {
 
   variant?: PickerVariant;
   size?: PickerSize;
-  radius?: PickerRadius;
+  radius?: Radius;
   color?: PickerColor;
   labelPlacement?: PickerLabelPlacement;
   /** "normal" = drum scroll (default) | "clock" = analog clock dial */
@@ -82,6 +84,7 @@ export interface DateTimePickerProps {
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
 
   // Formik
   field?: FieldInputProps<any>;
@@ -97,14 +100,6 @@ export interface DateTimePickerProps {
 /* -------------------------------------------------------------------------- */
 /*                               Tokens & Helpers                             */
 /* -------------------------------------------------------------------------- */
-
-const radiusMap: Record<PickerRadius, string> = {
-  none: "rounded-none",
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-lg",
-  full: "rounded-full",
-};
 
 const colorMap: Record<
   PickerColor,
@@ -415,7 +410,7 @@ const TimeColumn: React.FC<TimeColProps> = ({ items, value, onChange, color }) =
               className="drp-drum-item flex items-center justify-center cursor-pointer"
             >
               <span
-                className={`flex items-center justify-center w-[52px] h-[34px] text-sm font-semibold rounded-lg transition-all ${isSelected
+                className={`flex items-center justify-center w-[52px] h-[34px] text-sm font-semibold ${getRadiusClass()} transition-all ${isSelected
                   ? colorMap[color].chip
                   : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
                   }`}
@@ -673,7 +668,7 @@ const MonthYearDrum: React.FC<MonthYearDrumProps> = ({
           top: "50%",
           height: MY_ITEM_H - 4,
           transform: "translateY(-50%)",
-          borderRadius: 16,
+          borderRadius: "var(--radius)",
           background: "color-mix(in srgb, var(--color-background, white) 85%, transparent)",
           backdropFilter: "blur(10px)",
           border: "1px solid color-mix(in srgb, var(--color-background, white) 75%, transparent)",
@@ -1270,13 +1265,14 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   touched,
   variant = "bordered",
   size = "md",
-  radius = "md",
+  radius = DEFAULT_RADIUS,
   color = "primary",
   labelPlacement = "outside",
   timeMode = "normal",
   containerClassName = "",
   labelClassName = "",
   errorClassName = "",
+  isRequired = false,
   field,
   form,
 }) => {
@@ -1490,7 +1486,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   const startError = fieldName && form?.errors?.[fieldName] ? String(form.errors[fieldName]) : error;
   const startTouched = fieldName && form?.touched?.[fieldName] ? true : touched;
   const hasError = !!(startTouched && startError);
-  const radiusClass = resolvedVariant === "underlined" ? "rounded-none" : radiusMap[radius];
+  const radiusClass = resolvedVariant === "underlined" ? "rounded-none" : getRadiusClass(radius);
   const isOutlined = labelPlacement === "outlined";
   const isFloating = labelPlacement === "inside" || labelPlacement === "outside";
   const isOutsideLeft = labelPlacement === "outside-left";
@@ -1518,7 +1514,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
     return (
       <label
         htmlFor={fieldName}
-        className={`block font-medium select-none transition-colors duration-200 ${isOutsideLeft ? "shrink-0 mb-0 mr-3 self-center" : "mb-1.5"
+        className={`${labelClasses} ${isOutsideLeft ? "shrink-0 mb-0 mr-3 self-center" : "mb-1.5"
           } ${sz.labelSize} ${labelClassName} ${
             hasError
               ? "text-danger"
@@ -1529,7 +1525,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                   : "text-neutral-700 dark:text-neutral-300"
           }`}
       >
-        {label}
+        <FieldLabelContent label={label} isRequired={isRequired} />
       </label>
     );
   };
@@ -1551,7 +1547,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
         animate={animateProps}
         transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
         style={{ transformOrigin: isOutlined ? "left" : "top left" }}
-        className={`absolute left-3 top-1/2 z-10 font-medium pointer-events-none transition-colors duration-200 ${sz.textSize
+        className={`absolute left-3 top-1/2 z-10 ${labelFloatingClasses} transition-colors duration-200 ${sz.textSize
           } ${labelClassName} ${
             hasError
               ? "text-danger"
@@ -1564,7 +1560,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                   : "text-neutral-400 dark:text-neutral-500"
           } ${isOutlined ? "bg-white dark:bg-content1 px-1" : ""}`}
       >
-        {label}
+        <FieldLabelContent label={label} isRequired={isRequired} />
       </motion.label>
     );
   };
@@ -1723,7 +1719,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                       height: 0,
                     }}
                   >
-                    <span>{label}</span>
+                    <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
                   </legend>
                 )}
               </fieldset>
@@ -1747,7 +1743,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
-          className={`mt-1.5 text-xs text-danger font-medium ${errorClassName}`}
+          className={`${errorClasses} ${errorClassName}`}
         >
           {startError}
         </motion.p>

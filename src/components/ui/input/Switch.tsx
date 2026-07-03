@@ -1,6 +1,8 @@
 import React, { forwardRef } from "react";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
+import { errorClasses, labelClasses } from "../shared/fieldStyles";
+import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 interface SwitchProps {
   label?: string;
@@ -11,6 +13,7 @@ interface SwitchProps {
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
   disabled?: boolean;
   name?: string;
   value?: boolean;
@@ -44,6 +47,7 @@ const Switch = forwardRef<HTMLDivElement, SwitchProps>((props, ref) => {
     containerClassName = "",
     labelClassName = "",
     errorClassName = "",
+    isRequired = false,
     disabled = false,
     size = "md",
     color = "primary",
@@ -186,11 +190,11 @@ const Switch = forwardRef<HTMLDivElement, SwitchProps>((props, ref) => {
       {/* Top Label */}
       {label && (
         <label
-          className={`block font-medium text-neutral-700 dark:text-neutral-300 ${
+          className={`${labelClasses} text-neutral-700 dark:text-neutral-300 ${
             size === "sm" ? "text-[10px] mb-1.5" : size === "lg" ? "text-sm mb-1.5" : "text-xs mb-1.5"
           } ${labelClassName}`}
         >
-          {label}
+          <FieldLabelContent label={label} isRequired={isRequired} />
         </label>
       )}
 
@@ -291,7 +295,7 @@ const Switch = forwardRef<HTMLDivElement, SwitchProps>((props, ref) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className={`mt-1.5 text-sm text-red-500 ${errorClassName}`}
+            className={`${errorClasses} ${errorClassName}`}
           >
             {fieldError}
           </motion.p>

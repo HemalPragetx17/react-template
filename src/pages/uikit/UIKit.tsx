@@ -297,7 +297,7 @@ const UIKit: React.FC = () => {
           <Row key={variant}>
             <Label>{variant}</Label>
             {COLORS.map((color) => (
-              <Button key={color} variant={variant} color={color} size="sm" radius="md">
+              <Button key={color} variant={variant} color={color} size="sm">
                 {color.charAt(0).toUpperCase() + color.slice(1)}
               </Button>
             ))}
@@ -306,7 +306,7 @@ const UIKit: React.FC = () => {
         <Row>
           <Label>disabled</Label>
           {COLORS.map((color) => (
-            <Button key={color} variant="solid" color={color} size="sm" radius="md" disabled>
+            <Button key={color} variant="solid" color={color} size="sm" disabled>
               {color.charAt(0).toUpperCase() + color.slice(1)}
             </Button>
           ))}
@@ -882,41 +882,21 @@ const UIKit: React.FC = () => {
           <div className="space-y-6">
             <div>
               <h3 className="text-sm font-semibold text-neutral-400 mb-2">Usage</h3>
-              <div className="space-y-2">
-                <p>Default Rating:</p>
-                <Rating defaultValue={3} />
-                <p className="mt-2">Rating with Half:</p>
-                <Rating defaultValue={3} allowHalf />
+              <div className="space-y-4">
+                <Rating label="Default Rating" defaultValue={3} />
+                <Rating label="Rating with Half" defaultValue={3} allowHalf />
               </div>
             </div>
 
             <div>
               <h3 className="text-sm font-semibold text-neutral-400 mb-2">Colors</h3>
-              <div className="space-y-3">
-                <div>
-                  <span className="text-xs text-neutral-400 block mb-1">Default</span>
-                  <Rating color="default" defaultValue={4} />
-                </div>
-                <div>
-                  <span className="text-xs text-neutral-400 block mb-1">Primary</span>
-                  <Rating color="primary" defaultValue={4} />
-                </div>
-                <div>
-                  <span className="text-xs text-neutral-400 block mb-1">Secondary</span>
-                  <Rating color="secondary" defaultValue={4} />
-                </div>
-                <div>
-                  <span className="text-xs text-neutral-400 block mb-1">Success</span>
-                  <Rating color="success" defaultValue={4} />
-                </div>
-                <div>
-                  <span className="text-xs text-neutral-400 block mb-1">Warning</span>
-                  <Rating color="warning" defaultValue={4} />
-                </div>
-                <div>
-                  <span className="text-xs text-neutral-400 block mb-1">Danger</span>
-                  <Rating color="danger" defaultValue={4} />
-                </div>
+              <div className="space-y-4">
+                <Rating label="Default" color="default" defaultValue={4} />
+                <Rating label="Primary" color="primary" defaultValue={4} />
+                <Rating label="Secondary" color="secondary" defaultValue={4} />
+                <Rating label="Success" color="success" defaultValue={4} />
+                <Rating label="Warning" color="warning" defaultValue={4} />
+                <Rating label="Danger" color="danger" defaultValue={4} />
               </div>
             </div>
           </div>
@@ -925,59 +905,44 @@ const UIKit: React.FC = () => {
           <div className="space-y-6">
             <div>
               <h3 className="text-sm font-semibold text-neutral-400 mb-2">Custom Icon Heart</h3>
-              <Rating icon={<FaHeart />} defaultValue={3} color="warning" />
+              <Rating label="Heart Rating" icon={<FaHeart />} defaultValue={3} color="warning" />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-neutral-400 mb-2">Custom Smiley</h3>
-              <Rating icon={<FaFaceSmile />} defaultValue={3} color="success" />
+              <Rating label="Smiley Rating" icon={<FaFaceSmile />} defaultValue={3} color="success" />
             </div>
 
             <div>
               <h3 className="text-sm font-semibold text-neutral-400 mb-2">Disabled</h3>
-              <Rating defaultValue={3} isDisabled />
+              <Rating label="Disabled Rating" defaultValue={3} isDisabled />
             </div>
 
             <div>
               <h3 className="text-sm font-semibold text-neutral-400 mb-4">Product Review (Decimal / Read-only)</h3>
               <div className="space-y-4 max-w-xs">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Quality</span>
-                  <div className="flex items-center gap-2">
-                    <Rating value={1.5} allowHalf isReadOnly />
-                    <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">1.5</span>
-                  </div>
+                <div className="flex justify-between items-end gap-4">
+                  <Rating label="Quality" value={1.5} allowHalf isReadOnly />
+                  <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">1.5</span>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Value for money</span>
-                  <div className="flex items-center gap-2">
-                    <Rating value={2.3} allowHalf isReadOnly />
-                    <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">2.3</span>
-                  </div>
+                <div className="flex justify-between items-end gap-4">
+                  <Rating label="Value for money" value={2.3} allowHalf isReadOnly />
+                  <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">2.3</span>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Design</span>
-                  <div className="flex items-center gap-2">
-                    <Rating value={3.7} allowHalf isReadOnly />
-                    <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">3.7</span>
-                  </div>
+                <div className="flex justify-between items-end gap-4">
+                  <Rating label="Design" value={3.7} allowHalf isReadOnly />
+                  <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">3.7</span>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Durability</span>
-                  <div className="flex items-center gap-2">
-                    <Rating value={4.2} allowHalf isReadOnly />
-                    <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">4.2</span>
-                  </div>
+                <div className="flex justify-between items-end gap-4">
+                  <Rating label="Durability" value={4.2} allowHalf isReadOnly />
+                  <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">4.2</span>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Overall</span>
-                  <div className="flex items-center gap-2">
-                    <Rating value={4.8} allowHalf isReadOnly />
-                    <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">4.8</span>
-                  </div>
+                <div className="flex justify-between items-end gap-4">
+                  <Rating label="Overall" value={4.8} allowHalf isReadOnly />
+                  <span className="text-sm font-semibold text-neutral-600 dark:text-neutral-400">4.8</span>
                 </div>
               </div>
             </div>

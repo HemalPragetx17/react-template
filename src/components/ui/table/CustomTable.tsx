@@ -39,6 +39,7 @@ import { Checkbox } from "../input";
 import AnimatedExpand from "./AnimatedExpand";
 import "./index.css";
 import Button from "../button/Button";
+import { getRadiusClass } from "../shared/radius";
 
 interface CustomTableProps<T = any> {
   data: T[];
@@ -475,7 +476,7 @@ function CustomTable<T = any>({
   return (
     <div
       className={clsx(
-        "flex flex-col bg-white dark:bg-content1 border border-default-100 dark:border-transparent rounded-lg shadow-sm w-full overflow-hidden mt-5",
+        `flex flex-col bg-white dark:bg-content1 border border-default-100 dark:border-transparent ${getRadiusClass()} shadow-sm w-full overflow-hidden mt-5`,
         className,
       )}
     >

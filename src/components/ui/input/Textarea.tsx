@@ -3,6 +3,9 @@ import { FaXmark } from "react-icons/fa6";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "../button/Button";
+import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../shared/radius";
+import { errorClasses, labelClasses, labelFloatingClasses } from "../shared/fieldStyles";
+import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -15,11 +18,12 @@ interface TextareaProps
   inputClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
 
   // HeroUI-style variant props
   size?: "sm" | "md" | "lg";
   variant?: "flat" | "bordered" | "underlined" | "faded";
-  radius?: "none" | "sm" | "md" | "lg" | "full";
+  radius?: Radius;
   color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
   labelPlacement?: "inside" | "outside" | "outside-left" | "outside-top" | "outlined";
 
@@ -52,9 +56,10 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       inputClassName = "",
       labelClassName = "",
       errorClassName = "",
+      isRequired = false,
       size = "md",
       variant = "bordered",
-      radius = "md",
+      radius = DEFAULT_RADIUS,
       color = "primary",
       labelPlacement = "outside",
       isClearable = false,
@@ -271,24 +276,13 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       faded: `border-2 ${fadedColorClasses[color] || fadedColorClasses.default}`,
     };
 
-    // ── Radius ────────────────────────────────────────────────────────────
-    const radiusConfigs = {
-      none: "rounded-none",
-      sm: "rounded-sm",
-      md: "rounded-md",
-      lg: "rounded-lg",
-      full: "rounded-2xl",
-    };
-
     const isOutlined = labelPlacement === "outlined";
     const cs = sizeConfigs[size] ?? sizeConfigs.md;
     const variantClass = isOutlined
       ? "bg-transparent border-none"
       : (variantConfigs[resolvedVariant] ?? variantConfigs.bordered);
     const radiusClass =
-      resolvedVariant === "underlined"
-        ? "rounded-none"
-        : radiusConfigs[radius] ?? radiusConfigs.md;
+      resolvedVariant === "underlined" ? "rounded-none" : getRadiusClass(radius);
 
     const hasError = !!(fieldTouched && fieldError);
 
@@ -301,7 +295,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       return (
         <label
           htmlFor={inputId}
-          className={`block font-medium select-none transition-colors duration-200 ${labelPlacement === "outside-left" ? "shrink-0 mb-0" : "mb-1.5"
+          className={`${labelClasses} ${labelPlacement === "outside-left" ? "shrink-0 mb-0" : "mb-1.5"
             } ${cs.labelSize} ${labelClassName} ${
               isFocused && color !== "default"
                 ? (focusTextColors[color] || "text-primary")
@@ -310,7 +304,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                   : "text-neutral-700 dark:text-neutral-300"
             }`}
         >
-          {label}
+          <FieldLabelContent label={label} isRequired={isRequired} />
         </label>
       );
     };
@@ -361,7 +355,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                       height: 0,
                     }}
                   >
-                    <span>{label}</span>
+                    <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
                   </legend>
                 )}
               </fieldset>
@@ -389,7 +383,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 }}
                 transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
                 className={`
-                  absolute left-3 top-0 z-10 font-medium pointer-events-none origin-left transition-colors duration-200
+                  absolute left-3 top-0 z-10 ${labelFloatingClasses} transition-colors duration-200
                   ${cs.textSize} ${labelClassName} ${
                     isFocused && color !== "default"
                       ? (focusTextColors[color] || "text-primary")
@@ -402,7 +396,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 `}
                 style={{ transformOrigin: isOutlined ? "left" : "top left" }}
               >
-                {label}
+                <FieldLabelContent label={label} isRequired={isRequired} />
               </motion.label>
             )}
 
@@ -480,7 +474,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.15 }}
-              className={`mt-1.5 text-sm text-red-500 ${errorClassName}`}
+              className={`${errorClasses} ${errorClassName}`}
             >
               {fieldError}
             </motion.p>

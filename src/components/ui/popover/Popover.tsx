@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../shared/radius";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -14,7 +15,7 @@ export type PopoverColor = "default" | "primary" | "secondary" | "success" | "wa
 
 export type PopoverSize = "sm" | "md" | "lg";
 
-export type PopoverRadius = "none" | "sm" | "md" | "lg" | "full";
+export type PopoverRadius = Radius;
 
 export type PopoverShadow = "none" | "sm" | "md" | "lg";
 
@@ -32,7 +33,7 @@ export interface PopoverProps {
     /** Size of the popover typography and padding */
     size?: PopoverSize;
     /** Border radius of the popover panel */
-    radius?: PopoverRadius;
+    radius?: Radius;
     /** Shadow strength of the popover panel */
     shadow?: PopoverShadow;
     /** Show an arrow pointing from the panel to the trigger */
@@ -116,14 +117,6 @@ const sizeClasses: Record<PopoverSize, string> = {
     sm: "text-xs",
     md: "text-sm",
     lg: "text-base",
-};
-
-const radiusClasses: Record<PopoverRadius, string> = {
-    none: "rounded-none",
-    sm: "rounded-sm",
-    md: "rounded-md",
-    lg: "rounded-lg",
-    full: "rounded-full",
 };
 
 const shadowClasses: Record<PopoverShadow, string> = {
@@ -222,7 +215,7 @@ const Popover: React.FC<PopoverProps> = ({
     placement = "bottom",
     color = "default",
     size = "md",
-    radius = "lg",
+    radius = DEFAULT_RADIUS,
     shadow = "lg",
     showArrow = false,
     offset = 8,
@@ -405,7 +398,7 @@ const Popover: React.FC<PopoverProps> = ({
                         onMouseEnter={triggerMode === "hover" ? handleMouseEnter : undefined}
                         onMouseLeave={triggerMode === "hover" ? handleMouseLeave : undefined}
                         className={`
-                            ${colorBgMap[color]} ${sizeClasses[size]} ${radiusClasses[radius]} ${shadowClasses[shadow]} shadow-black/10
+                            ${colorBgMap[color]} ${sizeClasses[size]} ${getRadiusClass(radius)} ${shadowClasses[shadow]} shadow-black/10
                             border ${colorBorderMap[color]}
                             ${className}
                         `}
@@ -414,7 +407,7 @@ const Popover: React.FC<PopoverProps> = ({
                             <span className={arrowShapeClass} style={arrowStyle} />
                         )}
                         {/* Inner wrapper keeps overflow contained without clipping the arrow */}
-                        <div className={`overflow-hidden ${radiusClasses[radius]}`}>
+                        <div className={`overflow-hidden ${getRadiusClass(radius)}`}>
                             {children}
                         </div>
                     </motion.div>

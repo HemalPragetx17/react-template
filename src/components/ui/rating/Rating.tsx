@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import clsx from "clsx";
 import { FaStar } from "react-icons/fa6";
+import { labelClasses } from "../shared/fieldStyles";
 
 export interface RatingProps {
+  label?: React.ReactNode;
+  labelClassName?: string;
   value?: number;
   defaultValue?: number;
   count?: number;
@@ -33,6 +36,12 @@ const sizeClasses = {
   lg: "w-8 h-8 text-3xl flex items-center justify-center",
 };
 
+const labelSizeClasses = {
+  sm: "text-xs",
+  md: "text-sm",
+  lg: "text-base",
+};
+
 const sizeWidths = {
   sm: "16px",
   md: "24px",
@@ -40,6 +49,8 @@ const sizeWidths = {
 };
 
 const Rating: React.FC<RatingProps> = ({
+  label,
+  labelClassName,
   value: controlledValue,
   defaultValue,
   count = 5,
@@ -151,15 +162,33 @@ const Rating: React.FC<RatingProps> = ({
 
   return (
     <div
-      ref={containerRef}
       className={clsx(
-        "inline-flex items-center gap-1.5",
+        "inline-flex flex-col gap-1.5",
         isDisabled && "opacity-45 pointer-events-none",
-        !isReadOnly && !isDisabled && "cursor-pointer",
         className
       )}
-      onMouseLeave={handleMouseLeave}
     >
+      {label && (
+        <span
+          className={clsx(
+            labelClasses,
+            "text-neutral-700 dark:text-neutral-300",
+            labelSizeClasses[size],
+            labelClassName
+          )}
+        >
+          {label}
+        </span>
+      )}
+
+      <div
+        ref={containerRef}
+        className={clsx(
+          "inline-flex items-center gap-1.5",
+          !isReadOnly && !isDisabled && "cursor-pointer"
+        )}
+        onMouseLeave={handleMouseLeave}
+      >
       {name && <input type="hidden" name={name} value={value} />}
       
       {Array.from({ length: count }).map((_, index) => (
@@ -176,6 +205,7 @@ const Rating: React.FC<RatingProps> = ({
           {renderIcon(index)}
         </div>
       ))}
+      </div>
     </div>
   );
 };

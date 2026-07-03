@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import Popover, { type PopoverPlacement } from "../popover/Popover";
+import { getRadiusClass } from "../shared/radius";
 
 // ─── Dropdown Context ────────────────────────────────────────────────────────
 interface DropdownContextType {
@@ -430,7 +431,7 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
         role="menuitem"
         onClick={handleClick}
         className={`
-          flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors select-none gap-2
+          flex items-center justify-between px-3 py-2 text-sm ${getRadiusClass()} transition-colors select-none gap-2
           ${colorStyles} ${disabledStyles} ${className}
         `}
       >

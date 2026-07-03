@@ -12,6 +12,9 @@ import type {
 } from "react-select";
 import Select, { components } from "react-select";
 import Button from "../button/Button";
+import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../shared/radius";
+import { errorClasses, labelClasses, labelFloatingClasses } from "../shared/fieldStyles";
+import { FieldLabelContent } from "../shared/FieldLabelContent";
 import type { CheckboxColor } from "./Checkbox";
 
 /* -------------------------------------------------------------------------- */
@@ -25,7 +28,6 @@ export interface SelectOption {
 
 type SelectVariant = "flat" | "bordered" | "underlined" | "faded";
 type SelectSize = "sm" | "md" | "lg";
-type SelectRadius = "none" | "sm" | "md" | "lg" | "full";
 type SelectColor =
   | "default"
   | "primary"
@@ -57,13 +59,14 @@ interface SelectDropdownProps extends Omit<FieldProps, 'meta'> {
   // HeroUI-style props
   variant?: SelectVariant;
   size?: SelectSize;
-  radius?: SelectRadius;
+  radius?: Radius;
   color?: SelectColor;
   labelPlacement?: SelectLabelPlacement;
 
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
+  isRequired?: boolean;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -168,18 +171,6 @@ const sizeTokens: Record<
 };
 
 /* -------------------------------------------------------------------------- */
-/*                           Variant / Radius Tokens                          */
-/* -------------------------------------------------------------------------- */
-
-const radiusMap: Record<SelectRadius, string> = {
-  none: "rounded-none",
-  sm: "rounded-sm",
-  md: "rounded-md",
-  lg: "rounded-lg",
-  full: "rounded-full",
-};
-
-/* -------------------------------------------------------------------------- */
 /*                         Custom Dropdown Indicator                          */
 /* -------------------------------------------------------------------------- */
 
@@ -256,7 +247,7 @@ const CustomMultiValue = (props: any) => {
   if (index === maxVisible) {
     const hiddenCount = total - maxVisible;
     return (
-      <span className={`inline-flex items-center shrink-0 rounded-md font-semibold whitespace-nowrap ${tokens.multiValueBg} ${tokens.multiValueText} ${chipClassName}`}>
+      <span className={`inline-flex items-center shrink-0 ${getRadiusClass()} font-semibold whitespace-nowrap ${tokens.multiValueBg} ${tokens.multiValueText} ${chipClassName}`}>
         +{hiddenCount}
       </span>
     );
@@ -283,7 +274,7 @@ const StaticCheckbox = ({ checked, color }: { checked: boolean; color: CheckboxC
   return (
     <span
       className={`
-        inline-flex items-center justify-center shrink-0 w-5 h-5 rounded-md border-2 transition-colors duration-150
+        inline-flex items-center justify-center shrink-0 w-5 h-5 ${getRadiusClass()} border-2 transition-colors duration-150
         ${checked 
           ? `${bgMap[color]} border-transparent` 
           : "border-neutral-300 dark:border-neutral-600 bg-transparent"
@@ -350,13 +341,14 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
 
   variant = "bordered",
   size = "md",
-  radius = "md",
+  radius = DEFAULT_RADIUS,
   color = "primary",
   labelPlacement = "outside",
 
   containerClassName = "",
   labelClassName = "",
   errorClassName = "",
+  isRequired = false,
 }) => {
   const resolvedVariant = labelPlacement === "outlined" ? "bordered" : variant;
 
@@ -398,8 +390,8 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   // For outlined: show notch/float when focused OR has value OR has placeholder
   const shouldFloat = isFocused || hasValue || (isFloating && !!placeholder) || (isOutlined && !!placeholder);
 
-  const radiusClass = resolvedVariant === "underlined" ? "rounded-none" : radiusMap[radius];
-  const menuRadiusClass = resolvedVariant === "underlined" ? "rounded-none" : (radius === "full" ? "rounded-xl" : radiusMap[radius]);
+  const radiusClass = resolvedVariant === "underlined" ? "rounded-none" : getRadiusClass(radius);
+  const menuRadiusClass = resolvedVariant === "underlined" ? "rounded-none" : (radius === "full" ? getRadiusClass("xl") : getRadiusClass(radius));
 
   const flatColorClasses = {
     default: "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 focus-within:bg-neutral-200 dark:focus-within:bg-neutral-700 text-foreground",
@@ -508,7 +500,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
     return (
       <label
         htmlFor={name}
-        className={`block font-medium select-none transition-colors duration-200 ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
+        className={`${labelClasses} ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
           } ${sz.labelSize} ${labelClassName} ${
             isFocused && color !== "default"
               ? (color === "primary" ? "text-primary" :
@@ -521,7 +513,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
                 : "text-neutral-700 dark:text-neutral-300"
           }`}
       >
-        {label}
+        <FieldLabelContent label={label} isRequired={isRequired} />
       </label>
     );
   };
@@ -595,7 +587,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
                     height: 0,
                   }}
                 >
-                  <span>{label}</span>
+                  <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
                 </legend>
               )}
             </fieldset>
@@ -629,7 +621,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
               }}
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
               className={`
-                absolute ${isOutlined ? "left-3" : `left-0 ${sz.px}`} font-medium select-none origin-left pointer-events-none whitespace-nowrap z-10
+                absolute ${isOutlined ? "left-3" : `left-0 ${sz.px}`} ${labelFloatingClasses} z-10
                 top-1/2
                 ${sz.textSize} ${labelClassName} transition-colors duration-200
                 ${
@@ -648,7 +640,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
               `}
               style={{ transformOrigin: isOutlined ? "left" : "top left" }}
             >
-              {label}
+              <FieldLabelContent label={label} isRequired={isRequired} />
             </motion.label>
           )}
 
@@ -663,7 +655,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
                 <div
                   key={opt.value}
                   className={`inline-flex items-center gap-1 ${sz.textSize === "text-xs" ? "text-xs" : "text-sm"
-                    } rounded-md px-2 py-1.5 font-medium whitespace-nowrap`}
+                    } ${getRadiusClass()} px-2 py-1.5 font-medium whitespace-nowrap`}
                 >
                   <span className="leading-normal">{opt.label}</span>
                   <div className="w-3 h-3 ml-0.5" />
@@ -732,7 +724,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
                 menuList: () => "py-1 px-1 flex flex-col gap-0.5",
 
                 option: ({ isFocused: optFocused, isDisabled }) =>
-                  `px-3 py-2 rounded-lg transition-colors duration-150
+                  `px-3 py-2 ${getRadiusClass()} transition-colors duration-150
                   ${isDisabled
                     ? "cursor-not-allowed text-neutral-400 dark:text-neutral-600"
                     : "cursor-pointer text-neutral-800 dark:text-neutral-200"
@@ -749,7 +741,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
                   "px-3 py-2 text-sm text-neutral-500 dark:text-neutral-400",
 
                 multiValue: () =>
-                  `inline-flex items-center gap-1 ${tokens.multiValueBg} ${tokens.multiValueText} rounded-md font-medium whitespace-nowrap ${getChipClass()}`,
+                  `inline-flex items-center gap-1 ${tokens.multiValueBg} ${tokens.multiValueText} ${getRadiusClass()} font-medium whitespace-nowrap ${getChipClass()}`,
 
                 multiValueLabel: () => "leading-normal",
 
@@ -797,7 +789,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className={`mt-1.5 text-sm text-red-500 ${errorClassName}`}
+            className={`${errorClasses} ${errorClassName}`}
           >
             {errorMsg}
           </motion.p>

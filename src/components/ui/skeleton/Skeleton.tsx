@@ -1,5 +1,6 @@
 import React from "react";
 import clsx from "clsx";
+import { getRadiusClass } from "../shared/radius";
 
 export interface SkeletonProps {
   /**
@@ -43,7 +44,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
   return (
     <div
       className={clsx(
-        "relative overflow-hidden select-none pointer-events-none rounded-lg",
+        `relative overflow-hidden select-none pointer-events-none ${getRadiusClass()}`,
         // Base skeleton background color matching HeroUI's default style
         "bg-default-300 dark:bg-default-200",
         // Animations
