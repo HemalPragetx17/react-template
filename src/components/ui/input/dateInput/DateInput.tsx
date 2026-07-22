@@ -1,4 +1,5 @@
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
+import { getIn } from "formik";
 import {
   AnimatePresence,
   animate,
@@ -19,7 +20,16 @@ import {
 import { FaXmark } from "react-icons/fa6";
 import Button from "../../button/Button";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../../shared/radius";
-import { errorClasses, labelClasses, labelFloatingClasses } from "../../shared/fieldStyles";
+import {
+  fieldPlaceholderClasses,
+  fieldValueClasses,
+  errorClasses,
+  getInteractiveBorderClass,
+  getWrapperBaseClasses,
+  labelClasses,
+  labelFloatingClasses,
+  type FieldColor,
+} from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
 import "./index.css";
 
@@ -62,10 +72,15 @@ export interface DateInputProps {
   labelPlacement?: PickerLabelPlacement;
 
   containerClassName?: string;
+  wrapperClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
   isRequired?: boolean;
   enableMonthYearPicker?: boolean;
+  /** Earliest selectable date (Date, ISO string, or null) */
+  minDate?: Date | string | null;
+  /** Latest selectable date (Date, ISO string, or null) */
+  maxDate?: Date | string | null;
 
   // Formik integration
   field?: FieldInputProps<any>;
@@ -143,20 +158,6 @@ function formatDisplayRange(start: Date | null, end: Date | null): string {
 /*                              Subcomponents                                 */
 /* -------------------------------------------------------------------------- */
 
-const applyImportant = (classes: string) => {
-  return classes
-    .split(" ")
-    .map((cls) => {
-      if (cls.includes(":")) {
-        const parts = cls.split(":");
-        const last = parts.pop();
-        return [...parts, `!${last}`].join(":");
-      }
-      return `!${cls}`;
-    })
-    .join(" ");
-};
-
 function CalendarIcon({ colorClass }: { colorClass?: string }) {
   return (
     <FaCalendar className={`w-4 h-4 shrink-0 transition-colors ${colorClass || "text-neutral-600 dark:text-neutral-350 group-hover:text-neutral-800 dark:group-hover:text-neutral-100"}`} aria-hidden />
@@ -186,6 +187,9 @@ function ClearIcon({ onClick }: { onClick: (e: React.MouseEvent) => void }) {
 const ITEM_HEIGHT = 44; // px — height of each row in the drum
 const VISIBLE_ITEMS = 7; // must be odd so center = selected — 7 rows covers calendar date grid
 const DRUM_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 308px
+/** Matches `--drp-calendar-width` in dateInput/index.css */
+const CALENDAR_POPOVER_WIDTH = 300;
+const CALENDAR_POPOVER_HEIGHT = 372;
 
 /**
  * useDrumPicker
@@ -360,7 +364,7 @@ function useDrumPicker<T extends { value: number; label: string }>(
 /*                           DateInput Component                       */
 /* -------------------------------------------------------------------------- */
 
-const DateInput: React.FC<DateInputProps> = ({
+const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(({
   field,
   form,
   label,
@@ -379,15 +383,18 @@ const DateInput: React.FC<DateInputProps> = ({
   size = "md",
   radius = DEFAULT_RADIUS,
   color = "primary",
-  labelPlacement = "outside",
+  labelPlacement = "outside-top",
 
   containerClassName = "",
+  wrapperClassName = "",
   labelClassName = "",
   errorClassName = "",
   isRequired = false,
 
   enableMonthYearPicker = true,
-}) => {
+  minDate,
+  maxDate,
+}, ref) => {
   const resolvedVariant = labelPlacement === "outlined" ? "bordered" : variant;
 
   // Color-specific configurations
@@ -464,8 +471,8 @@ const DateInput: React.FC<DateInputProps> = ({
   };
 
   const [isOpen, setIsOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const calendarRef = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const calendarRef = useRef<HTMLDivElement | null>(null);
   const [dropdownCoords, setDropdownCoords] = useState<{
     top: number | "auto";
     bottom: number | "auto";
@@ -478,7 +485,7 @@ const DateInput: React.FC<DateInputProps> = ({
     const rect = wrapperRef.current.getBoundingClientRect();
 
     const spaceBelow = window.innerHeight - rect.bottom;
-    const dropdownHeight = 370; // standard calendar height + margin
+    const dropdownHeight = 400; // calendar popover height + margin
 
     let top: number | "auto" = 0;
     let bottom: number | "auto" = "auto";
@@ -494,7 +501,7 @@ const DateInput: React.FC<DateInputProps> = ({
       position = "bottom";
     }
 
-    const popoverWidth = 256;
+    const popoverWidth = CALENDAR_POPOVER_WIDTH;
     let left = rect.left;
     if (left + popoverWidth > window.innerWidth) {
       left = window.innerWidth - popoverWidth - 12;
@@ -549,6 +556,9 @@ const DateInput: React.FC<DateInputProps> = ({
         ? parseDate(resolvedValue[1])
         : null
     : null;
+
+  const resolvedMinDate = parseDate(minDate);
+  const resolvedMaxDate = parseDate(maxDate);
 
   const hasValue = selectsRange ? !!(startDate && endDate) : !!startDate;
   const displayString = selectsRange
@@ -614,17 +624,17 @@ const DateInput: React.FC<DateInputProps> = ({
   const sz = sizeConfigs[size] || sizeConfigs.md;
 
   // Determine Formik errors / touched state safely
-  const startError =
-    fieldName && form?.errors?.[fieldName]
-      ? String(form.errors[fieldName])
-      : error;
-  const startTouched = fieldName && form?.touched?.[fieldName] ? true : touched;
+  const formError = fieldName ? getIn(form?.errors, fieldName) : undefined;
+  const formTouched = fieldName ? getIn(form?.touched, fieldName) : undefined;
 
-  const endError =
-    endDateName && form?.errors?.[endDateName]
-      ? String(form.errors[endDateName])
-      : undefined;
-  const endTouched = endDateName && form?.touched?.[endDateName] ? true : false;
+  const startError = formError ? String(formError) : error;
+  const startTouched = formTouched ? true : touched;
+
+  const formEndError = endDateName ? getIn(form?.errors, endDateName) : undefined;
+  const formEndTouched = endDateName ? getIn(form?.touched, endDateName) : undefined;
+
+  const endError = formEndError ? String(formEndError) : undefined;
+  const endTouched = formEndTouched ? true : false;
 
   // Since it's a range picker, if either field is touched, we treat the whole component as touched.
   const isTouched = selectsRange ? (startTouched || endTouched) : startTouched;
@@ -638,6 +648,7 @@ const DateInput: React.FC<DateInputProps> = ({
     if (isOpen) {
       wasOpenedRef.current = true;
     } else if (wasOpenedRef.current) {
+      wasOpenedRef.current = false;
       if (form?.setFieldTouched && fieldName) {
         form.setFieldTouched(fieldName, true);
         if (endDateName) {
@@ -668,10 +679,20 @@ const DateInput: React.FC<DateInputProps> = ({
 
   // Date selection change event
   const handleDateChange = (dates: any) => {
+    const isOutOfRange = (date: Date | null) => {
+      if (!date) return false;
+      const clean = stripTime(date);
+      if (resolvedMinDate && clean < stripTime(resolvedMinDate)) return true;
+      if (resolvedMaxDate && clean > stripTime(resolvedMaxDate)) return true;
+      return false;
+    };
+
     if (selectsRange) {
       const [start, end] = Array.isArray(dates) ? dates : [dates, null];
       const cleanStart = start ? stripTime(start) : null;
       const cleanEnd = end ? stripTime(end) : null;
+
+      if (isOutOfRange(cleanStart) || isOutOfRange(cleanEnd)) return;
 
       if (endDateName) {
         const formattedStart = cleanStart ? toLocalYYYYMMDD(cleanStart) : null;
@@ -719,6 +740,7 @@ const DateInput: React.FC<DateInputProps> = ({
     } else {
       const singleDate = Array.isArray(dates) ? dates[0] : dates;
       const cleanDate = singleDate ? stripTime(singleDate) : null;
+      if (isOutOfRange(cleanDate)) return;
       const valStr = cleanDate ? toLocalYYYYMMDD(cleanDate) : "";
 
       if (form?.setFieldValue && fieldName) {
@@ -800,6 +822,22 @@ const DateInput: React.FC<DateInputProps> = ({
   const radiusClass =
     resolvedVariant === "underlined" ? "rounded-none" : getRadiusClass(radius);
 
+  const wrapperBaseClasses = getWrapperBaseClasses({
+    wrapperClassName,
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isOpen,
+    hasError,
+  });
+
+  const interactiveBorderClass = getInteractiveBorderClass({
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isOpen,
+    hasError,
+    color: color as FieldColor,
+  });
+
   const isOutsideLeft = labelPlacement === "outside-left";
 
   const renderOutsideLabel = () => {
@@ -807,14 +845,7 @@ const DateInput: React.FC<DateInputProps> = ({
     return (
       <label
         htmlFor={fieldName}
-        className={`${labelClasses} ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
-          } ${sz.labelSize} ${labelClassName} ${
-            isOpen && color !== "default"
-              ? (focusTextColors[color] || "text-primary")
-              : isOpen
-                ? "text-neutral-800 dark:text-neutral-200"
-                : "text-neutral-700 dark:text-neutral-300"
-          }`}
+        className={`${labelClasses} ${isOutsideLeft ? "mb-0 shrink-0" : "mb-2"} ${labelClassName}`}
       >
         <FieldLabelContent label={label} isRequired={isRequired} />
       </label>
@@ -838,6 +869,19 @@ const DateInput: React.FC<DateInputProps> = ({
   }: any) => {
     const currentMonth = date.getMonth();
     const currentYear = date.getFullYear();
+    const viewedMonthStart = new Date(currentYear, currentMonth, 1);
+
+    const isPrevMonthDisabled =
+      prevMonthButtonDisabled ||
+      (!!resolvedMinDate &&
+        viewedMonthStart <=
+          new Date(resolvedMinDate.getFullYear(), resolvedMinDate.getMonth(), 1));
+
+    const isNextMonthDisabled =
+      nextMonthButtonDisabled ||
+      (!!resolvedMaxDate &&
+        viewedMonthStart >=
+          new Date(resolvedMaxDate.getFullYear(), resolvedMaxDate.getMonth(), 1));
 
     const monthYearLabel = `${date.toLocaleString("en-US", {
       month: "short",
@@ -846,7 +890,7 @@ const DateInput: React.FC<DateInputProps> = ({
     return (
       <div className="relative flex flex-col bg-white dark:bg-content1">
         {/* HEADER ROW */}
-        <div className="relative flex items-center justify-between w-full px-2 pt-3 pb-2">
+        <div className="relative flex items-center justify-between w-full px-3 pt-4 pb-3">
           {/* LEFT */}
           <div className="flex items-center justify-center w-9 h-9">
             <AnimatePresence mode="wait">
@@ -858,8 +902,11 @@ const DateInput: React.FC<DateInputProps> = ({
                   exit={{ opacity: 0, scale: 0.92 }}
                   transition={{ duration: 0.15 }}
                   type="button"
-                  onClick={decreaseMonth}
-                  disabled={prevMonthButtonDisabled}
+                  onClick={() => {
+                    if (!isPrevMonthDisabled) decreaseMonth();
+                  }}
+                  disabled={isPrevMonthDisabled}
+                  aria-disabled={isPrevMonthDisabled}
                   className="
                   flex items-center justify-center
                   w-9 h-9
@@ -869,6 +916,9 @@ const DateInput: React.FC<DateInputProps> = ({
                   text-default-600
                   hover:bg-default-100
                   disabled:opacity-40
+                  disabled:pointer-events-none
+                  disabled:cursor-not-allowed
+                  disabled:hover:bg-default-50
                   transition-colors
                 "
                 >
@@ -895,29 +945,15 @@ const DateInput: React.FC<DateInputProps> = ({
                     damping: 24,
                   }}
                   className={`
-          inline-flex items-center justify-center gap-2
-          px-4 py-2
-          text-sm font-semibold
-          transition-all duration-300 ease-out
-
-          ${showMonthYearPicker
-                      ? `
-                rounded-full
-                border border-default-200
-                bg-default-100
-                shadow-none
-                text-default-900
-              `
-                      : `
-                rounded-full
-                border border-default-200
-                bg-default-50
-                shadow-sm
-                text-default-900
-                hover:bg-default-100
-              `
+                    inline-flex items-center justify-center gap-2
+                    px-4 py-2
+                    rounded-full border border-default-200
+                    transition-all duration-300 ease-out
+                    ${showMonthYearPicker
+                      ? "bg-default-100 shadow-none"
+                      : "bg-default-50 shadow-sm hover:bg-default-100"
                     }
-        `}
+                  `}
                 >
                   <motion.span
                     key={monthYearLabel}
@@ -928,6 +964,7 @@ const DateInput: React.FC<DateInputProps> = ({
                       stiffness: 380,
                       damping: 26,
                     }}
+                    className={fieldValueClasses}
                   >
                     {monthYearLabel}
                   </motion.span>
@@ -951,6 +988,7 @@ const DateInput: React.FC<DateInputProps> = ({
                 <AnimatePresence>
                   {showMonthYearPicker && (
                     <motion.div
+                      key="drum-overlay"
                       initial={{
                         opacity: 0,
                         y: -8,
@@ -995,17 +1033,15 @@ const DateInput: React.FC<DateInputProps> = ({
               </>
             ) : (
               <div
-                className="
-        inline-flex items-center justify-center
-        px-4 py-2
-        text-sm font-semibold
-        rounded-full
-        border border-default-200
-        bg-default-50
-        text-default-900
-      "
+                className={`
+                  inline-flex items-center justify-center
+                  px-4 py-2
+                  rounded-full
+                  border border-default-200
+                  bg-default-50
+                `}
               >
-                {monthYearLabel}
+                <span className={fieldValueClasses}>{monthYearLabel}</span>
               </div>
             )}
           </div>
@@ -1021,8 +1057,11 @@ const DateInput: React.FC<DateInputProps> = ({
                   exit={{ opacity: 0, scale: 0.92 }}
                   transition={{ duration: 0.15 }}
                   type="button"
-                  onClick={increaseMonth}
-                  disabled={nextMonthButtonDisabled}
+                  onClick={() => {
+                    if (!isNextMonthDisabled) increaseMonth();
+                  }}
+                  disabled={isNextMonthDisabled}
+                  aria-disabled={isNextMonthDisabled}
                   className="
                   flex items-center justify-center
                   w-9 h-9
@@ -1032,6 +1071,9 @@ const DateInput: React.FC<DateInputProps> = ({
                   text-default-600
                   hover:bg-default-100
                   disabled:opacity-40
+                  disabled:pointer-events-none
+                  disabled:cursor-not-allowed
+                  disabled:hover:bg-default-50
                   transition-colors
                 "
                 >
@@ -1046,20 +1088,38 @@ const DateInput: React.FC<DateInputProps> = ({
   };
 
   const getDayClass = (date: Date) => {
+    const stateClasses: string[] = [];
     const cleanDate = stripTime(date);
-    if (selectsRange) {
-      if (isSameDate(cleanDate, startDate)) return "drp-day--range-start";
-      if (isSameDate(cleanDate, endDate)) return "drp-day--range-end";
-      if (startDate && endDate && cleanDate > startDate && cleanDate < endDate)
-        return "drp-day--in-range";
-    } else {
-      if (isSameDate(cleanDate, startDate)) return "drp-day--selected-single";
+    const isBeforeMin = resolvedMinDate ? cleanDate < stripTime(resolvedMinDate) : false;
+    const isAfterMax = resolvedMaxDate ? cleanDate > stripTime(resolvedMaxDate) : false;
+
+    if (isBeforeMin || isAfterMax) {
+      return "drp-day--disabled";
     }
-    return "";
+
+    if (selectsRange) {
+      if (isSameDate(cleanDate, startDate)) stateClasses.push("drp-day--range-start");
+      if (isSameDate(cleanDate, endDate)) stateClasses.push("drp-day--range-end");
+      if (startDate && endDate && cleanDate > startDate && cleanDate < endDate)
+        stateClasses.push("drp-day--in-range");
+    } else {
+      if (isSameDate(cleanDate, startDate)) stateClasses.push("drp-day--selected-single");
+    }
+    return [fieldValueClasses, ...stateClasses].join(" ");
   };
 
   return (
-    <div className={`w-full flow-root ${containerClassName}`} ref={wrapperRef}>
+    <div
+      className={`w-full flow-root ${containerClassName}`}
+      ref={(node) => {
+        wrapperRef.current = node;
+        if (typeof ref === "function") {
+          ref(node);
+        } else if (ref) {
+          (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        }
+      }}
+    >
       <div
         className={isOutsideLeft ? "flex items-center gap-3 w-full" : "w-full"}
       >
@@ -1070,15 +1130,10 @@ const DateInput: React.FC<DateInputProps> = ({
             relative flex items-center justify-between w-full transition-all duration-200 ease-in-out select-none box-border group
             ${variantClass}
             ${radiusClass}
+            ${wrapperBaseClasses}
             ${sz.wrapperPadding}
             ${labelPlacement === "inside" ? sz.insideHeight : `${sz.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`}
-            ${hasError && !isOutlined ? "!border-danger" : ""}
-            ${isOpen && !hasError && !isOutlined
-              ? resolvedVariant === "bordered" || resolvedVariant === "faded"
-                ? applyImportant(focusBorderColors[color] || "border-primary")
-                : ""
-              : ""
-            }
+            ${interactiveBorderClass}
             ${disabled ? "opacity-50 cursor-default" : "cursor-pointer"}
           `}
           onClick={() => !disabled && setIsOpen((prev) => !prev)}
@@ -1184,13 +1239,13 @@ const DateInput: React.FC<DateInputProps> = ({
             >
               {!displayString ? (
                 <span
-                  className={`text-default-500 truncate select-none ${sz.textSize}`}
+                  className={`${fieldPlaceholderClasses} truncate select-none`}
                 >
                   {((!isFloating || shouldFloat) && resolvedPlaceholder) ? resolvedPlaceholder : "\u200b"}
                 </span>
               ) : (
                 <span
-                  className={`text-neutral-800 dark:text-neutral-200 truncate select-none ${sz.textSize}`}
+                  className={`text-neutral-800 dark:text-neutral-200 truncate select-none ${fieldValueClasses}`}
                 >
                   {displayString}
                 </span>
@@ -1209,59 +1264,54 @@ const DateInput: React.FC<DateInputProps> = ({
 
           {/* Dropdown Calendar Portal Wrapper */}
           {createPortal(
-            <AnimatePresence>
-              {isOpen && !disabled && dropdownCoords && (
-                <motion.div
-                  ref={calendarRef}
-                  initial={{
-                    opacity: 0,
-                    y: dropdownCoords.position === "bottom" ? -10 : 10,
-                    scale: 0.97,
-                  }}
-                  animate={{
-                    opacity: 1,
-                    y: 0,
-                    scale: 1,
-                  }}
-                  exit={{
-                    opacity: 0,
-                    y: dropdownCoords.position === "bottom" ? -10 : 10,
-                    scale: 0.97,
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 28,
-                  }}
-                  className={`fixed z-[99999] bg-background border border-default-200 rounded-xl shadow-xl overflow-hidden drp-calendar-wrapper--${color}`}
-                  style={{
-                    width: 256,
-                    height: 325,
-                    top: dropdownCoords.top,
-                    bottom: dropdownCoords.bottom,
-                    left: dropdownCoords.left,
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <DatePicker
-                    {...({
-                      selected: startDate,
-                      onChange: handleDateChange,
-                      startDate: startDate,
-                      endDate: endDate,
-                      selectsRange: selectsRange,
-                      shouldCloseOnSelect: false,
-                      inline: true,
-                      calendarClassName:
-                        "drp-calendar !border-none !rounded-xl !shadow-none",
-                      dayClassName: getDayClass,
-                      renderCustomHeader: renderHeader,
-                      fixedHeight: true,
-                    } as any)}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>,
+            isOpen && !disabled && dropdownCoords ? (
+              <motion.div
+                ref={calendarRef}
+                initial={{
+                  opacity: 0,
+                  y: dropdownCoords.position === "bottom" ? -10 : 10,
+                  scale: 0.97,
+                }}
+                animate={{
+                  opacity: 1,
+                  y: 0,
+                  scale: 1,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 28,
+                }}
+                className={`fixed z-[99999] bg-background border border-default-200 rounded-xl shadow-xl overflow-hidden drp-calendar-wrapper--${color}`}
+                style={{
+                  width: CALENDAR_POPOVER_WIDTH,
+                  height: CALENDAR_POPOVER_HEIGHT,
+                  top: dropdownCoords.top,
+                  bottom: dropdownCoords.bottom,
+                  left: dropdownCoords.left,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <DatePicker
+                  {...({
+                    selected: startDate,
+                    onChange: handleDateChange,
+                    startDate: startDate,
+                    endDate: endDate,
+                    selectsRange: selectsRange,
+                    minDate: resolvedMinDate || undefined,
+                    maxDate: resolvedMaxDate || undefined,
+                    shouldCloseOnSelect: false,
+                    inline: true,
+                    calendarClassName:
+                      "drp-calendar !border-none !rounded-xl !shadow-none",
+                    dayClassName: getDayClass,
+                    renderCustomHeader: renderHeader,
+                    fixedHeight: true,
+                  } as any)}
+                />
+              </motion.div>
+            ) : null,
             document.body
           )}
 
@@ -1279,22 +1329,19 @@ const DateInput: React.FC<DateInputProps> = ({
       </div>
 
       {/* Error Message */}
-      <AnimatePresence>
-        {hasError && (
-          <motion.p
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className={`${errorClasses} ${errorClassName}`}
-          >
-            {fieldError}
-          </motion.p>
-        )}
-      </AnimatePresence>
+      {hasError && (
+        <motion.p
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.15 }}
+          className={`${errorClasses} ${errorClassName}`}
+        >
+          {fieldError}
+        </motion.p>
+      )}
     </div>
   );
-};
+});
 
 DateInput.displayName = "DateInput";
 
@@ -1355,7 +1402,7 @@ const DrumOverlay: React.FC<DrumOverlayProps> = ({
         shadow-none
       "
       style={{
-        width: 256,
+        width: CALENDAR_POPOVER_WIDTH,
       }}
       onClick={(e) => e.stopPropagation()}
     >
@@ -1508,9 +1555,10 @@ const DrumColumn: React.FC<DrumColumnProps> = ({
                 scale,
               }}
               className={`
-                drp-drum-item relative z-10 flex items-center cursor-pointer px-4 text-base
+                drp-drum-item relative z-10 flex items-center cursor-pointer px-4
                 ${align === "left" ? "justify-start" : align === "right" ? "justify-end" : "justify-center"}
-                ${isSelected ? "text-default-900 font-semibold" : "text-default-700 font-medium"}
+                ${fieldValueClasses}
+                ${isSelected ? "text-neutral-900 dark:text-neutral-100" : "text-neutral-700 dark:text-neutral-200"}
               `}
             >
               {item.label}

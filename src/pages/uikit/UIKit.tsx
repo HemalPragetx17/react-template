@@ -570,11 +570,11 @@ const UIKit: React.FC = () => {
           {COLORS.map((color) => (
             <div key={color} className="space-y-4 min-w-[200px]">
               <div className="text-xs font-bold text-neutral-400 capitalize mb-1">{color}</div>
-              <DateInput variant="flat" color={color} value={dateVal[`${color}-flat`]} onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-flat`]: d }))} size="sm" />
-              <DateInput variant="bordered" color={color} value={dateVal[`${color}-bordered`]} onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-bordered`]: d }))} size="sm" />
-              <DateInput variant="faded" color={color} value={dateVal[`${color}-faded`]} onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-faded`]: d }))} size="sm" />
-              <DateInput variant="underlined" color={color} value={dateVal[`${color}-underlined`]} onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-underlined`]: d }))} size="sm" />
-              <DateInput variant="flat" color={color} value={dateVal[`${color}-disabled`]} onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-disabled`]: d }))} size="sm" disabled />
+              <DateInput variant="flat" color={color} value="" onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-flat`]: d }))} size="sm" />
+              <DateInput variant="bordered" color={color} value="" onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-bordered`]: d }))} size="sm" />
+              <DateInput variant="faded" color={color} value="" onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-faded`]: d }))} size="sm" />
+              <DateInput variant="underlined" color={color} value="" onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-underlined`]: d }))} size="sm" />
+              <DateInput variant="flat" color={color} value="" onChange={(d: any) => setDateVal(prev => ({ ...prev, [`${color}-disabled`]: d }))} size="sm" disabled />
             </div>
           ))}
         </div>
@@ -586,11 +586,11 @@ const UIKit: React.FC = () => {
           {COLORS.map((color) => (
             <div key={color} className="space-y-4 min-w-[200px]">
               <div className="text-xs font-bold text-neutral-400 capitalize mb-1">{color}</div>
-              <DateTimePicker variant="flat" color={color} value={dateTimeVal[`${color}-flat`]} onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-flat`]: dt }))} size="sm" />
-              <DateTimePicker variant="bordered" color={color} value={dateTimeVal[`${color}-bordered`]} onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-bordered`]: dt }))} size="sm" />
-              <DateTimePicker variant="faded" color={color} value={dateTimeVal[`${color}-faded`]} onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-faded`]: dt }))} size="sm" />
-              <DateTimePicker variant="underlined" color={color} value={dateTimeVal[`${color}-underlined`]} onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-underlined`]: dt }))} size="sm" />
-              <DateTimePicker variant="flat" color={color} value={dateTimeVal[`${color}-disabled`]} onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-disabled`]: dt }))} size="sm" disabled />
+              <DateTimePicker variant="flat" color={color} placeholder="Select Date and Time" value="" onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-flat`]: dt }))} size="sm" />
+              <DateTimePicker variant="bordered" color={color} placeholder="Select Date and Time" value="" onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-bordered`]: dt }))} size="sm" />
+              <DateTimePicker variant="faded" color={color} placeholder="Select Date and Time" value="" onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-faded`]: dt }))} size="sm" />
+              <DateTimePicker variant="underlined" color={color} placeholder="Select Date and Time" value="" onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-underlined`]: dt }))} size="sm" />
+              <DateTimePicker variant="flat" color={color} placeholder="Select Date and Time" value="" onChange={(dt) => setDateTimeVal(prev => ({ ...prev, [`${color}-disabled`]: dt }))} size="sm" disabled />
             </div>
           ))}
         </div>
@@ -632,7 +632,6 @@ const UIKit: React.FC = () => {
                               variant={btnVariant}
                               color={color}
                               className={`w-full capitalize ${btnClassName}`}
-                              size="md"
                             >
                               {color}
                             </Button>
@@ -777,11 +776,11 @@ const UIKit: React.FC = () => {
           {COLORS.map((color) => (
             <div key={color} className="space-y-4 min-w-[200px]">
               <div className="text-xs font-bold text-neutral-400 capitalize mb-1">{color}</div>
-              <FileInput variant="flat" color={color} value={fileVal[`${color}-flat`]} onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-flat`]: file }))} size="sm" />
-              <FileInput variant="bordered" color={color} value={fileVal[`${color}-bordered`]} onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-bordered`]: file }))} size="sm" />
-              <FileInput variant="faded" color={color} value={fileVal[`${color}-faded`]} onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-faded`]: file }))} size="sm" />
-              <FileInput variant="underlined" color={color} value={fileVal[`${color}-underlined`]} onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-underlined`]: file }))} size="sm" />
-              <FileInput variant="flat" color={color} value={fileVal[`${color}-disabled`]} onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-disabled`]: file }))} size="sm" disabled />
+              <FileInput variant="flat" color={color} value="" onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-flat`]: file }))} size="sm" />
+              <FileInput variant="bordered" color={color} value="" onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-bordered`]: file }))} size="sm" />
+              <FileInput variant="faded" color={color} value="" onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-faded`]: file }))} size="sm" />
+              <FileInput variant="underlined" color={color} value="" onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-underlined`]: file }))} size="sm" />
+              <FileInput variant="flat" color={color} value="" onChange={(file) => setFileVal(prev => ({ ...prev, [`${color}-disabled`]: file }))} size="sm" disabled />
             </div>
           ))}
         </div>
@@ -793,11 +792,11 @@ const UIKit: React.FC = () => {
           {COLORS.map((color) => (
             <div key={color} className="space-y-4 min-w-[200px]">
               <div className="text-xs font-bold text-neutral-400 capitalize mb-1">{color}</div>
-              <Input variant="flat" color={color} value={inputVal[`${color}-flat`]} onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-flat`]: e.target.value }))} size="sm" />
-              <Input variant="bordered" color={color} value={inputVal[`${color}-bordered`]} onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-bordered`]: e.target.value }))} size="sm" />
-              <Input variant="faded" color={color} value={inputVal[`${color}-faded`]} onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-faded`]: e.target.value }))} size="sm" />
-              <Input variant="underlined" color={color} value={inputVal[`${color}-underlined`]} onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-underlined`]: e.target.value }))} size="sm" />
-              <Input variant="flat" color={color} value={inputVal[`${color}-disabled`]} onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-disabled`]: e.target.value }))} size="sm" disabled />
+              <Input variant="flat" color={color} placeholder="Enter your text" value="" onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-flat`]: e.target.value }))} size="sm" />
+              <Input variant="bordered" color={color} placeholder="Enter your text" value="" onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-bordered`]: e.target.value }))} size="sm" />
+              <Input variant="faded" color={color} placeholder="Enter your text" value="" onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-faded`]: e.target.value }))} size="sm" />
+              <Input variant="underlined" color={color} placeholder="Enter your text" value="" onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-underlined`]: e.target.value }))} size="sm" />
+              <Input variant="flat" color={color} placeholder="Enter your text" value="" onChange={(e) => setInputVal(prev => ({ ...prev, [`${color}-disabled`]: e.target.value }))} size="sm" disabled />
             </div>
           ))}
         </div>
@@ -809,11 +808,11 @@ const UIKit: React.FC = () => {
           {COLORS.map((color) => (
             <div key={color} className="space-y-4 min-w-[200px]">
               <div className="text-xs font-bold text-neutral-400 capitalize mb-1">{color}</div>
-              <PhoneNumberInput variant="flat" color={color} value={phoneVal[`${color}-flat`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-flat`]: val }))} size="sm" />
-              <PhoneNumberInput variant="bordered" color={color} value={phoneVal[`${color}-bordered`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-bordered`]: val }))} size="sm" />
-              <PhoneNumberInput variant="faded" color={color} value={phoneVal[`${color}-faded`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-faded`]: val }))} size="sm" />
-              <PhoneNumberInput variant="underlined" color={color} value={phoneVal[`${color}-underlined`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-underlined`]: val }))} size="sm" />
-              <PhoneNumberInput variant="flat" color={color} value={phoneVal[`${color}-disabled`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-disabled`]: val }))} size="sm" disabled />
+              <PhoneNumberInput variant="flat" color={color} placeholder="Enter your phone number" value="" onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-flat`]: val }))} size="sm" />
+              <PhoneNumberInput variant="bordered" color={color} placeholder="Enter your phone number" value="" onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-bordered`]: val }))} size="sm" />
+              <PhoneNumberInput variant="faded" color={color} placeholder="Enter your phone number" value="" onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-faded`]: val }))} size="sm" />
+              <PhoneNumberInput variant="underlined" color={color} placeholder="Enter your phone number" value="" onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-underlined`]: val }))} size="sm" />
+              <PhoneNumberInput variant="flat" color={color} placeholder="Enter your phone number" value="" onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-disabled`]: val }))} size="sm" disabled />
             </div>
           ))}
         </div>
@@ -969,11 +968,11 @@ const UIKit: React.FC = () => {
           {COLORS.map((color) => (
             <div key={color} className="space-y-4 min-w-[200px]">
               <div className="text-xs font-bold text-neutral-400 capitalize mb-1">{color}</div>
-              <SelectDropdown variant="flat" color={color} options={RADIO_OPTIONS} field={{ name: `dropdown-${color}-flat`, value: dropdownVal[`${color}-flat`], onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-flat`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" />
-              <SelectDropdown variant="bordered" color={color} options={RADIO_OPTIONS} field={{ name: `dropdown-${color}-bordered`, value: dropdownVal[`${color}-bordered`], onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-bordered`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" />
-              <SelectDropdown variant="faded" color={color} options={RADIO_OPTIONS} field={{ name: `dropdown-${color}-faded`, value: dropdownVal[`${color}-faded`], onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-faded`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" />
-              <SelectDropdown variant="underlined" color={color} options={RADIO_OPTIONS} field={{ name: `dropdown-${color}-underlined`, value: dropdownVal[`${color}-underlined`], onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-underlined`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" />
-              <SelectDropdown variant="flat" color={color} options={RADIO_OPTIONS} field={{ name: `dropdown-${color}-disabled`, value: dropdownVal[`${color}-disabled`], onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-disabled`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" isDisabled />
+              <SelectDropdown variant="flat" color={color} options={RADIO_OPTIONS} placeholder="Select an option" field={{ name: `dropdown-${color}-flat`, value: "", onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-flat`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" />
+              <SelectDropdown variant="bordered" color={color} options={RADIO_OPTIONS} placeholder="Select an option" field={{ name: `dropdown-${color}-bordered`, value: "", onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-bordered`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" />
+              <SelectDropdown variant="faded" color={color} options={RADIO_OPTIONS} placeholder="Select an option" field={{ name: `dropdown-${color}-faded`, value: "", onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-faded`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" />
+              <SelectDropdown variant="underlined" color={color} options={RADIO_OPTIONS} placeholder="Select an option" field={{ name: `dropdown-${color}-underlined`, value: "", onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-underlined`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" />
+              <SelectDropdown variant="flat" color={color} options={RADIO_OPTIONS} placeholder="Select an option" field={{ name: `dropdown-${color}-disabled`, value: "", onChange: () => { }, onBlur: () => { } } as any} form={{ setFieldValue: (_name: string, val: string) => setDropdownVal(prev => ({ ...prev, [`${color}-disabled`]: val })), setFieldTouched: () => { }, touched: {}, errors: {} } as any} size="sm" isDisabled />
             </div>
           ))}
         </div>
@@ -1255,11 +1254,11 @@ const UIKit: React.FC = () => {
           {COLORS.map((color) => (
             <div key={color} className="space-y-4 min-w-[200px]">
               <div className="text-xs font-bold text-neutral-400 capitalize mb-1">{color}</div>
-              <Textarea variant="flat" color={color} value={textareaVal[`${color}-flat`]} onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-flat`]: e.target.value }))} size="sm" />
-              <Textarea variant="bordered" color={color} value={textareaVal[`${color}-bordered`]} onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-bordered`]: e.target.value }))} size="sm" />
-              <Textarea variant="faded" color={color} value={textareaVal[`${color}-faded`]} onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-faded`]: e.target.value }))} size="sm" />
-              <Textarea variant="underlined" color={color} value={textareaVal[`${color}-underlined`]} onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-underlined`]: e.target.value }))} size="sm" />
-              <Textarea variant="flat" color={color} value={textareaVal[`${color}-disabled`]} onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-disabled`]: e.target.value }))} size="sm" disabled />
+              <Textarea variant="flat" color={color} placeholder="Enter your text" value="" onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-flat`]: e.target.value }))} size="sm" />
+              <Textarea variant="bordered" color={color} placeholder="Enter your text" value="" onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-bordered`]: e.target.value }))} size="sm" />
+              <Textarea variant="faded" color={color} placeholder="Enter your text" value="" onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-faded`]: e.target.value }))} size="sm" />
+              <Textarea variant="underlined" color={color} placeholder="Enter your text" value="" onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-underlined`]: e.target.value }))} size="sm" />
+              <Textarea variant="flat" color={color} placeholder="Enter your text" value="" onChange={(e) => setTextareaVal(prev => ({ ...prev, [`${color}-disabled`]: e.target.value }))} size="sm" disabled />
             </div>
           ))}
         </div>
@@ -1271,11 +1270,11 @@ const UIKit: React.FC = () => {
           {COLORS.map((color) => (
             <div key={color} className="space-y-4 min-w-[200px]">
               <div className="text-xs font-bold text-neutral-400 capitalize mb-1">{color}</div>
-              <TimePicker variant="flat" color={color} value={timeVal[`${color}-flat`]} onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-flat`]: t }))} size="sm" />
-              <TimePicker variant="bordered" color={color} value={timeVal[`${color}-bordered`]} onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-bordered`]: t }))} size="sm" />
-              <TimePicker variant="faded" color={color} value={timeVal[`${color}-faded`]} onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-faded`]: t }))} size="sm" />
-              <TimePicker variant="underlined" color={color} value={timeVal[`${color}-underlined`]} onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-underlined`]: t }))} size="sm" />
-              <TimePicker variant="flat" color={color} value={timeVal[`${color}-disabled`]} onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-disabled`]: t }))} size="sm" disabled />
+              <TimePicker variant="flat" color={color} placeholder="Select a time" value="" onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-flat`]: t }))} size="sm" />
+              <TimePicker variant="bordered" color={color} placeholder="Select a time" value="" onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-bordered`]: t }))} size="sm" />
+              <TimePicker variant="faded" color={color} placeholder="Select a time" value="" onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-faded`]: t }))} size="sm" />
+              <TimePicker variant="underlined" color={color} placeholder="Select a time" value="" onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-underlined`]: t }))} size="sm" />
+              <TimePicker variant="flat" color={color} placeholder="Select a time" value="" onChange={(t) => setTimeVal(prev => ({ ...prev, [`${color}-disabled`]: t }))} size="sm" disabled />
             </div>
           ))}
         </div>
@@ -1442,7 +1441,6 @@ const UIKit: React.FC = () => {
               </div>
               <div className="flex gap-2">
                 <Button
-                  size="sm"
                   color={tableLoading ? "warning" : "primary"}
                   onClick={() => setTableLoading(!tableLoading)}
                 >

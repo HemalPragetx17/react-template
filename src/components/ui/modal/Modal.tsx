@@ -33,6 +33,7 @@ interface ModalProps {
   isKeyboardDismissDisabled?: boolean;
   radius?: ModalRadius;
   shadow?: ModalShadow;
+  bodyClassName?: string;
 }
 
 const shadowClasses: Record<ModalShadow, string> = {
@@ -78,6 +79,7 @@ const Modal: React.FC<ModalProps> = ({
   isKeyboardDismissDisabled = true,
   radius = DEFAULT_RADIUS,
   shadow = 'lg',
+  bodyClassName = '',
 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -152,8 +154,8 @@ const Modal: React.FC<ModalProps> = ({
 
   const backdropClasses = {
     transparent: 'bg-transparent',
-    opaque: 'bg-black/50',
-    blur: 'bg-black/30 backdrop-blur-md'
+    opaque: 'bg-[#00000050]',
+    blur: 'bg-[#00000050] backdrop-blur-[2px]'
   };
 
   const renderFooter = () => {
@@ -246,7 +248,8 @@ const Modal: React.FC<ModalProps> = ({
           {/* Modal Body */}
           <div className={`
             modal-body flex-1 px-6 py-4 min-h-0
-            ${scrollBehavior === 'inside' ? 'overflow-y-auto' : ''}
+            ${scrollBehavior === 'inside' && !bodyClassName ? 'overflow-y-auto' : ''}
+            ${bodyClassName}
           `}>
             {children}
           </div>

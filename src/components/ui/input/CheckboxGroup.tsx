@@ -7,8 +7,7 @@ import {
   type CheckboxSize,
   type CheckboxRadius,
 } from "./Checkbox";
-import { DEFAULT_RADIUS } from "../shared/radius";
-import { errorClasses, labelGroupClasses } from "../shared/fieldStyles";
+import { errorClasses, labelClasses } from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -81,7 +80,7 @@ const CheckboxGroup = forwardRef<HTMLDivElement, CheckboxGroupProps>(
       orientation = "vertical",
       size = "md",
       color = "primary",
-      radius = DEFAULT_RADIUS,
+      radius = "md",
       isIndeterminate = false,
       lineThrough = false,
       icon,
@@ -136,9 +135,6 @@ const CheckboxGroup = forwardRef<HTMLDivElement, CheckboxGroupProps>(
 
     const isHorizontal = orientation === "horizontal";
 
-    const labelSizeClass =
-      size === "sm" ? "text-[10px] mb-1.5" : size === "lg" ? "text-sm mb-1.5" : "text-xs mb-1.5";
-
     const gapClass = isHorizontal
       ? size === "sm" ? "gap-x-4 gap-y-2" : size === "lg" ? "gap-x-8 gap-y-4" : "gap-x-6 gap-y-3"
       : size === "sm" ? "gap-1.5" : size === "lg" ? "gap-2.5" : "gap-2";
@@ -154,7 +150,7 @@ const CheckboxGroup = forwardRef<HTMLDivElement, CheckboxGroupProps>(
         {label && (
           <p
             id={`${fieldName}-group-label`}
-            className={`${labelGroupClasses} ${labelSizeClass} ${labelClassName}`}
+            className={`${labelClasses} mb-2 ${labelClassName}`}
           >
             <FieldLabelContent label={label} isRequired={isRequired} />
           </p>

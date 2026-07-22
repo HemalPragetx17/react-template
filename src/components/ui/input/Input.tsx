@@ -1,12 +1,29 @@
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
+import { getIn } from "formik";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { forwardRef, useState } from "react";
 import { FaXmark } from "react-icons/fa6";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import Button from "../button/Button";
+import Chip from "../chip/Chip";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../shared/radius";
-import { errorClasses, labelClasses, labelFloatingClasses } from "../shared/fieldStyles";
+import {
+  errorClasses,
+  fieldPlaceholderClasses,
+  fieldValueClasses,
+  getInteractiveBorderClass,
+  getWrapperBaseClasses,
+  labelClasses,
+  labelFloatingClasses,
+  type FieldColor,
+} from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
+import {
+  formatDurationWhileTyping,
+  getDurationPlaceholder,
+  normalizeDurationValue,
+  type DurationFormat,
+} from "../shared/durationInput";
 
 interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "form" | "size"> {
@@ -16,6 +33,7 @@ interface InputProps
   startContent?: React.ReactNode;
   endContent?: React.ReactNode;
   containerClassName?: string;
+  wrapperClassName?: string;
   inputClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
@@ -23,6 +41,19 @@ interface InputProps
   isPasswordToggle?: boolean;
   numInputs?: number;
   isClearable?: boolean;
+  /** When true, value is string[]; press Enter to add a chip from typed text */
+  isChipInput?: boolean;
+  /** Palette used for chip background/text classes in chip input mode */
+  chipColorClasses?: string[];
+  /** Optional resolver for per-chip color classes */
+  getChipColorClass?: (label: string, index: number) => string;
+  /** When true, value is a duration string with masked entry */
+  isDurationInput?: boolean;
+  /**
+   * Format for duration input. Defaults to "HH:mm" (2-digit hours).
+   * Use "HHH:mm" to allow up to 3-digit hours (e.g. "000:00" → "999:59").
+   */
+  format?: DurationFormat;
 
   // Premium HeroUI Variants
   size?: "sm" | "md" | "lg";
@@ -32,13 +63,46 @@ interface InputProps
   labelPlacement?: "inside" | "outside" | "outside-left" | "outside-top" | "outlined";
 
   // Formik integration
-  field?: FieldInputProps<string>;
+  field?: FieldInputProps<string | string[]>;
   form?: {
     errors: FormikErrors<any>;
     touched: FormikTouched<any>;
     setFieldValue?: (field: string, value: any) => void;
   };
 }
+
+const DEFAULT_CHIP_COLOR_CLASSES = [
+  "bg-orange-50 text-orange-800",
+  "bg-purple-50 text-purple-800",
+  "bg-blue-50 text-blue-800",
+  "bg-green-50 text-green-800",
+  "bg-primary-50 text-primary-800",
+  "bg-yellow-50 text-yellow-800",
+];
+
+const resolveChipColorClass = (
+  label: string,
+  index: number,
+  palette: string[],
+  getChipColorClass?: (label: string, index: number) => string,
+  previousClass?: string,
+) => {
+  if (getChipColorClass) {
+    return getChipColorClass(label, index);
+  }
+
+  let hash = 0;
+  for (let i = 0; i < label.length; i++) {
+    hash = label.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  let colorIndex = Math.abs(hash) % palette.length;
+  if (previousClass && palette[colorIndex] === previousClass) {
+    colorIndex = (colorIndex + 1) % palette.length;
+  }
+
+  return palette[colorIndex];
+};
 
 const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   const {
@@ -48,6 +112,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     startContent,
     endContent,
     containerClassName = "",
+    wrapperClassName = "",
     inputClassName = "",
     labelClassName = "",
     errorClassName = "",
@@ -55,11 +120,16 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     isPasswordToggle = false,
     numInputs: _numInputs,
     isClearable = false,
+    isChipInput = false,
+    isDurationInput = false,
+    format = "HH:mm" as DurationFormat,
+    chipColorClasses = DEFAULT_CHIP_COLOR_CLASSES,
+    getChipColorClass,
     size = "md",
     variant = "bordered",
     radius = DEFAULT_RADIUS,
     color = "primary",
-    labelPlacement = "outside",
+    labelPlacement = "outside-top",
     type = "text",
     field,
     form,
@@ -77,29 +147,111 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [internalValue, setInternalValue] = useState("");
+  const [chipDraft, setChipDraft] = useState("");
+
+  const fieldName = field?.name || (props.name as string | undefined);
+
+  const getChipValues = (): string[] => {
+    const raw = value !== undefined ? value : field?.value;
+    return Array.isArray(raw) ? raw : [];
+  };
+
+  const chipValues = isChipInput ? getChipValues() : [];
+
+  const setChipValues = (next: string[]) => {
+    if (form?.setFieldValue && fieldName) {
+      form.setFieldValue(fieldName, next);
+      return;
+    }
+
+    if (field?.onChange) {
+      const syntheticEvent = {
+        target: {
+          name: fieldName || "",
+          value: next,
+        },
+      } as unknown as React.ChangeEvent<HTMLInputElement>;
+      field.onChange(syntheticEvent);
+    }
+  };
 
   // Determine if the component is controlled (either via value prop or Formik field)
   const isControlled = value !== undefined || field !== undefined;
 
   // Prioritize explicitly passed value prop, fallback to Formik field value, then internal state
-  const inputValue = isControlled
-    ? (value !== undefined ? value : (field?.value ?? ""))
-    : internalValue;
+  const inputValue = isChipInput
+    ? chipDraft
+    : isControlled
+      ? (value !== undefined ? value : (field?.value ?? ""))
+      : internalValue;
 
-  const hasValue = String(inputValue).length > 0;
+  const displayValue = isDurationInput
+    ? typeof inputValue === "number"
+      ? normalizeDurationValue(inputValue, format)
+      : String(inputValue ?? "")
+    : inputValue;
+
+  const hasValue = isChipInput
+    ? chipDraft.length > 0 || chipValues.length > 0
+    : String(inputValue).length > 0;
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(true);
     if (onFocus) onFocus(e);
   };
 
+  const emitValue = (nextValue: string) => {
+    if (!isControlled) {
+      setInternalValue(nextValue);
+    }
+
+    const syntheticEvent = {
+      target: {
+        name: fieldName || props.name || "",
+        value: nextValue,
+      },
+    } as React.ChangeEvent<HTMLInputElement>;
+
+    if (form?.setFieldValue && fieldName) {
+      form.setFieldValue(fieldName, nextValue);
+      return;
+    }
+    if (onChange) onChange(syntheticEvent);
+    if (field?.onChange) field.onChange(syntheticEvent);
+  };
+
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(false);
+
+    if (isDurationInput) {
+      const currentVal = String(displayValue ?? "").trim();
+      if (!currentVal) {
+        if (String(inputValue ?? "").trim()) {
+          emitValue("");
+        }
+      } else {
+        const normalized = normalizeDurationValue(currentVal, format);
+        if (normalized !== currentVal) {
+          emitValue(normalized);
+        }
+      }
+    }
+
     if (onBlur) onBlur(e);
     if (field?.onBlur) field.onBlur(e);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isChipInput) {
+      setChipDraft(e.target.value);
+      return;
+    }
+
+    if (isDurationInput) {
+      emitValue(formatDurationWhileTyping(e.target.value, format));
+      return;
+    }
+
     if (!isControlled) {
       setInternalValue(e.target.value);
     }
@@ -111,7 +263,53 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     }
   };
 
+  const addChip = (raw: string) => {
+    const nextChip = raw.trim();
+    if (!nextChip) return;
+
+    const exists = chipValues.some((chip) => chip.toLowerCase() === nextChip.toLowerCase());
+    if (exists) {
+      setChipDraft("");
+      return;
+    }
+
+    setChipValues([...chipValues, nextChip]);
+    setChipDraft("");
+  };
+
+  const removeChip = (index: number) => {
+    setChipValues(chipValues.filter((_, chipIndex) => chipIndex !== index));
+  };
+
+  const handleChipKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addChip(chipDraft);
+      return;
+    }
+
+    if (e.key === "Backspace" && chipDraft.length === 0 && chipValues.length > 0) {
+      e.preventDefault();
+      setChipValues(chipValues.slice(0, -1));
+    }
+
+    if (restProps.onKeyDown) {
+      restProps.onKeyDown(e);
+    }
+  };
+
   const handleClear = () => {
+    if (isChipInput) {
+      setChipDraft("");
+      setChipValues([]);
+      return;
+    }
+
+    if (isDurationInput) {
+      emitValue("");
+      return;
+    }
+
     if (form?.setFieldValue && field?.name) {
       form.setFieldValue(field.name, "");
     } else if (field?.onChange) {
@@ -134,21 +332,20 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     }
   };
 
-  // Extract field name for accessing error and touched state from form
-  const fieldName = field?.name || (props.name as string | undefined);
-
   // Determine error and touched state - prioritize Formik form data
-  const fieldError = fieldName && form?.errors?.[fieldName] ? (form.errors[fieldName] as string) : error;
-  const fieldTouched = fieldName && form?.touched?.[fieldName] ? true : touched;
+  const fieldError = fieldName && getIn(form?.errors, fieldName) ? (getIn(form?.errors, fieldName) as string) : error;
+  const fieldTouched = fieldName && getIn(form?.touched, fieldName) ? true : touched;
 
   const isPassword = type === "password";
 
   const inputType =
-    isPassword && isPasswordToggle
-      ? showPassword
-        ? "text"
-        : "password"
-      : type;
+    isDurationInput
+      ? "text"
+      : isPassword && isPasswordToggle
+        ? showPassword
+          ? "text"
+          : "password"
+        : type;
 
   // Size Configurations
   const sizeConfigs = {
@@ -294,19 +491,30 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     ? "bg-transparent border-none"
     : (variantConfigs[resolvedVariant] || variantConfigs.flat);
 
+  const hasError = !!(fieldTouched && fieldError);
+
+  const wrapperBaseClasses = getWrapperBaseClasses({
+    wrapperClassName,
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isFocused,
+    hasError,
+  });
+
+  const interactiveBorderClass = getInteractiveBorderClass({
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isFocused,
+    hasError,
+    color: color as FieldColor,
+  });
+
   // Fallback map for start/end content maintaining backwards compatibility
   const actualStartContent = startContent;
   const actualEndContent = endContent;
 
   const isFloating = labelPlacement === "inside" || labelPlacement === "outside";
   const shouldFloat = isFocused || hasValue || (isFloating && !!placeholder) || (isOutlined && !!placeholder);
-
-  const getExternalLabelColorClass = () =>
-    isFocused && color !== "default"
-      ? (focusTextColors[color] || "text-primary")
-      : isFocused
-        ? "text-neutral-800 dark:text-neutral-200"
-        : "";
 
   // Render Label Helper
   const renderExternalLabel = () => {
@@ -315,7 +523,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
     return (
       <label
         htmlFor={field?.name || props.id || props.name}
-        className={`${labelClasses} ${labelPlacement === "outside-left" ? "mb-0 shrink-0" : "mb-2"} ${labelClassName} ${getExternalLabelColorClass()}`}
+        className={`${labelClasses} ${labelPlacement === "outside-left" ? "mb-0 shrink-0" : "mb-2"} ${labelClassName}`}
       >
         <FieldLabelContent label={label} isRequired={isRequired} />
       </label>
@@ -324,7 +532,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
 
   const isOutsideLeft = labelPlacement === "outside-left";
 
-  const resolvedPlaceholder = placeholder || "";
+  const resolvedPlaceholder = isDurationInput
+    ? (placeholder || getDurationPlaceholder(format))
+    : (placeholder || "");
 
   return (
     <div className={`w-full flow-root ${containerClassName}`}>
@@ -340,9 +550,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
             ${currentVariantClass}
             ${currentRadiusClass}
             ${currentSize.wrapperPadding}
-            ${fieldTouched && fieldError && !isOutlined ? "!border-red-500 dark:!border-red-500" : ""}
-            ${labelPlacement === "inside" ? currentSize.insideHeight : `${currentSize.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`}
-            ${disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
+            ${wrapperBaseClasses}
+            ${interactiveBorderClass}
+            ${isChipInput
+              ? `min-h-12 h-auto py-2 ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`
+              : labelPlacement === "inside"
+                ? currentSize.insideHeight
+                : `${currentSize.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`}
+            ${disabled ? "!bg-gray-50 !border-gray-200 cursor-not-allowed pointer-events-none" : ""}
           `}
         >
           {/* Outlined Fieldset Border and Legend Cutout */}
@@ -351,7 +566,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
               className={`
                 absolute inset-0 pointer-events-none transition-all duration-200 m-0 p-0
                 ${currentRadiusClass}
-                ${fieldTouched && fieldError
+                ${hasError
                   ? "border-2 border-red-500 dark:border-red-500"
                   : isFocused
                     ? `border-2 ${focusBorderColors[color] || "border-primary"}`
@@ -422,30 +637,68 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
             </div>
           )}
 
-          {/* Central Stack: Input */}
-          <div className="flex flex-col flex-1 min-w-0 justify-center">
+          {/* Central Stack: Input / Chip Input */}
+          <div className={`flex flex-1 min-w-0 ${isChipInput ? "flex-wrap items-center gap-1.5" : "flex-col justify-center"}`}>
+            {isChipInput &&
+              chipValues.map((chip, index) => {
+                const previousToneClass =
+                  index > 0
+                    ? resolveChipColorClass(
+                        chipValues[index - 1],
+                        index - 1,
+                        chipColorClasses,
+                        getChipColorClass,
+                      )
+                    : undefined;
+
+                return (
+                  <Chip
+                    key={`${chip}-${index}`}
+                    variant="flat"
+                    toneClassName={resolveChipColorClass(
+                      chip,
+                      index,
+                      chipColorClasses,
+                      getChipColorClass,
+                      previousToneClass,
+                    )}
+                    size={size}
+                    radius="lg"
+                    isDisabled={disabled}
+                    onClose={disabled ? undefined : () => removeChip(index)}
+                    className="max-w-[180px] font-semibold"
+                  >
+                    <span className="truncate">{chip}</span>
+                  </Chip>
+                );
+              })}
+
             <input
               {...restProps}
               id={field?.name || props.id || props.name}
-              name={field?.name || props.name}
-              value={inputValue}
+              name={isChipInput ? undefined : field?.name || props.name}
+              value={displayValue}
               onChange={handleChange}
               onFocus={handleFocus}
               onBlur={handleBlur}
+              onKeyDown={isChipInput ? handleChipKeyDown : restProps.onKeyDown}
               onWheel={(e) => {
                 if (type === "number") {
                   (e.target as HTMLInputElement).blur();
                 }
               }}
               ref={ref}
-              type={inputType}
+              type={isChipInput ? "text" : inputType}
+              inputMode={isDurationInput ? "numeric" : restProps.inputMode}
+              maxLength={isDurationInput ? (format === "HHHH:mm" ? 7 : format === "HHH:mm" ? 6 : 5) : restProps.maxLength}
               placeholder={(!isFloating && !isOutlined) || shouldFloat ? resolvedPlaceholder : ""}
               disabled={disabled}
               className={`
-                w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0
-                 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400
-                ${currentSize.textSize}
-                ${labelPlacement === "inside" && isFloating && shouldFloat ? (size === "sm" ? "mt-3" : size === "lg" ? "mt-5" : "mt-4") : ""}
+                bg-transparent border-none outline-none focus:outline-none focus:ring-0 p-0
+                text-neutral-800 dark:text-neutral-100
+                ${fieldValueClasses} ${fieldPlaceholderClasses}
+                ${isChipInput ? "flex-1 min-w-[120px]" : "w-full"}
+                ${labelPlacement === "inside" && isFloating && shouldFloat && !isChipInput ? (size === "sm" ? "mt-3" : size === "lg" ? "mt-5" : "mt-4") : ""}
                 ${inputClassName}
               `}
             />

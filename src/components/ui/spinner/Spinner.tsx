@@ -187,7 +187,7 @@ const Spinner: React.FC<SpinnerProps> = ({
 
       case "dots":
         return (
-          <div className={clsx("flex items-center justify-center translate-y-[10%]", sizeClasses[size], dotGapClasses[size])}>
+          <div className={clsx("flex items-center justify-center", dotGapClasses[size])}>
             {[0, 1, 2].map((i) => (
               <span
                 key={i}

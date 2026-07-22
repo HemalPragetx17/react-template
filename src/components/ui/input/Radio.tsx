@@ -1,7 +1,7 @@
 import React, { forwardRef, useId } from "react";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
-import { errorClasses, labelGroupClasses } from "../shared/fieldStyles";
+import { errorClasses, labelClasses } from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -112,12 +112,6 @@ const Radio = forwardRef<HTMLDivElement, RadioProps>((props, ref) => {
 
   const isHorizontal = orientation === "horizontal";
 
-  const labelSizeMap = {
-    sm: "text-[10px] mb-1.5",
-    md: "text-xs mb-1.5",
-    lg: "text-sm mb-1.5",
-  };
-
   const optionSizeMap = {
     sm: {
       circle: "w-4 h-4",
@@ -140,7 +134,6 @@ const Radio = forwardRef<HTMLDivElement, RadioProps>((props, ref) => {
   };
 
   const currentSize = optionSizeMap[size] || optionSizeMap.md;
-  const currentLabelSize = labelSizeMap[size] || labelSizeMap.md;
 
   const gapClass = isHorizontal
     ? size === "sm" ? "gap-x-4 gap-y-2" : size === "lg" ? "gap-x-8 gap-y-4" : "gap-x-6 gap-y-3"
@@ -151,7 +144,7 @@ const Radio = forwardRef<HTMLDivElement, RadioProps>((props, ref) => {
       {/* Group Label */}
       {label && (
         <p
-          className={`${labelGroupClasses} ${currentLabelSize} ${labelClassName}`}
+          className={`${labelClasses} mb-2 ${labelClassName}`}
         >
           <FieldLabelContent label={label} isRequired={isRequired} />
         </p>
@@ -217,9 +210,7 @@ const Radio = forwardRef<HTMLDivElement, RadioProps>((props, ref) => {
 
               {/* Label Text (+ optional description) */}
               <span className="flex flex-col leading-tight mt-[1px]">
-                <span
-                  className={`font-medium text-neutral-700 dark:text-neutral-300 group-hover:text-neutral-900 dark:group-hover:text-neutral-100 transition-colors duration-150 ${currentSize.text}`}
-                >
+                <span className={`${labelClasses} ${labelClassName}`}>
                   {opt.label}
                 </span>
                 {opt.description && (

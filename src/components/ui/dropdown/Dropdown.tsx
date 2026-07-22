@@ -77,7 +77,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
         offset={8}
         trigger={triggerChild}
         disableAnimation={disableAnimation}
-        className="p-1 min-w-[200px]"
+        className="min-w-[200px]"
       >
         {menuChild}
       </Popover>

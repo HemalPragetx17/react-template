@@ -190,7 +190,7 @@ const Switch = forwardRef<HTMLDivElement, SwitchProps>((props, ref) => {
       {/* Top Label */}
       {label && (
         <label
-          className={`${labelClasses} text-neutral-700 dark:text-neutral-300 ${
+          className={`${labelClasses} ${
             size === "sm" ? "text-[10px] mb-1.5" : size === "lg" ? "text-sm mb-1.5" : "text-xs mb-1.5"
           } ${labelClassName}`}
         >

@@ -6,7 +6,16 @@ import RPI from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import "./index.css";
 import { DEFAULT_RADIUS, getImportantRadiusClass, type Radius } from "../../shared/radius";
-import { errorClasses, labelClasses, labelFloatingClasses } from "../../shared/fieldStyles";
+import {
+    errorClasses,
+    fieldPlaceholderClasses,
+    fieldValueClasses,
+    getInteractiveBorderClass,
+    getWrapperBaseClasses,
+    labelClasses,
+    labelFloatingClasses,
+    type FieldColor,
+} from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
 
 // @ts-ignore
@@ -17,6 +26,7 @@ interface PhoneNumberInputProps extends Partial<FieldProps> {
     error?: string;
     touched?: boolean;
     containerClassName?: string;
+    wrapperClassName?: string;
     inputClassName?: string;
     buttonClassName?: string;
     labelClassName?: string;
@@ -103,6 +113,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         error,
         touched,
         containerClassName,
+        wrapperClassName = "",
         inputClassName,
         buttonClassName,
         labelClassName,
@@ -112,7 +123,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         variant = "bordered",
         radius = DEFAULT_RADIUS,
         color = "primary",
-        labelPlacement = "outside",
+        labelPlacement = "outside-top",
         dropdownPosition,
         value,
         countryCodeEditable = false,
@@ -181,15 +192,6 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         danger: "bg-danger",
     };
 
-    const focusTextColors = {
-        default: "!text-neutral-800 dark:!text-neutral-100",
-        primary: "!text-primary",
-        secondary: "!text-secondary",
-        success: "!text-success",
-        warning: "!text-warning",
-        danger: "!text-danger",
-    };
-
     const [autoDropdownPosition, setAutoDropdownPosition] = React.useState<"top" | "bottom">("bottom");
     const containerRef = React.useRef<HTMLDivElement>(null);
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -197,17 +199,25 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
     const [isFocused, setIsFocused] = React.useState(false);
     const [activeDialCode, setActiveDialCode] = React.useState<string>("");
 
+    const focusBorderMap: Record<string, string> = {
+        default: "#737373",
+        primary: "var(--color-primary)",
+        secondary: "var(--color-secondary)",
+        success: "var(--color-success)",
+        warning: "var(--color-warning)",
+        danger: "var(--color-danger)",
+    };
+
     const inlineStyles: React.CSSProperties & Record<string, string> = {
         ...dropdownStyles,
         "--color-primary": primaryColorVal,
+        "--phone-focus-border": focusBorderMap[color] || focusBorderMap.primary,
     } as any;
 
-    if (color !== "default") {
-        if (bgMap[color]) inlineStyles["--phone-bg-light"] = bgMap[color];
-        if (bgHoverMap[color]) inlineStyles["--phone-bg-light-hover"] = bgHoverMap[color];
-        if (darkBgMap[color]) inlineStyles["--phone-bg-dark"] = darkBgMap[color];
-        if (darkBgHoverMap[color]) inlineStyles["--phone-bg-dark-hover"] = darkBgHoverMap[color];
-    }
+    if (bgMap[color]) inlineStyles["--phone-bg-light"] = bgMap[color];
+    if (bgHoverMap[color]) inlineStyles["--phone-bg-light-hover"] = bgHoverMap[color];
+    if (darkBgMap[color]) inlineStyles["--phone-bg-dark"] = darkBgMap[color];
+    if (darkBgHoverMap[color]) inlineStyles["--phone-bg-dark-hover"] = darkBgHoverMap[color];
 
     const updateDropdownCoords = React.useCallback(() => {
         if (!containerRef.current) return;
@@ -299,6 +309,27 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
             observer.disconnect();
         };
     }, []);
+
+    // Apply field-value typography to country dropdown labels (name + dial code)
+    React.useEffect(() => {
+        if (!containerRef.current) return;
+
+        const applyDropdownFieldValue = () => {
+            containerRef.current
+                ?.querySelectorAll(".country-list .country-name, .country-list .dial-code")
+                .forEach((el) => el.classList.add(fieldValueClasses));
+        };
+
+        applyDropdownFieldValue();
+
+        const countryList = containerRef.current.querySelector(".country-list");
+        if (!countryList) return;
+
+        const listObserver = new MutationObserver(applyDropdownFieldValue);
+        listObserver.observe(countryList, { childList: true, subtree: true });
+
+        return () => listObserver.disconnect();
+    }, [isDropdownOpen]);
 
     // Prevent selection and cursor from entering the country code prefix when countryCodeEditable is false
     React.useEffect(() => {
@@ -404,6 +435,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
     };
 
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        if (containerRef.current?.querySelector(".flag-dropdown.open")) return;
         setIsFocused(false);
         if (props.onBlur) props.onBlur(e);
         if (field?.onBlur) field.onBlur(e);
@@ -463,7 +495,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
     const currentRadiusClass = resolvedVariant === "underlined" ? "!rounded-none" : getImportantRadiusClass(radius);
 
     // Merge standard classes with the dynamic border-radius utility class
-    const finalInputClass = `${singleBorder ? "!rounded-none" : currentRadiusClass} ${focusTextColors.default} ${inputClassName}`.trim();
+    const finalInputClass = `${singleBorder ? "!rounded-none" : currentRadiusClass} ${fieldValueClasses} ${fieldPlaceholderClasses} ${inputClassName}`.trim();
     const finalButtonClass = `${singleBorder ? "!rounded-none" : currentRadiusClass} ${buttonClassName}`.trim();
 
     const isOutlined = labelPlacement === "outlined";
@@ -483,28 +515,42 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         ${singleBorder ? `phone-input-single-border ${currentRadiusClass}` : ""}
         ${isOutlined ? "h-full w-full" : ""}
         ${hasError ? "phone-input-has-error" : ""}
-        ${disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : ""}
+        ${disabled ? "phone-input-disabled" : ""}
         ${containerClassName}
     `.trim().replace(/\s+/g, ' ');
+
+    const getExternalLabelColorClass = () =>
+        isFocused ? "text-neutral-800 dark:text-neutral-200" : "";
 
     const renderExternalLabel = () => {
         if (!label || isFloating || isOutlined) return null;
         return (
             <label
                 htmlFor={fieldName}
-                className={`${labelClasses} ${isOutsideLeft ? "mb-0 shrink-0" : "mb-1.5"
-                    } ${currentSize.labelSize} ${labelClassName} ${
-                    isFocused && color !== "default"
-                        ? "text-[var(--color-primary,#2196f3)]"
-                        : isFocused
-                            ? "text-neutral-800 dark:text-neutral-200"
-                            : "text-neutral-700 dark:text-neutral-300"
-                }`}
+                className={`${labelClasses} ${isOutsideLeft ? "mb-0 shrink-0" : "mb-2"} ${labelClassName} ${getExternalLabelColorClass()}`}
             >
                 <FieldLabelContent label={label} isRequired={isRequired} />
             </label>
         );
     };
+
+    const isEffectivelyFocused = isFocused || isDropdownOpen;
+
+    const wrapperBaseClasses = getWrapperBaseClasses({
+        wrapperClassName,
+        variant: resolvedVariant,
+        isOutlined,
+        isActive: isEffectivelyFocused,
+        hasError,
+    });
+
+    const interactiveBorderClass = getInteractiveBorderClass({
+        variant: resolvedVariant,
+        isOutlined,
+        isActive: isEffectivelyFocused,
+        hasError,
+        color: color as FieldColor,
+    });
 
     return (
         <div ref={containerRef} className="w-full flow-root" style={inlineStyles}>
@@ -514,10 +560,19 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                 <div 
                     className={`
                         relative w-full group
+                        ${wrapperBaseClasses}
+                        ${interactiveBorderClass}
                         ${isOutlined ? "bg-transparent border-none" : ""}
                         ${isOutlined ? (size === "sm" ? "h-10" : size === "lg" ? "h-14" : "h-12") : ""}
                         ${labelPlacement === "inside" ? "" : (isFloating && label && !isOutlined ? "mt-6" : "")}
                         ${isOutlined && label ? "mt-[10px]" : ""}
+                        ${disabled && !isOutlined
+                            ? `box-border !bg-gray-50 !border-gray-200 cursor-not-allowed pointer-events-none ${
+                                singleBorder
+                                    ? `border-2 ${currentRadiusClass} overflow-hidden ${size === "sm" ? "h-10" : size === "lg" ? "h-14" : "h-12"}`
+                                    : ""
+                            }`
+                            : ""}
                     `}
                 >
                     {/* ── Outlined Fieldset Border + Legend Notch ────────────────────── */}
@@ -530,7 +585,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                                 ${hasError
                                     ? "border-2 border-red-500 dark:border-red-500"
                                     : isFocused
-                                        ? "border-2 border-[var(--color-primary,#2196f3)]"
+                                        ? "border-2 border-neutral-500 dark:border-neutral-500"
                                         : "border-2 border-neutral-300 dark:border-neutral-700 group-hover:border-neutral-400 dark:group-hover:border-neutral-500"
                                 }
                             `}
@@ -581,13 +636,11 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                             className={`
                                 absolute left-3 ${labelFloatingClasses} ${currentSize.top} z-20 transition-colors duration-200
                                 ${currentSize.textSize} ${labelClassName} ${
-                                    isFocused && color !== "default"
-                                        ? "text-[var(--color-primary,#2196f3)]"
-                                        : (shouldFloat || (isOutlined && (isFocused || hasValue)))
-                                            ? isFocused
-                                                ? "text-neutral-800 dark:text-neutral-200"
-                                                : "text-neutral-700 dark:text-neutral-300"
-                                            : "text-neutral-400 dark:text-neutral-500"
+                                    (shouldFloat || (isOutlined && (isFocused || hasValue)))
+                                        ? isFocused
+                                            ? "text-neutral-800 dark:text-neutral-200"
+                                            : "text-neutral-700 dark:text-neutral-300"
+                                        : "text-neutral-400 dark:text-neutral-500"
                                 }
                             `}
                             style={{ transformOrigin: isOutlined ? "left" : "top left" }}

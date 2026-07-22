@@ -12,7 +12,6 @@ import { Button, Chip, ConfirmModal, Input, Modal, SelectDropdown, Switch, type 
 import type { IColumn, Pagination } from "../../models/base-type";
 import type { IUserModal } from "../../models/user";
 import { Routing } from "../../routes/routing";
-import userService from "../../services/user-service";
 import { PAGINATION } from "../../shared/constants/pagination";
 import { handleTableLoader } from "../../store/slices/generalSlice";
 import UserForm from "./UserForm";
@@ -196,7 +195,7 @@ const UserWithCustomTable = () => {
       data={users}
       totalCountRef={totalCountRef}
       pageRef={pageRef}
-      sortRef={sortRef.current}
+      sortRef={sortRef.current ?? undefined}
       ActionMenu={actionMenuItems}
       onSetPageDetailsReceived={handleSetPageDetails}
       onSortDetailsReceived={handleSetSortDetails}
@@ -414,10 +413,10 @@ const Users = () => {
         const searchLower = filter.search.toLowerCase();
         filtered = filtered.filter(
           (u) =>
-            u.firstName.toLowerCase().includes(searchLower) ||
-            u.lastName.toLowerCase().includes(searchLower) ||
-            u.email.toLowerCase().includes(searchLower) ||
-            u.phone.includes(searchLower)
+            u.firstName ? u.firstName.toLowerCase().includes(searchLower) :
+            u.lastName ? u.lastName.toLowerCase().includes(searchLower) :
+            u.email ? u.email.toLowerCase().includes(searchLower) :
+            u.phone ? u.phone.includes(searchLower) : false
         );
       }
 
@@ -492,7 +491,7 @@ const Users = () => {
     <section>
       <div className="flex justify-between items-center">
         <p className="text-2xl">Users (with TanstackTable)</p>
-        <Button size="lg" onClick={handleAdd}>
+        <Button onClick={handleAdd}>
           Add User
         </Button>
       </div>

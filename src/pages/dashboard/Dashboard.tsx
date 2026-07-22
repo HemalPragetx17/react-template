@@ -164,13 +164,13 @@ const Dashboard = () => {
           <p className="text-2xl cursor-default select-none">Dashboard</p>
         </Tooltip>
         <div className="flex gap-2">
-          <Button size="lg" onClick={handleDialogOpen}>
+          <Button onClick={handleDialogOpen}>
             Demo Form
           </Button>
-          <Button size="lg" onClick={() => setOpenDrawer(true)} variant="bordered">
+          <Button onClick={() => setOpenDrawer(true)} variant="bordered">
             Demo Drawer
           </Button>
-          <Button size="lg" onClick={handleFormOpen}>
+          <Button onClick={handleFormOpen}>
             Demo Form Page
           </Button>
         </div>

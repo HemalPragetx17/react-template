@@ -10,7 +10,16 @@ import { FaRegTrashCan, FaUserLarge, FaXmark } from "react-icons/fa6";
 import { FiUpload } from "react-icons/fi";
 import Button from "../../button/Button";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../../shared/radius";
-import { errorClasses, labelClasses, labelFloatingClasses } from "../../shared/fieldStyles";
+import {
+  fieldPlaceholderClasses,
+  fieldValueClasses,
+  errorClasses,
+  getInteractiveBorderClass,
+  getWrapperBaseClasses,
+  labelClasses,
+  labelFloatingClasses,
+  type FieldColor,
+} from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
 import PdfPreview from "./PdfPreview";
 import "./index.css";
@@ -54,6 +63,7 @@ export interface FileInputProps {
   color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
   labelPlacement?: "inside" | "outside" | "outside-left" | "outside-top" | "outlined";
   containerClassName?: string;
+  wrapperClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
   isRequired?: boolean;
@@ -328,8 +338,9 @@ const FileInput = ({
   size = "md",
   radius = DEFAULT_RADIUS,
   color = "primary",
-  labelPlacement = "outside",
+  labelPlacement = "outside-top",
   containerClassName = "",
+  wrapperClassName = "",
   labelClassName = "",
   errorClassName = "",
   isRequired = false,
@@ -621,6 +632,22 @@ const FileInput = ({
   const sz = sizeConfigs[size] || sizeConfigs.md;
   const variantClass = isOutlined ? "bg-transparent border-none" : (variantConfigs[resolvedVariant] || variantConfigs.bordered);
 
+  const wrapperBaseClasses = getWrapperBaseClasses({
+    wrapperClassName,
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isFocused,
+    hasError,
+  });
+
+  const interactiveBorderClass = getInteractiveBorderClass({
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isFocused,
+    hasError,
+    color: color as FieldColor,
+  });
+
   const profileSizeConfigs = {
     sm: 96,
     md: 144,
@@ -660,17 +687,11 @@ const FileInput = ({
 
   const renderOutsideLabel = () => {
     if (!label || isFloating || isOutlined || mode !== "normal") return null;
+
     return (
       <label
         htmlFor={fieldName}
-        className={`${labelClasses} ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
-          } ${sz.labelSize} ${labelClassName} ${
-            isFocused && color !== "default"
-              ? (focusTextColors[color] || "text-primary")
-              : isFocused
-                ? "text-neutral-800 dark:text-neutral-200"
-                : "text-neutral-700 dark:text-neutral-300"
-          }`}
+        className={`${labelClasses} ${isOutsideLeft ? "mb-0 shrink-0" : "mb-2"} ${labelClassName}`}
       >
         <FieldLabelContent label={label} isRequired={isRequired} />
       </label>
@@ -733,7 +754,7 @@ const FileInput = ({
           )}
           {label && (
             <div className="w-full text-center mt-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300" htmlFor="label">
+              <label className={`${labelClasses} ${labelClassName}`} htmlFor={fieldName || "label"}>
                 <FieldLabelContent label={label} isRequired={isRequired} />
               </label>
             </div>
@@ -748,7 +769,7 @@ const FileInput = ({
       {mode === "dropzone" && (
         <div>
           {label && (
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1" htmlFor="label">
+            <label className={`${labelClasses} mb-2 ${labelClassName}`} htmlFor={fieldName || "label"}>
               <FieldLabelContent label={label} isRequired={isRequired} />
             </label>
           )}
@@ -824,7 +845,7 @@ const FileInput = ({
       {mode === "multi" && (
         <div className="w-full">
           {label && (
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className={`${labelClasses} mb-2 ${labelClassName}`} htmlFor={fieldName}>
               <FieldLabelContent label={label} isRequired={isRequired} />
             </label>
           )}
@@ -875,9 +896,10 @@ const FileInput = ({
               relative flex items-center justify-between w-full transition-all duration-200 ease-in-out cursor-pointer select-none box-border group
               ${variantClass}
               ${radiusClass}
+              ${wrapperBaseClasses}
               ${sz.wrapperPadding}
               ${labelPlacement === "inside" ? sz.insideHeight : `${sz.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`}
-              ${hasError && !isOutlined ? "!border-danger border-red-500" : ""}
+              ${interactiveBorderClass}
               ${disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
             `}
           >
@@ -984,12 +1006,12 @@ const FileInput = ({
 
               <div className="flex-1 min-w-0 truncate pr-2 flex items-center">
                 {!singleFile ? (
-                  <span className={`text-neutral-400 dark:text-neutral-500 truncate select-none ${sz.textSize}`}>
+                  <span className={`${fieldPlaceholderClasses} truncate select-none`}>
                     {!isFloating || shouldFloat ? resolvedPlaceholder : "\u200b"}
                   </span>
                 ) : (
                   <span
-                    className={`truncate select-none ${sz.textSize} text-neutral-800 dark:text-neutral-100`}
+                    className={`${fieldValueClasses} truncate select-none text-neutral-800 dark:text-neutral-100`}
                   >
                     {singleFile instanceof File
                       ? singleFile.name
@@ -1059,7 +1081,7 @@ const FileInput = ({
                 className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-colors text-white duration-200 focus:outline-none"
                 title="Close"
               >
-                <FaXmark className="w-6 h-6 text-white" aria-hidden />
+                <FaXmark className="w-6 h-6 text-neutral-700 dark:text-neutral-300" aria-hidden />
               </button>
 
               {/* Modal Content */}

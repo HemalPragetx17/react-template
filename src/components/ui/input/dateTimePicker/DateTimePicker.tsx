@@ -23,7 +23,7 @@ import {
 import { FaXmark } from "react-icons/fa6";
 import Button from "../../button/Button";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../../shared/radius";
-import { errorClasses, labelClasses, labelFloatingClasses } from "../../shared/fieldStyles";
+import { errorClasses, fieldPlaceholderClasses, fieldValueClasses, getInteractiveBorderClass, getWrapperBaseClasses, labelClasses, labelFloatingClasses, type FieldColor } from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
 import "../timePicker/index.css";
 
@@ -82,6 +82,7 @@ export interface DateTimePickerProps {
   timeMode?: "normal" | "clock";
 
   containerClassName?: string;
+  wrapperClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
   isRequired?: boolean;
@@ -410,9 +411,9 @@ const TimeColumn: React.FC<TimeColProps> = ({ items, value, onChange, color }) =
               className="drp-drum-item flex items-center justify-center cursor-pointer"
             >
               <span
-                className={`flex items-center justify-center w-[52px] h-[34px] text-sm font-semibold ${getRadiusClass()} transition-all ${isSelected
+                className={`flex items-center justify-center w-[52px] h-[34px] ${fieldValueClasses} ${getRadiusClass()} transition-all ${isSelected
                   ? colorMap[color].chip
-                  : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+                  : "text-neutral-700 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-neutral-100"
                   }`}
               >
                 {item.label}
@@ -624,8 +625,9 @@ const DateInputDrumCol: React.FC<DateInputDrumColProps> = ({
               key={item.value}
               onClick={() => onItemClick(idx)}
               style={{ height: MY_ITEM_H, opacity, scale }}
-              className={`drp-drum-item relative z-10 flex items-center justify-center cursor-pointer text-base px-4
-                ${isSelected ? "text-neutral-900 dark:text-neutral-100 font-semibold" : "text-neutral-600 dark:text-neutral-400 font-medium"}`}
+              className={`drp-drum-item relative z-10 flex items-center justify-center cursor-pointer px-4
+                ${fieldValueClasses}
+                ${isSelected ? "text-neutral-900 dark:text-neutral-100" : "text-neutral-700 dark:text-neutral-200"}`}
             >
               {item.label}
             </motion.div>
@@ -801,14 +803,15 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
             type="button"
             whileTap={{ scale: 0.96 }}
             onClick={(e) => { e.stopPropagation(); setShowMY((v) => !v); }}
-            className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full border border-default-200 transition-all
-              ${showMY ? "bg-default-100 text-default-900 shadow-none" : "bg-default-50 text-default-900 shadow-sm hover:bg-default-100"}`}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border border-default-200 transition-all
+              ${showMY ? "bg-default-100 shadow-none" : "bg-default-50 shadow-sm hover:bg-default-100"}`}
           >
             <motion.span
               key={`${MONTHS_SHORT[month]}-${year}`}
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ type: "spring", stiffness: 380, damping: 26 }}
+              className={fieldValueClasses}
             >
               {MONTHS_SHORT[month]} {year}
             </motion.span>
@@ -893,7 +896,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
                   key={`d-${day}`}
                   type="button"
                   onClick={() => onSelectDate(new Date(year, month, day))}
-                  className={`flex items-center justify-center h-9 w-full rounded-full text-sm font-medium transition-all
+                  className={`flex items-center justify-center h-9 w-full rounded-full ${fieldValueClasses} transition-all
                     ${sel
                       ? `${activeColor.bg} text-white`
                       : tod
@@ -1267,9 +1270,10 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   size = "md",
   radius = DEFAULT_RADIUS,
   color = "primary",
-  labelPlacement = "outside",
+  labelPlacement = "outside-top",
   timeMode = "normal",
   containerClassName = "",
+  wrapperClassName = "",
   labelClassName = "",
   errorClassName = "",
   isRequired = false,
@@ -1502,6 +1506,22 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
           ? `border-b rounded-none relative ${underlinedColorClasses[color] || underlinedColorClasses.default}`
           : `border-2 ${fadedColorClasses[color] || fadedColorClasses.default}`;
 
+  const wrapperBaseClasses = getWrapperBaseClasses({
+    wrapperClassName,
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isOpen,
+    hasError,
+  });
+
+  const interactiveBorderClass = getInteractiveBorderClass({
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isOpen,
+    hasError,
+    color: color as FieldColor,
+  });
+
   const sizeConfigs = {
     sm: { wrapperPadding: labelPlacement === "inside" && label ? "py-1 px-2.5" : "py-1.5 px-2.5", textSize: "text-xs", labelSize: "text-[10px]", insideHeight: "h-12", outsideHeight: "h-10", floatY: -20, floatX: -2, initialY: -8, initialX: 0, floatYOutside: -41, floatXOutside: -14, floatScale: 0.83, outlinedFloatY: -28.5, outlinedInitialY: -8 },
     md: { wrapperPadding: labelPlacement === "inside" && label ? "py-1.5 px-3" : "py-2.5 px-3", textSize: "text-sm", labelSize: "text-xs", insideHeight: "h-14", outsideHeight: "h-12", floatY: -22, floatX: 0, initialY: -10, initialX: 0, floatYOutside: -46, floatXOutside: -14, floatScale: 0.85, outlinedFloatY: -35, outlinedInitialY: -10 },
@@ -1511,19 +1531,11 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
 
   const renderOutsideLabel = () => {
     if (!label || isFloating || isOutlined) return null;
+
     return (
       <label
         htmlFor={fieldName}
-        className={`${labelClasses} ${isOutsideLeft ? "shrink-0 mb-0 mr-3 self-center" : "mb-1.5"
-          } ${sz.labelSize} ${labelClassName} ${
-            hasError
-              ? "text-danger"
-              : isOpen && color !== "default"
-                ? (focusTextColors[color] || "text-primary")
-                : isOpen
-                  ? "text-neutral-800 dark:text-neutral-200"
-                  : "text-neutral-700 dark:text-neutral-300"
-          }`}
+        className={`${labelClasses} ${isOutsideLeft ? "mb-0 shrink-0 mr-3 self-center" : "mb-2"} ${labelClassName} ${hasError ? "text-danger" : ""}`}
       >
         <FieldLabelContent label={label} isRequired={isRequired} />
       </label>
@@ -1663,14 +1675,14 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
             onClick={() => { if (!disabled) setIsOpen((o) => !o); }}
             className={`
               relative flex items-center w-full
-              ${sz.wrapperPadding}
-              ${labelPlacement === "inside" ? sz.insideHeight : `${sz.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`}
               ${variantClass}
               ${radiusClass}
+              ${wrapperBaseClasses}
+              ${sz.wrapperPadding}
+              ${labelPlacement === "inside" ? sz.insideHeight : `${sz.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`}
               transition-all duration-200
+              ${interactiveBorderClass}
               ${disabled ? "opacity-50 cursor-default" : "cursor-pointer"}
-              ${isOpen && !hasError && (resolvedVariant === "bordered" || resolvedVariant === "faded") ? applyImportant(focusBorderColors[color] || "border-primary") : ""}
-              ${hasError ? "!border-danger" : ""}
             `}
             role="button"
             tabIndex={disabled ? -1 : 0}
@@ -1681,12 +1693,15 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
             {renderFloatingLabel()}
 
             <div className={`flex-1 flex items-center overflow-hidden ${labelPlacement === "inside" && label && shouldFloat ? (size === "sm" ? "mt-3" : size === "lg" ? "mt-5" : "mt-4") : ""}`}>
-              <span className={`${sz.textSize} truncate transition-colors duration-200 ${hasValue
-                ? "text-neutral-800 dark:text-neutral-100"
-                : "text-neutral-400 dark:text-neutral-500"
-                }`}>
-                {hasValue ? displayValue : ((!label || labelPlacement !== "inside" || shouldFloat) ? placeholder || "\u200b" : "\u200b")}
-              </span>
+              {!hasValue ? (
+                <span className={`${fieldPlaceholderClasses} truncate select-none`}>
+                  {((!label || labelPlacement !== "inside" || shouldFloat) ? placeholder || "\u200b" : "\u200b")}
+                </span>
+              ) : (
+                <span className={`text-neutral-800 dark:text-neutral-200 truncate select-none ${fieldValueClasses}`}>
+                  {displayValue}
+                </span>
+              )}
             </div>
 
             <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">

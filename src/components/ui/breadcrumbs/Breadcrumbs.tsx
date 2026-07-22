@@ -56,6 +56,7 @@ export interface BreadcrumbsProps {
      * Content to render at the end of the breadcrumbs container.
      */
     endContent?: React.ReactNode;
+    wrapperClassName?: string;
 }
 
 export interface BreadcrumbItem {
@@ -78,6 +79,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     isDisabled = false,
     startContent,
     endContent,
+    wrapperClassName = "",
 }) => {
     const { pathname } = useLocation();
 
@@ -293,7 +295,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
     return (
         <nav
             aria-label="Breadcrumbs"
-            className={`mb-5 select-none animate-fade-in transition-all duration-200 ${variantClasses} ${variant !== "light" ? currentRadiusClass : ""} ${sizeClasses.container} ${isDisabled ? "opacity-disabled pointer-events-none" : ""}`}
+            className={`mb-5 select-none animate-fade-in transition-all duration-200 ${variantClasses} ${variant !== "light" ? currentRadiusClass : ""} ${sizeClasses.container} ${isDisabled ? "opacity-disabled pointer-events-none" : ""} ${wrapperClassName}`}
         >
             <ol className={`flex items-center ${sizeClasses.list}`}>
                 {startContent && (

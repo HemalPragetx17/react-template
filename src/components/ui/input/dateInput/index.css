@@ -173,16 +173,23 @@
    ============================================ */
 
 .drp-calendar.react-datepicker {
+  --drp-day-size: 36px;
+  --drp-day-gap: 4px;
+  --drp-calendar-pad-x: 12px;
+  --drp-calendar-pad-y: 12px;
+  --drp-calendar-width: calc(
+    var(--drp-calendar-pad-x) * 2 + 7 * var(--drp-day-size) + 6 * var(--drp-day-gap)
+  );
+
   border: none;
   border-radius: 0;
   font-family: inherit;
   font-size: 13px;
   background: #ffffff;
-  /* Lock to exactly 256px so calendar + drum overlay align perfectly */
-  width: 256px !important;
-  min-width: 256px !important;
-  max-width: 256px !important;
-  padding: 8px 8px 12px;
+  width: var(--drp-calendar-width) !important;
+  min-width: var(--drp-calendar-width) !important;
+  max-width: var(--drp-calendar-width) !important;
+  padding: var(--drp-calendar-pad-y) var(--drp-calendar-pad-x) 16px;
   box-shadow: none;
   box-sizing: border-box;
 }
@@ -192,7 +199,7 @@
   background: transparent;
   border: none;
   padding: 0;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .drp-calendar .react-datepicker__current-month,
@@ -386,17 +393,22 @@
 .drp-calendar .react-datepicker__day-names,
 .drp-calendar .react-datepicker__week {
   display: grid;
-  grid-template-columns: repeat(7, 34px);
+  grid-template-columns: repeat(7, var(--drp-day-size));
   justify-content: center;
-  gap: 0;
+  column-gap: var(--drp-day-gap);
+  row-gap: var(--drp-day-gap);
+}
+
+.drp-calendar .react-datepicker__day-names {
+  margin-bottom: 8px;
 }
 
 .drp-calendar .react-datepicker__day-name {
   color: var(--color-default-800);
   font-size: 11px;
   font-weight: 700;
-  width: 34px;
-  height: 34px;
+  width: var(--drp-day-size);
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -408,17 +420,13 @@
 
 /* ── Day cells base ── */
 .drp-calendar .react-datepicker__day {
-  width: 34px;
-  height: 34px;
+  width: var(--drp-day-size);
+  height: var(--drp-day-size);
   margin: 0;
   border-radius: var(--radius);
-  color: var(--color-default-700);
-  font-size: 13px;
-  font-weight: 500;
   transition:
     background 0.15s,
-    color 0.15s,
-    transform 0.15s;
+    color 0.15s;
   position: relative;
   display: flex;
   align-items: center;
@@ -431,19 +439,31 @@
   background: var(--color-primary-50);
   color: var(--color-primary-700);
   border-radius: var(--radius);
-  transform: translateY(-1px);
 }
 
 /* Today */
 .drp-calendar .react-datepicker__day--today {
-  font-weight: 700;
-  color: var(--color-primary-600);
+  color: var(--color-primary-600) !important;
 }
 
 /* Outside month */
 .drp-calendar .react-datepicker__day--outside-month {
-  color: var(--color-default-300);
+  color: var(--color-default-300) !important;
   pointer-events: none;
+}
+
+/* Disabled by minDate / maxDate — match outside-month look */
+.drp-calendar .react-datepicker__day--disabled,
+.drp-calendar .react-datepicker__day.drp-day--disabled {
+  color: var(--color-default-300) !important;
+  pointer-events: none;
+  cursor: default;
+}
+
+.drp-calendar .react-datepicker__day--disabled:hover,
+.drp-calendar .react-datepicker__day.drp-day--disabled:hover {
+  background: transparent !important;
+  color: var(--color-default-300) !important;
 }
 
 /* Keyboard selected */
@@ -486,15 +506,16 @@
   display: none !important;
 }
 
-/* Week rows — remove default margin so strip connects edge-to-edge */
+/* Week rows */
 .drp-calendar .react-datepicker__week {
   display: grid;
-  grid-template-columns: repeat(7, 34px);
-  gap: 0;
+  grid-template-columns: repeat(7, var(--drp-day-size));
+  column-gap: var(--drp-day-gap);
+  row-gap: var(--drp-day-gap);
 }
 
 .drp-calendar .react-datepicker__month {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
 }
 
 /* ==========================================================================
@@ -728,6 +749,12 @@
 }
 
 .dark .react-datepicker__day--outside-month {
+  color: var(--color-default-300) !important;
+  opacity: 0.4;
+}
+
+.dark .react-datepicker__day--disabled,
+.dark .react-datepicker__day.drp-day--disabled {
   color: var(--color-default-300) !important;
   opacity: 0.4;
 }

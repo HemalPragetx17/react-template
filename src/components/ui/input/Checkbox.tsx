@@ -1,8 +1,8 @@
 import React, { forwardRef, useId } from "react";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
-import { DEFAULT_RADIUS, radiusClasses, type Radius } from "../shared/radius";
-import { errorClasses, labelGroupClasses } from "../shared/fieldStyles";
+import { getRadiusClass, type Radius } from "../shared/radius";
+import { errorClasses, labelClasses } from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -85,9 +85,6 @@ export const sizeMap: Record<CheckboxSize, { box: string; icon: number; text: st
   lg: { box: "w-6 h-6",   icon: 14, text: "text-base" },
 };
 
-export const radiusMap = radiusClasses;
-
-
 // ─── Single Checkbox Atom (exported for reuse in CheckboxGroup) ───────
 
 export interface CheckAtomProps {
@@ -158,7 +155,7 @@ export const CheckAtom: React.FC<CheckAtomProps> = ({
           relative mt-0.5 flex items-center justify-center shrink-0 border-2
           transition-colors duration-200 overflow-hidden
           ${sc.box}
-          ${radiusMap[radius]}
+          ${getRadiusClass(radius)}
           ${isActive
             ? `${bgColorMap[color]} ${borderColorMap[color]} ${textColorMap[color]}`
             : `border-neutral-300 dark:border-neutral-600 bg-transparent`}
@@ -233,9 +230,9 @@ export const CheckAtom: React.FC<CheckAtomProps> = ({
         <span className="flex flex-col leading-tight mt-[1.5px]">
           {label && (
             <span
-              className={`font-medium text-neutral-700 dark:text-neutral-300 transition-colors transition-opacity duration-200 ${
-                sc.text
-              } ${lineThrough && checked ? "line-through opacity-60" : ""} ${labelClassName}`}
+              className={`${labelClasses} transition-opacity duration-200 ${
+                lineThrough && checked ? "line-through opacity-60" : ""
+              } ${labelClassName}`}
             >
               {label}
             </span>
@@ -265,7 +262,7 @@ const Checkbox = forwardRef<HTMLDivElement, CheckboxProps>((props, ref) => {
     isRequired = false,
     size = "md",
     color = "primary",
-    radius = DEFAULT_RADIUS,
+    radius = "md",
     isIndeterminate: propIsIndeterminate = false,
     indeterminate = false,
     lineThrough = false,
@@ -333,9 +330,7 @@ const Checkbox = forwardRef<HTMLDivElement, CheckboxProps>((props, ref) => {
     <div className={`${isMulti ? "w-full" : "w-fit"} ${containerClassName}`} ref={ref}>
       {/* Group label (only for multi) */}
       {label && isMulti && (
-        <p className={`${labelGroupClasses} ${
-          size === "sm" ? "text-[10px] mb-1.5" : size === "lg" ? "text-sm mb-1.5" : "text-xs mb-1.5"
-        } ${labelClassName}`}>
+        <p className={`${labelClasses} mb-2 ${labelClassName}`}>
           <FieldLabelContent label={label} isRequired={isRequired} />
         </p>
       )}

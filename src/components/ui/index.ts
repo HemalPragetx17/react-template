@@ -127,7 +127,6 @@ export type { TooltipProps } from "./tooltip/Tooltip";
 export { Pagination } from "./pagination";
 export type { PaginationProps, PaginationItemValue, PaginationItemRenderProps } from "./pagination";
 
-
 // ── Dropdown ─────────────────────────────────────────────────────────────────
 export { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownSection } from "./dropdown/Dropdown";
 export type { DropdownProps, DropdownTriggerProps, DropdownMenuProps, DropdownItemProps, DropdownSectionProps } from "./dropdown/Dropdown";

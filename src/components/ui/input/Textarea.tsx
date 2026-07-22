@@ -1,10 +1,20 @@
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { FaXmark } from "react-icons/fa6";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
+import { getIn } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
 import Button from "../button/Button";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../shared/radius";
-import { errorClasses, labelClasses, labelFloatingClasses } from "../shared/fieldStyles";
+import {
+  errorClasses,
+  fieldPlaceholderClasses,
+  fieldValueClasses,
+  getInteractiveBorderClass,
+  getWrapperBaseClasses,
+  labelClasses,
+  labelFloatingClasses,
+  type FieldColor,
+} from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -15,6 +25,7 @@ interface TextareaProps
   error?: string;
   touched?: boolean;
   containerClassName?: string;
+  wrapperClassName?: string;
   inputClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
@@ -53,6 +64,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       error,
       touched,
       containerClassName = "",
+      wrapperClassName = "",
       inputClassName = "",
       labelClassName = "",
       errorClassName = "",
@@ -61,7 +73,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       variant = "bordered",
       radius = DEFAULT_RADIUS,
       color = "primary",
-      labelPlacement = "outside",
+      labelPlacement = "outside-top",
       isClearable = false,
       minRows = 3,
       maxRows,
@@ -89,11 +101,11 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     const fieldName = field?.name || (props.name as string | undefined);
     const inputId = field?.name || props.id || props.name || undefined;
     const fieldError =
-      fieldName && form?.errors?.[fieldName]
-        ? (form.errors[fieldName] as string)
+      fieldName && getIn(form?.errors, fieldName)
+        ? (getIn(form?.errors, fieldName) as string)
         : error;
     const fieldTouched =
-      fieldName && form?.touched?.[fieldName] ? true : touched;
+      fieldName && getIn(form?.touched, fieldName) ? true : touched;
 
     // ── Autosize ──────────────────────────────────────────────────────────
     const LINE_HEIGHT = 24; // px — approximate line height
@@ -286,6 +298,22 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 
     const hasError = !!(fieldTouched && fieldError);
 
+    const wrapperBaseClasses = getWrapperBaseClasses({
+      wrapperClassName,
+      variant: resolvedVariant,
+      isOutlined,
+      isActive: isFocused,
+      hasError,
+    });
+
+    const interactiveBorderClass = getInteractiveBorderClass({
+      variant: resolvedVariant,
+      isOutlined,
+      isActive: isFocused,
+      hasError,
+      color: color as FieldColor,
+    });
+
     const isFloating = labelPlacement === "inside" || labelPlacement === "outside" || labelPlacement === "outlined";
     const shouldFloat = isFocused || hasValue || (isFloating && !!placeholder) || (isOutlined && !!placeholder);
 
@@ -295,14 +323,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       return (
         <label
           htmlFor={inputId}
-          className={`${labelClasses} ${labelPlacement === "outside-left" ? "shrink-0 mb-0" : "mb-1.5"
-            } ${cs.labelSize} ${labelClassName} ${
-              isFocused && color !== "default"
-                ? (focusTextColors[color] || "text-primary")
-                : isFocused
-                  ? "text-neutral-800 dark:text-neutral-200"
-                  : "text-neutral-700 dark:text-neutral-300"
-            }`}
+          className={`${labelClasses} ${labelPlacement === "outside-left" ? "mb-0 shrink-0" : "mb-2"} ${labelClassName}`}
         >
           <FieldLabelContent label={label} isRequired={isRequired} />
         </label>
@@ -322,7 +343,8 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
               relative w-full transition-all duration-200 ease-in-out box-border group
               ${variantClass}
               ${radiusClass}
-              ${hasError && !isOutlined ? "!border-red-500 dark:!border-red-500" : ""}
+              ${wrapperBaseClasses}
+              ${interactiveBorderClass}
               ${labelPlacement === "inside" ? "" : (isFloating && label && !isOutlined ? "mt-6" : "")}
               ${isOutlined && label ? "mt-[10px]" : ""}
               ${cs.px}
@@ -441,9 +463,9 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 }
                 className={`
                   w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0
-                  text-neutral-800 dark:text-neutral-100 placeholder-neutral-400
+                  text-neutral-800 dark:text-neutral-100
                   ${disableAutosize ? "resize-y" : "resize-none"} transition-all duration-200
-                  ${cs.textSize} p-0
+                  ${fieldValueClasses} ${fieldPlaceholderClasses} p-0
                   ${labelPlacement === "inside" ? (size === "sm" ? "mt-4" : size === "lg" ? "mt-6" : "mt-5") : "mt-2.5"}
                   mb-2.5
                   ${isClearable && hasValue ? "pr-8" : ""}

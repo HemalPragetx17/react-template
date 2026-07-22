@@ -6,6 +6,8 @@ import { DEFAULT_RADIUS, radiusClasses, type Radius } from "../shared/radius";
 export interface ChipProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "solid" | "bordered" | "light" | "flat" | "faded" | "shadow" | "dot";
   color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
+  /** Custom background/text classes; overrides variant color tokens when provided */
+  toneClassName?: string;
   size?: "sm" | "md" | "lg";
   radius?: Radius;
   startContent?: React.ReactNode;
@@ -95,6 +97,7 @@ const dotColorClasses: Record<string, string> = {
 const Chip: React.FC<ChipProps> = ({
   variant = "solid",
   color = "primary",
+  toneClassName,
   size = "md",
   radius = DEFAULT_RADIUS,
   startContent,
@@ -105,7 +108,9 @@ const Chip: React.FC<ChipProps> = ({
   className,
   ...props
 }) => {
-  const comboClasses = variantColorClasses[variant]?.[color] || variantColorClasses.solid.default;
+  const comboClasses = toneClassName
+    ? `border-2 border-transparent ${toneClassName}`
+    : variantColorClasses[variant]?.[color] || variantColorClasses.solid.default;
 
   const handleClose = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -135,7 +140,7 @@ const Chip: React.FC<ChipProps> = ({
           </span>
         )}
         
-        <span className="flex-1 font-medium">
+        <span className="flex-1">
           {children}
         </span>
         

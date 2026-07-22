@@ -1,11 +1,15 @@
 import type { FieldProps } from "formik";
+import { getIn } from "formik";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaCheck, FaChevronDown, FaXmark } from "react-icons/fa6";
 import type {
+  ActionMeta,
   ClearIndicatorProps,
   DropdownIndicatorProps,
   MultiValue,
+  MultiValueGenericProps,
+  MultiValueProps,
   MultiValueRemoveProps,
   OptionProps,
   SingleValue,
@@ -13,7 +17,16 @@ import type {
 import Select, { components } from "react-select";
 import Button from "../button/Button";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../shared/radius";
-import { errorClasses, labelClasses, labelFloatingClasses } from "../shared/fieldStyles";
+import {
+  fieldPlaceholderClasses,
+  fieldValueClasses,
+  errorClasses,
+  getInteractiveBorderClass,
+  getWrapperBaseClasses,
+  labelClasses,
+  labelFloatingClasses,
+  type FieldColor,
+} from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
 import type { CheckboxColor } from "./Checkbox";
 
@@ -37,6 +50,16 @@ type SelectColor =
   | "danger";
 type SelectLabelPlacement = "inside" | "outside" | "outside-left" | "outside-top" | "outlined";
 
+const CHIP_RADIUS_CLASS = getRadiusClass("xl"); // 12px
+
+const SELECT_ALL_VALUE = "__select_all__";
+const SELECT_ALL_OPTION: SelectOption = { label: "Select All", value: SELECT_ALL_VALUE };
+
+const defaultOptionFilter = (option: SelectOption, inputValue: string) => {
+  if (!inputValue) return true;
+  return option.label.toLowerCase().includes(inputValue.toLowerCase());
+};
+
 interface SelectDropdownProps extends Omit<FieldProps, 'meta'> {
   meta?: any;
   label?: string;
@@ -52,9 +75,20 @@ interface SelectDropdownProps extends Omit<FieldProps, 'meta'> {
   /** Max chips shown before showing "+N more" badge (default: 3) */
   maxVisibleChips?: number;
 
+  /**
+   * Optional consumer callback fired after Formik value updates.
+   * Useful when you need to update other fields based on selection.
+   */
+  onChange?: (value: any) => void;
   onInputChange?: (value: string) => void;
   isLoading?: boolean;
   isApiSearch?: boolean;
+  /** Allow creating a new option from search text when it is not in the list */
+  isSearchWithCreate?: boolean;
+  /** Customize the empty-state hint shown when search has no matches */
+  createOptionMessage?: (inputValue: string) => string;
+  /** Fired when a new option is created from search input */
+  onCreateOption?: (option: SelectOption) => void;
 
   // HeroUI-style props
   variant?: SelectVariant;
@@ -63,6 +97,7 @@ interface SelectDropdownProps extends Omit<FieldProps, 'meta'> {
   color?: SelectColor;
   labelPlacement?: SelectLabelPlacement;
 
+  wrapperClassName?: string;
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
@@ -77,12 +112,12 @@ const colorTokens: Record<
   SelectColor,
   { bg: string; text: string; multiValueBg: string; multiValueText: string; focusBorder: string }
 > = {
-  default: { bg: "bg-default-600", text: "text-white", multiValueBg: "bg-default-600", multiValueText: "text-white", focusBorder: "border-default-600" },
-  primary: { bg: "bg-primary", text: "text-white", multiValueBg: "bg-primary", multiValueText: "text-white", focusBorder: "border-primary" },
-  secondary: { bg: "bg-secondary", text: "text-white", multiValueBg: "bg-secondary", multiValueText: "text-white", focusBorder: "border-secondary" },
-  success: { bg: "bg-success", text: "text-white", multiValueBg: "bg-success", multiValueText: "text-white", focusBorder: "border-success" },
-  warning: { bg: "bg-warning", text: "text-neutral-900", multiValueBg: "bg-warning", multiValueText: "text-neutral-900", focusBorder: "border-warning" },
-  danger: { bg: "bg-danger", text: "text-white", multiValueBg: "bg-danger", multiValueText: "text-white", focusBorder: "border-danger" },
+  default: { bg: "bg-default-600", text: "text-white", multiValueBg: "bg-neutral-100 dark:bg-neutral-800", multiValueText: "text-neutral-800 dark:text-neutral-100", focusBorder: "border-default-600" },
+  primary: { bg: "bg-primary", text: "text-white", multiValueBg: "bg-primary-50 dark:bg-primary-950/20", multiValueText: "text-primary dark:text-primary-400", focusBorder: "border-primary" },
+  secondary: { bg: "bg-secondary", text: "text-white", multiValueBg: "bg-secondary-50 dark:bg-secondary-950/20", multiValueText: "text-secondary dark:text-secondary-400", focusBorder: "border-secondary" },
+  success: { bg: "bg-success", text: "text-white", multiValueBg: "bg-success-50 dark:bg-success-950/20", multiValueText: "text-success dark:text-success-400", focusBorder: "border-success" },
+  warning: { bg: "bg-warning", text: "text-neutral-900", multiValueBg: "bg-warning-50 dark:bg-warning-950/20", multiValueText: "text-warning dark:text-warning-400", focusBorder: "border-warning" },
+  danger: { bg: "bg-danger", text: "text-white", multiValueBg: "bg-danger-50 dark:bg-danger-950/20", multiValueText: "text-danger dark:text-danger-400", focusBorder: "border-danger" },
 };
 
 /* -------------------------------------------------------------------------- */
@@ -221,40 +256,53 @@ const CustomMultiValueRemove = (props: MultiValueRemoveProps<SelectOption>) => {
 
   return (
     <components.MultiValueRemove {...props}>
-      <FaXmark className={`${iconSize} text-white`} aria-hidden />
+      <FaXmark className={`${iconSize} text-neutral-900 dark:text-neutral-100`} aria-hidden />
     </components.MultiValueRemove>
   );
 };
 
 /* -------------------------------------------------------------------------- */
-/*       Custom Multi-Value: limits visible chips, shows "+N more" badge      */
+/*       Custom Multi-Value: visible chips + "+N" overflow badge              */
 /* -------------------------------------------------------------------------- */
 
-const CustomMultiValue = (props: any) => {
-  const maxVisible: number = (props.selectProps as any)?.maxVisibleChips ?? 3;
-  const total: number = props.getValue().length;
+const CustomMultiValue = (props: MultiValueProps<SelectOption, boolean>) => {
+  const total = props.getValue().length;
   const { index } = props;
   const colorProp: SelectColor = (props.selectProps as any)?.colorProp ?? "primary";
   const tokens = colorTokens[colorProp];
-  const chipClassName: string = (props.selectProps as any)?.chipClassName ?? "px-2 py-1.5 text-sm";
+  const chipClassName: string =
+    (props.selectProps as any)?.chipClassName ?? `px-2 py-1.5 ${fieldValueClasses}`;
+  const visibleChipCount: number = (props.selectProps as any)?.visibleChipCount ?? total;
 
-  // Within limit — render normally
-  if (index < maxVisible) {
+  if (index < visibleChipCount) {
     return <components.MultiValue {...props} />;
   }
 
-  // First chip beyond limit → show "+N more" badge (rendered once)
-  if (index === maxVisible) {
-    const hiddenCount = total - maxVisible;
+  if (index === visibleChipCount && total > visibleChipCount) {
     return (
-      <span className={`inline-flex items-center shrink-0 ${getRadiusClass()} font-semibold whitespace-nowrap ${tokens.multiValueBg} ${tokens.multiValueText} ${chipClassName}`}>
-        +{hiddenCount}
-      </span>
+      <div
+        className={`inline-flex items-center shrink-0 ${CHIP_RADIUS_CLASS} whitespace-nowrap ${tokens.multiValueBg} ${tokens.multiValueText} ${fieldValueClasses} ${chipClassName}`}
+      >
+        +{total - visibleChipCount}
+      </div>
     );
   }
 
-  // All further chips are invisible
   return null;
+};
+
+const CustomMultiValueLabel = (props: MultiValueGenericProps<SelectOption, boolean>) => {
+  return (
+    <components.MultiValueLabel
+      {...props}
+      innerProps={{
+        ...props.innerProps,
+        className: `${props.innerProps?.className ?? ""} truncate min-w-0 max-w-full overflow-hidden`.trim(),
+      }}
+    >
+      <span className="block truncate min-w-0 max-w-full">{props.children}</span>
+    </components.MultiValueLabel>
+  );
 };
 
 /* -------------------------------------------------------------------------- */
@@ -274,7 +322,7 @@ const StaticCheckbox = ({ checked, color }: { checked: boolean; color: CheckboxC
   return (
     <span
       className={`
-        inline-flex items-center justify-center shrink-0 w-5 h-5 ${getRadiusClass()} border-2 transition-colors duration-150
+        inline-flex items-center justify-center shrink-0 w-5 h-5 rounded-md border-2 transition-colors duration-150
         ${checked 
           ? `${bgMap[color]} border-transparent` 
           : "border-neutral-300 dark:border-neutral-600 bg-transparent"
@@ -298,15 +346,17 @@ const CustomOption = (props: OptionProps<SelectOption, boolean>) => {
   const { isSelected, isDisabled } = props;
   const showCheckbox = !!((props.selectProps as any)?.showCheckbox);
   const colorProp: CheckboxColor = (props.selectProps as any)?.colorProp ?? "primary";
+  const allSelected: boolean = !!((props.selectProps as any)?.allSelected);
+  const checked = props.data.value === SELECT_ALL_VALUE ? allSelected : isSelected;
 
   return (
     <components.Option {...props}>
       <div className={`flex items-center justify-between w-full gap-2 ${isDisabled ? "opacity-40 pointer-events-none" : ""}`}>
         <div className="min-w-0 flex items-center gap-2 overflow-hidden">
           {showCheckbox && (
-            <StaticCheckbox checked={isSelected} color={colorProp} />
+            <StaticCheckbox checked={checked} color={colorProp} />
           )}
-          <span className="whitespace-nowrap text-sm text-neutral-700 dark:text-neutral-200">
+          <span className={`whitespace-nowrap ${fieldValueClasses} text-neutral-700 dark:text-neutral-200`}>
             {props.children}
           </span>
         </div>
@@ -316,6 +366,36 @@ const CustomOption = (props: OptionProps<SelectOption, boolean>) => {
         )}
       </div>
     </components.Option>
+  );
+};
+
+/* -------------------------------------------------------------------------- */
+/*                        Custom No Options Message                           */
+/* -------------------------------------------------------------------------- */
+
+const CustomNoOptionsMessage = (props: any) => {
+  const isSearchWithCreate = !!(props.selectProps as any)?.isSearchWithCreate;
+  const createOptionMessage = (props.selectProps as any)?.createOptionMessage as
+    | ((inputValue: string) => string)
+    | undefined;
+  const inputValue = String(props.selectProps?.inputValue ?? "").trim();
+
+  if (isSearchWithCreate && inputValue) {
+    const message = createOptionMessage
+      ? createOptionMessage(inputValue)
+      : `Press Enter to create "${inputValue}"`;
+
+    return (
+      <components.NoOptionsMessage {...props}>
+        <span className="text-sm text-neutral-600 dark:text-neutral-300">{message}</span>
+      </components.NoOptionsMessage>
+    );
+  }
+
+  return (
+    <components.NoOptionsMessage {...props}>
+      <span className="text-sm text-neutral-500 dark:text-neutral-400">No data found</span>
+    </components.NoOptionsMessage>
   );
 };
 
@@ -335,16 +415,22 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   isSearchable = false,
   showCheckbox = false,
   closeMenuOnSelect,
+  maxVisibleChips,
+  onChange: onValueChange,
   onInputChange,
   isLoading = false,
   isApiSearch = false,
+  isSearchWithCreate = false,
+  createOptionMessage,
+  onCreateOption,
 
   variant = "bordered",
   size = "md",
   radius = DEFAULT_RADIUS,
   color = "primary",
-  labelPlacement = "outside",
+  labelPlacement = "outside-top",
 
+  wrapperClassName = "",
   containerClassName = "",
   labelClassName = "",
   errorClassName = "",
@@ -353,23 +439,104 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   const resolvedVariant = labelPlacement === "outlined" ? "bordered" : variant;
 
   const [isFocused, setIsFocused] = useState(false);
-  const [maxVisibleChips, setMaxVisibleChips] = useState<number>(999);
+  const [visibleChipCount, setVisibleChipCount] = useState(1);
+  const [searchInput, setSearchInput] = useState("");
+  const [createdOptions, setCreatedOptions] = useState<SelectOption[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const measureRef = useRef<HTMLDivElement>(null);
+
+  const resolvedSearchable = isSearchable || isSearchWithCreate;
 
   const { name, value } = field;
   const { setFieldValue, setFieldTouched, touched, errors } = form;
 
-  const hasError = !!(touched[name] && errors[name]);
-  const errorMsg = hasError ? String(errors[name]) : undefined;
+  const isFieldTouched = getIn(touched, name);
+  const fieldError = getIn(errors, name);
+  const hasError = !!(isFieldTouched && fieldError);
+  const errorMsg = hasError ? String(fieldError) : undefined;
+
+  const rawMultiValues = Array.isArray(value) ? value : [];
+  const allOptions = React.useMemo(() => {
+    const merged = [...options];
+    createdOptions.forEach((createdOption) => {
+      const exists = merged.some(
+        (option) =>
+          String(option.value).toLowerCase() === String(createdOption.value).toLowerCase() ||
+          option.label.toLowerCase() === createdOption.label.toLowerCase(),
+      );
+      if (!exists) {
+        merged.push(createdOption);
+      }
+    });
+    return merged;
+  }, [options, createdOptions]);
+
+  useEffect(() => {
+    if (!isSearchWithCreate || isMulti || !value) return;
+
+    const existsInOptions = options.some(
+      (option) =>
+        option.value === value ||
+        option.label.toLowerCase() === String(value).toLowerCase(),
+    );
+
+    if (existsInOptions) return;
+
+    setCreatedOptions((prev) => {
+      const alreadyCreated = prev.some((option) => option.value === value);
+      if (alreadyCreated) return prev;
+      return [...prev, { label: String(value), value: value as string | number }];
+    });
+  }, [isSearchWithCreate, isMulti, value, options]);
+
+  const allSelected = isMulti && allOptions.length > 0 && allOptions.every((o) => rawMultiValues.includes(o.value));
+  const derivedOptions = isMulti ? [SELECT_ALL_OPTION, ...allOptions] : allOptions;
 
   const normalizedValue = isMulti
-    ? options.filter((o) => Array.isArray(value) && value.includes(o.value))
-    : options.find((o) => o.value === value) || null;
+    ? allOptions.filter((o) => Array.isArray(value) && value.includes(o.value))
+    : allOptions.find((o) => o.value === value)
+      || (isSearchWithCreate && value
+        ? { label: String(value), value: value as string | number }
+        : null);
 
   const hasValue = isMulti
     ? Array.isArray(normalizedValue) && normalizedValue.length > 0
     : normalizedValue !== null && normalizedValue !== undefined;
+
+  const multiCount = isMulti && Array.isArray(normalizedValue) ? normalizedValue.length : 0;
+  const hasOverflowChips = multiCount > visibleChipCount;
+
+  useEffect(() => {
+    if (!isMulti) return;
+
+    const element = containerRef.current;
+    if (!element) return;
+
+    const updateVisibleChips = () => {
+      const width = element.clientWidth;
+      const indicatorsWidth = 72;
+      const overflowBadgeWidth = 44;
+      const averageChipWidth = 112;
+      const availableWidth = Math.max(0, width - indicatorsWidth);
+      let count = Math.max(1, Math.floor(availableWidth / averageChipWidth));
+
+      if (multiCount > count) {
+        count = Math.max(1, Math.floor((availableWidth - overflowBadgeWidth) / averageChipWidth));
+      }
+
+      if (maxVisibleChips !== undefined) {
+        count = Math.min(count, maxVisibleChips);
+      }
+
+      setVisibleChipCount(count);
+    };
+
+    updateVisibleChips();
+
+    const observer = new ResizeObserver(updateVisibleChips);
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [isMulti, multiCount, maxVisibleChips]);
 
   const tokens = colorTokens[color];
   const sz = sizeTokens[size];
@@ -439,59 +606,41 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   // When labelPlacement="outlined" the fieldset draws the border; wrapper gets no border
   const variantClass = isOutlined ? "bg-transparent border-none" : (variantConfigs[resolvedVariant] ?? variantConfigs.flat);
 
-  // Dynamic layout measurement for multi-select overflow chips
-  useLayoutEffect(() => {
-    if (!isMulti || !Array.isArray(normalizedValue) || normalizedValue.length === 0) return;
+  const wrapperBaseClasses = getWrapperBaseClasses({
+    wrapperClassName,
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isFocused,
+    hasError,
+  });
 
-    const updateMeasurements = () => {
-      if (!containerRef.current || !measureRef.current) return;
-      // Reserve ~120px buffer for right-side indicators, input field cursor, padding, and "+N more" badge
-      const availableWidth = containerRef.current.clientWidth - 120;
-
-      const chipNodes = Array.from(measureRef.current.children) as HTMLElement[];
-      let currentWidth = 0;
-      let count = 0;
-
-      for (let i = 0; i < chipNodes.length; i++) {
-        const nodeWidth = chipNodes[i].offsetWidth + 4; // account for gap-1 (4px)
-        if (currentWidth + nodeWidth > availableWidth && i > 0) {
-          break;
-        }
-        currentWidth += nodeWidth;
-        count++;
-      }
-
-      setMaxVisibleChips(count < normalizedValue.length ? count : normalizedValue.length);
-    };
-
-    updateMeasurements();
-
-    const observer = new ResizeObserver(() => {
-      updateMeasurements();
-    });
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, [isMulti, normalizedValue]);
+  const interactiveBorderClass = getInteractiveBorderClass({
+    variant: resolvedVariant,
+    isOutlined,
+    isActive: isFocused,
+    hasError,
+    color: color as FieldColor,
+  });
 
   const getChipClass = () => {
     if (size === "sm") {
       return isInside
-        ? "py-0.5 px-1.5 text-[10px] leading-none"
-        : "py-1.5 px-1.5 text-[11px] leading-none";
+        ? "py-0.5 px-1.5 leading-none"
+        : "py-1.5 px-1.5 leading-none";
     } else if (size === "md") {
       return isInside
-        ? "py-0.5 px-2 text-xs"
-        : "py-2 px-2 text-xs";
+        ? "py-0.5 px-2"
+        : "py-2 px-2";
     } else {
       return isInside
-        ? "py-1 px-2 text-sm"
-        : "py-2.5 px-2.5 text-sm";
+        ? "py-1 px-2"
+        : "py-2.5 px-2.5";
     }
   };
+
+  const fieldHeightClass = isInside
+    ? sz.insideHeight
+    : `${sz.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`;
 
   // ── Render external label ──────────────────────────────────────────────────
   const renderExternalLabel = () => {
@@ -500,32 +649,103 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
     return (
       <label
         htmlFor={name}
-        className={`${labelClasses} ${isOutsideLeft ? "shrink-0 mb-0" : "mb-1.5"
-          } ${sz.labelSize} ${labelClassName} ${
-            isFocused && color !== "default"
-              ? (color === "primary" ? "text-primary" :
-                 color === "secondary" ? "text-secondary" :
-                 color === "success" ? "text-success" :
-                 color === "warning" ? "text-warning" :
-                 color === "danger" ? "text-danger" : "text-primary")
-              : isFocused
-                ? "text-neutral-800 dark:text-neutral-200"
-                : "text-neutral-700 dark:text-neutral-300"
-          }`}
+        className={`${labelClasses} ${isOutsideLeft ? "mb-0 shrink-0" : "mb-1.5"} ${labelClassName}`}
       >
         <FieldLabelContent label={label} isRequired={isRequired} />
       </label>
     );
   };
 
-  const handleChange = (selected: MultiValue<SelectOption> | SingleValue<SelectOption>) => {
+  const handleChange = (
+    selected: MultiValue<SelectOption> | SingleValue<SelectOption>,
+    actionMeta: ActionMeta<SelectOption>
+  ) => {
+    if (isSearchWithCreate && !isMulti) {
+      setSearchInput("");
+    }
+
     if (isMulti) {
+      if (actionMeta.action === "clear") {
+        setFieldValue(name, []);
+        onValueChange?.([]);
+        return;
+      }
+
+      // Toggle Select All (without ever storing it in Formik value array)
+      if (actionMeta.action === "select-option" && actionMeta.option?.value === SELECT_ALL_VALUE) {
+        const next = allOptions.map((o) => o.value);
+        setFieldValue(name, allSelected ? [] : next);
+        onValueChange?.(allSelected ? [] : next);
+        return;
+      }
+
       const values = selected ? (selected as MultiValue<SelectOption>).map((s) => s.value) : [];
-      setFieldValue(name, values);
+      const cleaned = values.filter((v) => v !== SELECT_ALL_VALUE);
+      setFieldValue(name, cleaned);
+      onValueChange?.(cleaned);
     } else {
       const val = selected ? (selected as SingleValue<SelectOption>)?.value ?? null : null;
       setFieldValue(name, val);
+      onValueChange?.(val);
     }
+  };
+
+  const createOptionFromSearch = (rawValue: string) => {
+    const trimmed = rawValue.trim();
+    if (!trimmed || isMulti) return;
+
+    const existingOption = allOptions.find(
+      (option) => option.label.toLowerCase() === trimmed.toLowerCase(),
+    );
+
+    if (existingOption) {
+      setFieldValue(name, existingOption.value);
+      onValueChange?.(existingOption.value);
+      setSearchInput("");
+      return;
+    }
+
+    const newOption: SelectOption = { label: trimmed, value: trimmed };
+    setCreatedOptions((prev) => [...prev, newOption]);
+    setFieldValue(name, newOption.value);
+    onValueChange?.(newOption.value);
+    onCreateOption?.(newOption);
+    setSearchInput("");
+  };
+
+  const handleInputChange = (inputValue: string, actionMeta: { action: string }) => {
+    if (actionMeta.action === "input-change") {
+      setSearchInput(inputValue);
+    }
+
+    if (
+      actionMeta.action === "menu-close" ||
+      actionMeta.action === "set-value" ||
+      actionMeta.action === "clear"
+    ) {
+      setSearchInput("");
+    }
+
+    onInputChange?.(inputValue);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (!isSearchWithCreate || isMulti || event.key !== "Enter") return;
+
+    const draft = searchInput.trim();
+    if (!draft) return;
+
+    const exactMatch = allOptions.some(
+      (option) => option.label.toLowerCase() === draft.toLowerCase(),
+    );
+    if (exactMatch) return;
+
+    const filteredMatches = allOptions.filter((option) => defaultOptionFilter(option, draft));
+    if (filteredMatches.length > 0) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    createOptionFromSearch(draft);
   };
 
   return (
@@ -538,23 +758,14 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
         <div
           ref={containerRef}
           className={`
-            relative flex w-full transition-all duration-200 ease-in-out group
+            relative flex w-full items-center overflow-hidden transition-all duration-200 ease-in-out group
             ${isFocused ? "z-40" : "z-30"}
             ${variantClass}
             ${radiusClass}
-            ${hasError && !isOutlined ? "!border-red-500 dark:!border-red-500" : ""}
-            ${isFocused && !hasError && !isOutlined
-              ? resolvedVariant === "bordered" || resolvedVariant === "faded"
-                ? (color === "default" ? "!border-neutral-500" :
-                   color === "primary" ? "!border-primary" :
-                   color === "secondary" ? "!border-secondary" :
-                   color === "success" ? "!border-success" :
-                   color === "warning" ? "!border-warning" :
-                   color === "danger" ? "!border-danger" : "!border-primary")
-                : ""
-              : ""}
-            ${isInside ? sz.insideHeight : `${sz.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`}
-            ${isDisabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
+            ${wrapperBaseClasses}
+            ${interactiveBorderClass}
+            ${fieldHeightClass}
+            ${isDisabled ? "!bg-gray-50 !border-gray-200 cursor-not-allowed pointer-events-none" : ""}
           `}
         >
           {/* ── Outlined Fieldset Border + Legend Notch ────────────────────── */}
@@ -644,42 +855,34 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
             </motion.label>
           )}
 
-          {/* Hidden measuring container for dynamic multi-select chip overflow */}
-          {isMulti && Array.isArray(normalizedValue) && normalizedValue.length > 0 && (
-            <div
-              ref={measureRef}
-              aria-hidden="true"
-              className="absolute top-0 left-0 invisible pointer-events-none flex gap-1 h-0 overflow-hidden"
-            >
-              {normalizedValue.map((opt) => (
-                <div
-                  key={opt.value}
-                  className={`inline-flex items-center gap-1 ${sz.textSize === "text-xs" ? "text-xs" : "text-sm"
-                    } ${getRadiusClass()} px-2 py-1.5 font-medium whitespace-nowrap`}
-                >
-                  <span className="leading-normal">{opt.label}</span>
-                  <div className="w-3 h-3 ml-0.5" />
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Central Stack for Select */}
-          <div className="flex flex-col flex-1 min-w-0 justify-center">
+          <div className="flex flex-1 min-w-0 w-full overflow-hidden">
             {/* react-select */}
             <Select
-              {...({ showCheckbox, colorProp: color, maxVisibleChips, chipClassName: getChipClass(), sizeProp: size, labelPlacementProp: labelPlacement } as any)}
+              {...({
+                showCheckbox,
+                colorProp: color,
+                chipClassName: getChipClass(),
+                sizeProp: size,
+                labelPlacementProp: labelPlacement,
+                visibleChipCount,
+                allSelected,
+                isSearchWithCreate,
+                createOptionMessage,
+              } as any)}
               inputId={name}
               name={name}
-              options={options}
+              options={derivedOptions}
               value={normalizedValue}
               onChange={handleChange}
               onBlur={() => { setFieldTouched(name, true); setIsFocused(false); }}
               onFocus={() => setIsFocused(true)}
+              onKeyDown={handleKeyDown}
               isMulti={isMulti}
               isClearable={isClearable}
               isDisabled={isDisabled}
-              isSearchable={isSearchable}
+              isSearchable={resolvedSearchable}
+              inputValue={isSearchWithCreate ? searchInput : undefined}
               closeMenuOnSelect={closeMenuOnSelect ?? (!isMulti)}
               hideSelectedOptions={false}
               menuPortalTarget={typeof document !== "undefined" ? document.body : null}
@@ -687,7 +890,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
               placeholder={
                 !isFloating && !isOutlined ? placeholder : shouldFloat ? placeholder : ""
               }
-              onInputChange={onInputChange}
+              onInputChange={handleInputChange}
               isLoading={isLoading}
               filterOption={isApiSearch ? null : undefined}
               components={{
@@ -696,27 +899,32 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
                 ClearIndicator: CustomClearIndicator,
                 MultiValueRemove: CustomMultiValueRemove,
                 MultiValue: CustomMultiValue,
+                MultiValueLabel: CustomMultiValueLabel,
+                NoOptionsMessage: CustomNoOptionsMessage,
                 IndicatorSeparator: () => null,
               }}
               unstyled
               classNames={{
-                container: () => "w-full h-full",
+                container: () => "w-full h-full min-w-0",
 
                 control: () =>
-                  `flex items-center w-full h-full cursor-pointer bg-transparent ${isInside ? sz.insideHeight : sz.outsideHeight} ${sz.px} ${sz.pb}`,
+                  `flex flex-row items-center w-full min-w-0 overflow-hidden cursor-pointer bg-transparent ${isInside ? sz.insideHeight : sz.outsideHeight} ${sz.px} ${sz.pb}`,
 
                 placeholder: () =>
-                  `${sz.textSize} text-neutral-400 dark:text-neutral-500 select-none truncate`,
+                  `${fieldPlaceholderClasses} select-none truncate`,
 
                 singleValue: () =>
-                  `${sz.textSize} ${focusTextColors.default}`,
+                  `${fieldValueClasses} ${focusTextColors.default} truncate`,
 
-                valueContainer: () => `flex flex-nowrap items-center gap-1 flex-1 min-w-0 overflow-hidden ${isInside && isFloating && shouldFloat ? sz.ptInside : ""}`,
+                valueContainer: () =>
+                  `flex flex-row !flex-nowrap items-center gap-1 flex-1 min-w-0 w-0 overflow-hidden ${isInside && isFloating && shouldFloat ? sz.ptInside : ""}`,
 
-                input: () =>
-                  `${sz.textSize} ${focusTextColors.default} outline-none`,
+                input: ({ selectProps }) =>
+                  isMulti && hasValue && !selectProps.menuIsOpen && !isFocused
+                    ? "w-0 min-w-0 max-w-0 p-0 m-0 opacity-0 flex-shrink"
+                    : `${fieldValueClasses} ${focusTextColors.default} outline-none min-w-[2ch] max-w-[40%] flex-shrink`,
 
-                indicatorsContainer: () => "flex items-center gap-1 shrink-0 pr-1",
+                indicatorsContainer: () => "flex items-center gap-1 shrink-0 flex-none pl-1 relative z-10",
 
                 menu: () =>
                   `mt-1.5 border border-neutral-200 dark:border-neutral-700 ${menuRadiusClass} overflow-hidden shadow-xl bg-white dark:bg-content1 z-50`,
@@ -741,12 +949,12 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
                   "px-3 py-2 text-sm text-neutral-500 dark:text-neutral-400",
 
                 multiValue: () =>
-                  `inline-flex items-center gap-1 ${tokens.multiValueBg} ${tokens.multiValueText} ${getRadiusClass()} font-medium whitespace-nowrap ${getChipClass()}`,
+                  `inline-flex items-center gap-1 min-w-0 overflow-hidden shrink ${hasOverflowChips ? "max-w-[70%]" : "max-w-full"} ${tokens.multiValueBg} ${tokens.multiValueText} ${CHIP_RADIUS_CLASS} ${getChipClass()} ${fieldValueClasses}`,
 
-                multiValueLabel: () => "leading-normal",
+                multiValueLabel: () => "leading-normal truncate min-w-0 max-w-full overflow-hidden",
 
                 multiValueRemove: () =>
-                  "ml-0.5 flex items-center justify-center text-white opacity-70 hover:opacity-100 cursor-pointer transition-opacity",
+                  "ml-0.5 flex shrink-0 flex-none items-center justify-center opacity-70 hover:opacity-100 cursor-pointer transition-opacity",
 
                 clearIndicator: () =>
                   "flex items-center justify-center p-1 cursor-pointer",
@@ -756,7 +964,6 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
 
                 menuPortal: () => "!z-[9999]",
               }}
-              noOptionsMessage={() => "No data found"}
             />
           </div>
 

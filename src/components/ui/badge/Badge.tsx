@@ -16,6 +16,7 @@ export interface BadgeProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 
   isInvisible?: boolean;
   showOutline?: boolean;
   isOneChar?: boolean;
+  wrapperClassName?: string;
   children?: React.ReactNode;
 }
 
@@ -31,6 +32,7 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>((props, ref) => {
     showOutline = true,
     isOneChar = false,
     children,
+    wrapperClassName = "",
     className = "",
     ...restProps
   } = props;
@@ -123,7 +125,7 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>((props, ref) => {
     : "";
 
   return (
-    <div className="relative inline-flex shrink-0">
+    <div className={`relative inline-flex shrink-0 ${wrapperClassName}`}>
       {children}
       {!isInvisible && (
         <span

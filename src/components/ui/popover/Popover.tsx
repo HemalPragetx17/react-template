@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../shared/radius";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -364,55 +364,47 @@ const Popover: React.FC<PopoverProps> = ({
     const panel = (
         <>
             {/* Backdrop */}
-            <AnimatePresence>
-                {open && effectiveBackdrop !== "transparent" && (
-                    <motion.div
-                        key="backdrop"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        className={`fixed inset-0 z-[998] ${effectiveBackdrop === "blur" ? "backdrop-blur-sm bg-black/20" : "bg-black/40"}`}
-                        onClick={() => setOpen(false)}
-                    />
-                )}
-            </AnimatePresence>
+            {open && effectiveBackdrop !== "transparent" && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.15 }}
+                    className={`fixed inset-0 z-[998] ${effectiveBackdrop === "blur" ? "backdrop-blur-sm bg-black/20" : "bg-black/40"}`}
+                    onClick={() => setOpen(false)}
+                />
+            )}
 
             {/* Panel */}
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        key="panel"
-                        ref={panelRef}
-                        variants={motionVariants}
-                        initial="initial"
-                        animate="animate"
-                        exit="exit"
-                        style={{
-                            position: "absolute",
-                            top: pos?.top ?? 0,
-                            left: pos?.left ?? 0,
-                            zIndex: 999,
-                            minWidth: minWidth,
-                        }}
-                        onMouseEnter={triggerMode === "hover" ? handleMouseEnter : undefined}
-                        onMouseLeave={triggerMode === "hover" ? handleMouseLeave : undefined}
-                        className={`
-                            ${colorBgMap[color]} ${sizeClasses[size]} ${getRadiusClass(radius)} ${shadowClasses[shadow]} shadow-black/10
-                            border ${colorBorderMap[color]}
-                            ${className}
-                        `}
-                    >
-                        {showArrow && (
-                            <span className={arrowShapeClass} style={arrowStyle} />
-                        )}
-                        {/* Inner wrapper keeps overflow contained without clipping the arrow */}
-                        <div className={`overflow-hidden ${getRadiusClass(radius)}`}>
-                            {children}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {open && (
+                <motion.div
+                    ref={panelRef}
+                    variants={motionVariants}
+                    initial="initial"
+                    animate="animate"
+                    style={{
+                        position: "absolute",
+                        top: pos?.top ?? 0,
+                        left: pos?.left ?? 0,
+                        zIndex: 999,
+                        minWidth: minWidth,
+                    }}
+                    onMouseEnter={triggerMode === "hover" ? handleMouseEnter : undefined}
+                    onMouseLeave={triggerMode === "hover" ? handleMouseLeave : undefined}
+                    className={`
+                        ${colorBgMap[color]} ${sizeClasses[size]} ${getRadiusClass(radius)} ${shadowClasses[shadow]} shadow-black/10
+                        border ${colorBorderMap[color]}
+                        ${className}
+                    `}
+                >
+                    {showArrow && (
+                        <span className={arrowShapeClass} style={arrowStyle} />
+                    )}
+                    {/* Inner wrapper keeps overflow contained without clipping the arrow */}
+                    <div className={`overflow-hidden ${getRadiusClass(radius)}`}>
+                        {children}
+                    </div>
+                </motion.div>
+            )}
         </>
     );
 

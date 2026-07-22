@@ -5,15 +5,15 @@
 
 @layer utilities {
     .input-label {
-        @apply block text-base font-semibold select-none transition-colors duration-200;
+        @apply block text-sm font-medium select-none transition-colors duration-200;
     }
 
     .input-label-group {
-        @apply text-base font-semibold select-none text-neutral-600 dark:text-neutral-400;
+        @apply text-sm font-medium select-none text-neutral-600 dark:text-neutral-400;
     }
 
     .input-label-floating {
-        @apply text-base font-semibold select-none origin-left pointer-events-none whitespace-nowrap;
+        @apply text-sm font-medium select-none origin-left pointer-events-none whitespace-nowrap;
     }
 
     .input-error {
@@ -22,5 +22,13 @@
 
     .input-label-required {
         @apply text-red-500 ml-0.5 align-super text-base leading-none;
+    }
+
+    .field-placeholder {
+        @apply placeholder:text-neutral-500 placeholder:dark:text-neutral-400;
+    }
+
+    :not(input):not(textarea).field-placeholder {
+        @apply text-neutral-500 dark:text-neutral-400;
     }
 }

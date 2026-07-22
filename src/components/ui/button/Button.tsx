@@ -18,16 +18,18 @@ interface ButtonProps
   isLoading?: boolean;
   spinner?: React.ReactNode;
   fullWidth?: boolean;
+  /** Semantic slot used by parent components (e.g. Table tree chevron) */
+  slot?: string;
   children?: React.ReactNode;
   className?: string;
   disabled?: boolean;
 }
 
 const sizeClasses = {
-  xs: "px-2 py-1 text-xs",
-  sm: "px-3 py-1.5 text-sm",
-  md: "px-4 py-2 text-sm",
-  lg: "px-5 py-2.5 text-base",
+  xs: "px-2 py-1 h-8 text-xs",
+  sm: "px-3 py-1.5 h-10 text-sm",
+  md: "px-4 py-2 h-12 text-sm",
+  lg: "px-5 py-2.5 h-14 text-base",
 };
 
 const iconOnlySizeClasses = {
@@ -102,7 +104,7 @@ const variantColorClasses: Record<string, Record<string, string>> = {
 const Button: React.FC<ButtonProps> = ({
   variant = "solid",
   color = "primary",
-  size = "md",
+  size = "sm",
   radius = DEFAULT_RADIUS,
   startContent,
   endContent,
@@ -110,6 +112,7 @@ const Button: React.FC<ButtonProps> = ({
   isLoading = false,
   spinner,
   fullWidth = false,
+  slot,
   children,
   className,
   disabled,
@@ -153,6 +156,7 @@ const Button: React.FC<ButtonProps> = ({
       type={type}
       disabled={disabled || isCurrentlyLoading}
       onClick={handleClick}
+      data-slot={slot}
       className={clsx(
         baseClasses,
         "inline-flex items-center gap-2 font-medium transition-all duration-200",
@@ -186,7 +190,7 @@ const Button: React.FC<ButtonProps> = ({
       ) : (
         <>
           {startContent}
-          <span className="relative z-10">{children}</span>
+          <span className="relative z-10 font-semibold font-base">{children}</span>
           {endContent}
         </>
       )}
