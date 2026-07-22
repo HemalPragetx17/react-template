@@ -36,6 +36,13 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Pagination,
 } from "../../components/ui";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -90,6 +97,12 @@ const UIKit: React.FC = () => {
   const [isSkeletonLoaded, setIsSkeletonLoaded] = React.useState(false);
   const [dropdownSingle, setDropdownSingle] = React.useState<Set<string>>(new Set(["text"]));
   const [dropdownMulti, setDropdownMulti] = React.useState<Set<string>>(new Set(["text", "pdf"]));
+
+  // Table state demo
+  const [tableSelection, setTableSelection] = React.useState<any>(new Set(["2"]));
+  const [sortDesc, setSortDesc] = React.useState<any>({ column: "name", direction: "ascending" });
+  const [tableLoading, setTableLoading] = React.useState(false);
+  const [activePageDemo, setActivePageDemo] = React.useState(3);
 
   const [checkboxValues, setCheckboxValues] = React.useState<Record<string, boolean>>(
     () => Object.fromEntries(COLORS.map((c) => [c, true]))
@@ -1414,6 +1427,226 @@ const UIKit: React.FC = () => {
           <Tooltip content="Custom smooth animation" color="secondary" placement="left" showArrow>
             <Button color="secondary" variant="flat">Left</Button>
           </Tooltip>
+        </div>
+      </Section>
+
+      {/* ── 27. TABLE ────────────────────────────────────────────── */}
+      <Section title="Table">
+        <div className="space-y-6">
+          {/* Static Table with Multiple Selection, Custom Colors, Compact, Striped */}
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-6 rounded-xl space-y-4 shadow-sm">
+            <div className="flex flex-wrap justify-between items-center gap-4">
+              <div>
+                <h3 className="font-semibold text-neutral-800 dark:text-neutral-200">Interactive Table Showcase</h3>
+                <p className="text-xs text-neutral-500">Supports selection state, striped rows, loading overlays, and custom headers.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  color={tableLoading ? "warning" : "primary"}
+                  onClick={() => setTableLoading(!tableLoading)}
+                >
+                  {tableLoading ? "Stop Loading" : "Trigger Loading"}
+                </Button>
+              </div>
+            </div>
+
+            <Table
+              aria-label="Example static table"
+              color="primary"
+              selectionMode="multiple"
+              selectedKeys={tableSelection}
+              onSelectionChange={setTableSelection}
+              isStriped
+              classNames={{
+                wrapper: "min-h-[220px]"
+              }}
+            >
+              <TableHeader>
+                <TableColumn>NAME</TableColumn>
+                <TableColumn>ROLE</TableColumn>
+                <TableColumn>STATUS</TableColumn>
+              </TableHeader>
+              <TableBody isLoading={tableLoading} emptyContent="No rows found.">
+                <TableRow key="1">
+                  <TableCell>Tony Stark</TableCell>
+                  <TableCell>CEO / Founder</TableCell>
+                  <TableCell>
+                    <span className="px-2 py-0.5 text-xs rounded bg-success-50 dark:bg-success-950/30 text-success-600 dark:text-success-400 font-medium">Active</span>
+                  </TableCell>
+                </TableRow>
+                <TableRow key="2">
+                  <TableCell>Steve Rogers</TableCell>
+                  <TableCell>Captain</TableCell>
+                  <TableCell>
+                    <span className="px-2 py-0.5 text-xs rounded bg-success-50 dark:bg-success-950/30 text-success-600 dark:text-success-400 font-medium">Active</span>
+                  </TableCell>
+                </TableRow>
+                <TableRow key="3">
+                  <TableCell>Wanda Maximoff</TableCell>
+                  <TableCell>Witch</TableCell>
+                  <TableCell>
+                    <span className="px-2 py-0.5 text-xs rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 font-medium">Inactive</span>
+                  </TableCell>
+                </TableRow>
+                <TableRow key="4">
+                  <TableCell>Natasha Romanoff</TableCell>
+                  <TableCell>Spy</TableCell>
+                  <TableCell>
+                    <span className="px-2 py-0.5 text-xs rounded bg-danger-50 dark:bg-danger-950/30 text-danger-600 dark:text-danger-400 font-medium">Terminated</span>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+
+            <div className="text-xs text-neutral-500">
+              Selected Rows: {tableSelection === "all" ? "All Rows" : Array.from(tableSelection).join(", ") || "None"}
+            </div>
+          </div>
+
+          {/* Dynamic Table with Sorting and allowsSorting */}
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-6 rounded-xl space-y-4 shadow-sm">
+            <div>
+              <h3 className="font-semibold text-neutral-800 dark:text-neutral-200">Dynamic Columns and Rows with Sorting</h3>
+              <p className="text-xs text-neutral-500">Renders declaratively from items data and handles column sorting.</p>
+            </div>
+
+            {(() => {
+              const columnsData: { name: string; uid: string; sortable: boolean; align?: "start" | "center" | "end" }[] = [
+                { name: "NAME", uid: "name", sortable: true },
+                { name: "HEIGHT (m)", uid: "height", sortable: true },
+                { name: "MASS (kg)", uid: "mass", sortable: false, align: "center" },
+              ];
+
+              const initialRows = [
+                { id: "10", name: "Luke Skywalker", height: "1.72", mass: "77" },
+                { id: "20", name: "Darth Vader", height: "2.02", mass: "136" },
+                { id: "30", name: "Leia Organa", height: "1.50", mass: "49" },
+                { id: "40", name: "Han Solo", height: "1.80", mass: "80" },
+                { id: "50", name: "Han Solo", height: "1.80", mass: "80" },
+              ];
+
+              // Apply client-side sorting based on sortDesc
+              const sortedRows = [...initialRows].sort((a: any, b: any) => {
+                const first = a[sortDesc.column];
+                const second = b[sortDesc.column];
+                const cmp = parseFloat(first) && parseFloat(second)
+                  ? parseFloat(first) - parseFloat(second)
+                  : String(first).localeCompare(String(second));
+                return sortDesc.direction === "descending" ? -cmp : cmp;
+              });
+
+              return (
+                <Table
+                  aria-label="Example dynamic table"
+                  color="secondary"
+                  sortDescriptor={sortDesc}
+                  onSortChange={setSortDesc}
+                  isCompact
+                >
+                  <TableHeader columns={columnsData}>
+                    {(column) => (
+                      <TableColumn key={column.uid} allowsSorting={column.sortable} align={column.align}>
+                        {column.name}
+                      </TableColumn>
+                    )}
+                  </TableHeader>
+                  <TableBody items={sortedRows}>
+                    {(item) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.name}</TableCell>
+                        <TableCell>{item.height}</TableCell>
+                        <TableCell>{item.mass}</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              );
+            })()}
+            <div className="text-xs text-neutral-500">
+              Sorted by: <span className="font-semibold">{String(sortDesc.column)}</span> ({sortDesc.direction})
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── 28. PAGINATION ───────────────────────────────────────── */}
+      <Section title="Pagination">
+        <div className="space-y-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-6 rounded-xl shadow-sm">
+          {/* Colors & Sizes Demo */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">Colors</h3>
+            <div className="flex flex-col gap-3">
+              {(["default", "primary", "secondary", "success", "warning", "danger"] as const).map((color) => (
+                <div key={color} className="flex flex-wrap items-center gap-4">
+                  <span className="text-xs text-neutral-400 w-24 capitalize">{color}</span>
+                  <Pagination total={10} initialPage={3} color={color} showControls />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <hr className="border-neutral-100 dark:border-neutral-800" />
+
+          {/* Variants Demo */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">Variants</h3>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="text-xs text-neutral-400 w-24">Flat (Default)</span>
+                <Pagination total={10} initialPage={1} variant="flat" color="primary" />
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="text-xs text-neutral-400 w-24">Bordered</span>
+                <Pagination total={10} initialPage={2} variant="bordered" color="secondary" />
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="text-xs text-neutral-400 w-24">Faded</span>
+                <Pagination total={10} initialPage={3} variant="faded" color="success" />
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="text-xs text-neutral-400 w-24">Light</span>
+                <Pagination total={10} initialPage={4} variant="light" color="danger" />
+              </div>
+            </div>
+          </div>
+
+          <hr className="border-neutral-100 dark:border-neutral-800" />
+
+          {/* Layout & Animation Options */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-200 uppercase tracking-wider">Layout & Features</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-neutral-500">Compact Toolbar Style</h4>
+                <Pagination total={10} initialPage={5} isCompact showControls color="secondary" radius="md" />
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-neutral-500">Looping Pagination with Custom Sibling Range</h4>
+                <Pagination total={15} initialPage={8} siblings={1} boundaries={2} loop showControls color="warning" />
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-neutral-500">Sizing Options</h4>
+                <div className="flex flex-col gap-3">
+                  <Pagination total={5} initialPage={1} size="sm" color="success" />
+                  <Pagination total={5} initialPage={1} size="md" color="success" />
+                  <Pagination total={5} initialPage={1} size="lg" color="success" />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h4 className="text-xs font-semibold text-neutral-500">Controlled Selection Synchronization</h4>
+                <div className="flex items-center gap-4">
+                  <Pagination total={8} page={activePageDemo} onChange={setActivePageDemo} showControls color="danger" radius="full" />
+                  <div className="text-xs text-neutral-500 bg-neutral-50 dark:bg-neutral-800 px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                    Selected Page: <span className="font-bold text-neutral-800 dark:text-neutral-200">{activePageDemo}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </Section>
     </div>

@@ -1,21 +1,25 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { Field, Form, Formik } from "formik";
 import { debounce } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { FaRegTrashCan } from "react-icons/fa6";
 import { FiEdit, FiEye } from "react-icons/fi";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Button, Chip, ConfirmModal, CustomTable, Input, Modal, SelectDropdown, Switch } from "../../components/ui";
-import type { Pagination } from "../../models/base-type";
+import { Button, Chip, ConfirmModal, Input, Modal, SelectDropdown, Switch, type SortDescriptor } from "../../components/ui";
+import type { IColumn, Pagination } from "../../models/base-type";
 import type { IUserModal } from "../../models/user";
 import { Routing } from "../../routes/routing";
 import userService from "../../services/user-service";
 import { PAGINATION } from "../../shared/constants/pagination";
 import { handleTableLoader } from "../../store/slices/generalSlice";
 import UserForm from "./UserForm";
+import { TanstackTable } from "../../components/custom-table/TanstackTable";
+import CustomTable, { type IActionMenuItem } from "../../components/custom-table/CustomTable";
+import { Digits } from "../../shared/enums/digits";
+import { DateUTCToLocalDateAndTimeString } from "../../utils/dateFormat";
 
 interface IUsersFilter {
   search: string;
@@ -89,6 +93,116 @@ let cachedUsersList: IUserModal[] = [
     _createdAt: "2026-06-20T16:00:00.000Z",
   },
 ];
+
+const UserWithCustomTable = () => {
+  const totalCountRef = React.useRef(Digits.One);
+  const pageRef = React.useRef<Pagination>(PAGINATION);
+  const sortRef = React.useRef<SortDescriptor | null>(null);
+  const [users, setUsers] = React.useState<any[]>([]);
+
+  const getUsers = async () => {
+    console.log("🚀 ~ RecentUsersTable ~ pageRef:", pageRef.current)
+    console.log("🚀 ~ RecentUsersTable ~ sortRef:", sortRef.current)
+
+    totalCountRef.current = 25;
+    const mapResponseToColumns = (res: any, index: number) => {
+      return {
+        ...res,
+        index: index + 1,
+        fullName: `${res?.firstName || ''} ${res?.lastName || ''}`,
+        email: res?.email || '',
+        phone: `${res?.phoneCountry || ''}${res?.phone || ''}`,
+        active: res?.active ? 'Active' : 'Inactive',
+        _createdAt: res?._createdAt ? DateUTCToLocalDateAndTimeString(res?._createdAt) : '',
+      };
+    };
+    const customResponse = cachedUsersList.map(mapResponseToColumns);
+    setUsers(customResponse);
+  }
+
+  useEffect(() => {
+    getUsers()
+  }, [])
+
+  const columns: Array<IColumn> = useMemo(
+    () => [
+      {
+        name: "#",
+        data: "index",
+      },
+      {
+        name: 'Name',
+        data: 'fullName',
+        orderable: true,
+      },
+      {
+        name: 'Email',
+        data: 'email',
+      },
+      {
+        name: 'Phone',
+        data: 'phone',
+      },
+      {
+        name: 'Joined',
+        data: 'created_at',
+      },
+      {
+        name: 'Status',
+        data: 'active',
+      },
+      {
+        name: 'Action',
+        data: 'actions',
+        className: 'text-center',
+      },
+    ],
+    [],
+  );
+
+  const handleEditClick = (row: IUserModal) => {
+    console.log('Edit', row);
+  };
+
+  const handleDeleteClick = (row: IUserModal) => {
+    setUsers(prev => prev.filter(u => u._id !== row._id));
+  };
+
+  const handleViewClick = (row: IUserModal) => {
+    console.log('View', row);
+  };
+
+  const actionMenuItems: IActionMenuItem[] = [
+    { label: 'View User', onClick: handleViewClick },
+    { label: 'Edit User', onClick: handleEditClick },
+    { label: 'Delete User', onClick: handleDeleteClick, color: 'danger' },
+  ];
+
+  const handleSetPageDetails = async (filter: any, pageDetail: Pagination) => {
+    console.log("🚀 ~ handleSetPageDetails ~ filter:", filter)
+    pageRef.current = pageDetail;
+    await getUsers();
+  };
+
+  const handleSetSortDetails = async (filter: any, sortData: SortDescriptor) => {
+    console.log("🚀 ~ handleSetSortDetails ~ filter:", filter)
+    sortRef.current = sortData;
+    await getUsers();
+  };
+
+  return (
+    <CustomTable
+      columns={columns}
+      data={users}
+      totalCountRef={totalCountRef}
+      pageRef={pageRef}
+      sortRef={sortRef.current}
+      ActionMenu={actionMenuItems}
+      onSetPageDetailsReceived={handleSetPageDetails}
+      onSortDetailsReceived={handleSetSortDetails}
+    />
+  );
+};
 
 const Users = () => {
   const navigate = useNavigate();
@@ -377,7 +491,7 @@ const Users = () => {
   return (
     <section>
       <div className="flex justify-between items-center">
-        <p className="text-2xl">Users</p>
+        <p className="text-2xl">Users (with TanstackTable)</p>
         <Button size="lg" onClick={handleAdd}>
           Add User
         </Button>
@@ -444,7 +558,7 @@ const Users = () => {
         }}
       </Formik>
 
-      <CustomTable
+      <TanstackTable
         data={usersList}
         columns={columns}
         enablePagination
@@ -457,6 +571,12 @@ const Users = () => {
         defaultSortOrder="desc"
         totalCount={totalRecords}
       />
+
+      <div className="flex justify-between items-center py-10">
+        <p className="text-2xl">Users (with CustomTable)</p>
+      </div>
+
+      <UserWithCustomTable />
 
       <Modal
         openDialog={openDialog}

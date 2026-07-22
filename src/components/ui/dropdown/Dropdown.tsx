@@ -104,6 +104,7 @@ export interface DropdownMenuProps {
   selectionMode?: "none" | "single" | "multiple";
   selectedKeys?: Set<string> | string[];
   onSelectionChange?: (keys: Set<string>) => void;
+  disallowEmptySelection?: boolean;
   className?: string;
 }
 
@@ -126,6 +127,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   selectionMode = "none",
   selectedKeys = new Set(),
   onSelectionChange,
+  disallowEmptySelection = false,
   className = "",
 }) => {
   const { setIsOpen, closeOnSelect } = useDropdown();
@@ -140,10 +142,14 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
     if (selectionMode !== "none") {
       const nextSelected = new Set(selectedSet);
       if (selectionMode === "single") {
+        // When disallowEmptySelection is true, don't deselect the only item
+        if (disallowEmptySelection && nextSelected.has(key)) return;
         nextSelected.clear();
         nextSelected.add(key);
       } else {
         if (nextSelected.has(key)) {
+          // When disallowEmptySelection is true, don't remove the last selected item
+          if (disallowEmptySelection && nextSelected.size === 1) return;
           nextSelected.delete(key);
         } else {
           nextSelected.add(key);
@@ -203,6 +209,7 @@ export interface DropdownItemProps {
   key?: string;
   itemKey?: string;
   children: React.ReactNode;
+  textValue?: string;
   description?: string;
   variant?: "solid" | "flat" | "bordered" | "faded" | "light" | "shadow";
   color?: "default" | "primary" | "secondary" | "success" | "warning" | "danger";
@@ -378,6 +385,7 @@ const itemColorMap: Record<
 export const DropdownItem: React.FC<DropdownItemProps> = ({
   itemKey = "",
   children,
+  textValue,
   description,
   variant: itemVariant,
   color: itemColor,
@@ -429,6 +437,7 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
     <>
       <li
         role="menuitem"
+        aria-label={textValue}
         onClick={handleClick}
         className={`
           flex items-center justify-between px-3 py-2 text-sm ${getRadiusClass()} transition-colors select-none gap-2

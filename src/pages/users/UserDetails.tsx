@@ -1,12 +1,13 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Avatar, Button, Chip, CustomTable } from "../../components/ui";
-import type { IAppointmentListResponse, IAppointmentModal } from "../../models/appointment";
+import { Avatar, Button, Chip } from "../../components/ui";
+import type { IAppointmentModal } from "../../models/appointment";
 import type { Pagination } from "../../models/base-type";
 import { Routing } from "../../routes/routing";
 import userService from "../../services/user-service";
 import { DEFAULT_PAGE_SIZE } from "../../shared/constants/pagination";
+import { TanstackTable } from "../../components/custom-table/TanstackTable";
 
 const APPOINTMENT_STATUS_MAP: Record<number, { label: string; color: "success" | "warning" | "danger" | "primary" | "default" }> = {
   1: { label: "Pending", color: "warning" },
@@ -364,7 +365,7 @@ const UserDetails = () => {
         </Button>
       </div>
 
-      <CustomTable
+      <TanstackTable
         data={appointments}
         columns={columns}
         enablePagination

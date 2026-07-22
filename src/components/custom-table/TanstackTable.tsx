@@ -33,15 +33,13 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { useSelector } from "react-redux";
-import { PAGE_OPTIONS } from "../../../shared/constants/pagination";
-import type { IApplicationState } from "../../../store/state/app-state";
-import { Checkbox } from "../input";
 import AnimatedExpand from "./AnimatedExpand";
 import "./index.css";
-import Button from "../button/Button";
-import { getRadiusClass } from "../shared/radius";
+import type { IApplicationState } from "../../store/state/app-state";
+import { Button, Checkbox, getRadiusClass } from "../ui";
+import { PAGE_OPTIONS } from "../../shared/constants/pagination";
 
-interface CustomTableProps<T = any> {
+interface TanstackTableProps<T = any> {
   data: T[];
   columns: ColumnDef<T>[];
   getSubRows?: (row: T) => any[] | undefined;
@@ -123,7 +121,7 @@ function Filter({ column, table }: { column: any; table: any }) {
   );
 }
 
-function CustomTable<T = any>({
+function TanstackTable<T = any>({
   data,
   columns,
   getSubRows,
@@ -155,7 +153,7 @@ function CustomTable<T = any>({
   infiniteScrollThreshold = 100,
   infiniteScrollMaxHeight = "24rem",
   hasMore,
-}: CustomTableProps<T>) {
+}: TanstackTableProps<T>) {
   const globalTableLoading = useSelector((state: IApplicationState) => state.GeneralData?.tableLoading);
   const isLoading = loading || globalTableLoading;
 
@@ -851,5 +849,5 @@ function CustomTable<T = any>({
   );
 }
 
-export { CustomTable };
+export { TanstackTable };
 

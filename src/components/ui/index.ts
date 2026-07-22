@@ -71,8 +71,25 @@ export { default as Popover } from "./popover/Popover";
 export { default as Spinner } from "./spinner/Spinner";
 
 // ── Table ────────────────────────────────────────────────────────────────────
-export { default as AnimatedExpand } from "./table/AnimatedExpand";
-export { CustomTable } from "./table/CustomTable";
+export {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell
+} from "./table";
+export type {
+  SortDescriptor,
+  Selection,
+  LoadingState,
+  TableProps,
+  TableHeaderProps,
+  TableColumnProps,
+  TableBodyProps,
+  TableRowProps,
+  TableCellProps
+} from "./table";
 
 // ── Tabs ─────────────────────────────────────────────────────────────────────
 export { Tab, Tabs } from "./tabs/Tabs";
@@ -105,6 +122,11 @@ export type { CardProps, CardHeaderProps, CardBodyProps, CardFooterProps } from 
 // ── Tooltip ──────────────────────────────────────────────────────────────────
 export { default as Tooltip } from "./tooltip/Tooltip";
 export type { TooltipProps } from "./tooltip/Tooltip";
+
+// ── Pagination ───────────────────────────────────────────────────────────────
+export { Pagination } from "./pagination";
+export type { PaginationProps, PaginationItemValue, PaginationItemRenderProps } from "./pagination";
+
 
 // ── Dropdown ─────────────────────────────────────────────────────────────────
 export { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownSection } from "./dropdown/Dropdown";
