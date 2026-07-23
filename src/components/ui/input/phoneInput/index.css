@@ -19,6 +19,46 @@
     z-index: 9999 !important;
 }
 
+/* Two-box layout: separate flag + input, same chrome as single-border container */
+.react-tel-input.phone-input-two-box {
+    gap: 8px;
+}
+
+/* Enforce 2px borders on each part (overrides react-phone-input-2 1px defaults) */
+.react-tel-input.phone-input-two-box:not(.phone-input-variant-underlined) input,
+.react-tel-input.phone-input-two-box:not(.phone-input-variant-underlined) .flag-dropdown {
+    border-width: 2px !important;
+    border-style: solid !important;
+    box-sizing: border-box !important;
+}
+
+.react-tel-input.phone-input-two-box.phone-input-variant-flat input,
+.react-tel-input.phone-input-two-box.phone-input-variant-flat .flag-dropdown {
+    border-color: transparent !important;
+}
+
+/* Sync hover + focus on both parts when interacting with either (matches single-border) */
+.phone-input-two-box.phone-input-variant-flat:not(.phone-input-disabled):hover input,
+.phone-input-two-box.phone-input-variant-flat:not(.phone-input-disabled):hover .flag-dropdown,
+.phone-input-two-box.phone-input-variant-flat:not(.phone-input-disabled):focus-within input,
+.phone-input-two-box.phone-input-variant-flat:not(.phone-input-disabled):focus-within .flag-dropdown {
+    border-color: transparent !important;
+}
+
+.phone-input-two-box.phone-input-variant-bordered:not(.phone-input-has-error):hover input,
+.phone-input-two-box.phone-input-variant-bordered:not(.phone-input-has-error):hover .flag-dropdown,
+.phone-input-two-box.phone-input-variant-bordered:not(.phone-input-has-error):focus-within input,
+.phone-input-two-box.phone-input-variant-bordered:not(.phone-input-has-error):focus-within .flag-dropdown {
+    border-width: 2px !important;
+}
+
+.phone-input-two-box.phone-input-variant-faded:not(.phone-input-has-error):hover input,
+.phone-input-two-box.phone-input-variant-faded:not(.phone-input-has-error):hover .flag-dropdown,
+.phone-input-two-box.phone-input-variant-faded:not(.phone-input-has-error):focus-within input,
+.phone-input-two-box.phone-input-variant-faded:not(.phone-input-has-error):focus-within .flag-dropdown {
+    border-width: 2px !important;
+}
+
 .react-tel-input .flag-dropdown {
     position: relative;
     width: 70px;
@@ -83,44 +123,141 @@
    VARIANT CONFIGURATIONS (flat, bordered, underlined, faded)
    ======================================================== */
 
-/* Variant: flat */
-.phone-input-variant-flat input {
-    background-color: var(--phone-bg-light, #f4f4f5) !important;
+/* Variant: flat — color surfaces via --phone-flat-bg on .phone-input-color-* */
+.phone-input-variant-flat:not(.phone-input-two-box) input,
+.phone-input-variant-flat.phone-input-two-box input,
+.phone-input-variant-flat:not(.phone-input-two-box) .flag-dropdown,
+.phone-input-variant-flat.phone-input-two-box .flag-dropdown {
     border: 2px solid transparent !important;
     color: inherit;
-}
-.phone-input-variant-flat:not(.phone-input-has-error) input:hover {
-    background-color: var(--phone-bg-light-hover, #e4e4e7) !important;
 }
 .phone-input-variant-flat:not(.phone-input-has-error) input:focus {
-    background-color: var(--phone-bg-light-hover, #e4e4e7) !important;
     border-color: transparent !important;
 }
-.phone-input-variant-flat .flag-dropdown {
-    background-color: var(--phone-bg-light, #f4f4f5) !important;
-    border: 2px solid transparent !important;
+
+/* Flat color-tinted surfaces — overrides react-phone-input-2 lib (#fff / #f5f5f5).
+   Tailwind !bg-* on inputClass is not generated (runtime prefix), so use CSS vars
+   keyed by phone-input-color-* on the container (same tokens as Input flat). */
+.react-tel-input.phone-input-variant-flat.phone-input-color-default {
+    --phone-flat-bg: #f5f5f5;
+    --phone-flat-bg-hover: #e5e5e5;
 }
-.phone-input-variant-flat:not(.phone-input-has-error) .flag-dropdown:hover {
-    background-color: var(--phone-bg-light-hover, #e4e4e7) !important;
+.dark .react-tel-input.phone-input-variant-flat.phone-input-color-default {
+    --phone-flat-bg: #262626;
+    --phone-flat-bg-hover: #404040;
+}
+.react-tel-input.phone-input-variant-flat.phone-input-color-primary {
+    --phone-flat-bg: var(--color-primary-50);
+    --phone-flat-bg-hover: var(--color-primary-100);
+}
+.react-tel-input.phone-input-variant-flat.phone-input-color-secondary {
+    --phone-flat-bg: var(--color-secondary-50);
+    --phone-flat-bg-hover: var(--color-secondary-100);
+}
+.react-tel-input.phone-input-variant-flat.phone-input-color-success {
+    --phone-flat-bg: var(--color-success-50);
+    --phone-flat-bg-hover: var(--color-success-100);
+}
+.react-tel-input.phone-input-variant-flat.phone-input-color-warning {
+    --phone-flat-bg: var(--color-warning-50);
+    --phone-flat-bg-hover: var(--color-warning-100);
+}
+.react-tel-input.phone-input-variant-flat.phone-input-color-danger {
+    --phone-flat-bg: var(--color-danger-50);
+    --phone-flat-bg-hover: var(--color-danger-100);
 }
 
-/* Variant: bordered */
-.phone-input-variant-bordered input {
+/* Two-box flat: tint each part */
+.react-tel-input.phone-input-variant-flat.phone-input-two-box input,
+.react-tel-input.phone-input-variant-flat.phone-input-two-box .flag-dropdown {
+    background-color: var(--phone-flat-bg) !important;
+}
+
+/* Single-border flat: tint unified container (inner parts stay transparent below) */
+.react-tel-input.phone-input-variant-flat.phone-input-single-border {
+    background-color: var(--phone-flat-bg) !important;
+}
+
+/* Flat hover / focus — sync both parts (two-box) or container (single-border) */
+.phone-input-variant-flat.phone-input-two-box:not(.phone-input-disabled):hover input,
+.phone-input-variant-flat.phone-input-two-box:not(.phone-input-disabled):hover .flag-dropdown,
+.phone-input-variant-flat.phone-input-single-border:not(.phone-input-disabled):hover {
+    background-color: var(--phone-flat-bg-hover) !important;
+}
+
+.phone-input-variant-flat.phone-input-two-box:not(.phone-input-disabled):focus-within input,
+.phone-input-variant-flat.phone-input-two-box:not(.phone-input-disabled):focus-within .flag-dropdown,
+.phone-input-variant-flat.phone-input-single-border:not(.phone-input-disabled):focus-within {
+    background-color: var(--phone-flat-bg-hover) !important;
+}
+
+/* Two-box bordered: transparent fill on both parts (overrides lib #fff / #f5f5f5) */
+.react-tel-input.phone-input-variant-bordered.phone-input-two-box input,
+.react-tel-input.phone-input-variant-bordered.phone-input-two-box .flag-dropdown {
+    background-color: transparent !important;
+    border-color: #e4e4e7 !important;
+}
+
+.dark .react-tel-input.phone-input-variant-bordered.phone-input-two-box input,
+.dark .react-tel-input.phone-input-variant-bordered.phone-input-two-box .flag-dropdown {
+    background-color: transparent !important;
+    border-color: var(--input-border-subtle) !important;
+}
+
+.phone-input-variant-bordered.phone-input-two-box:not(.phone-input-has-error):hover input,
+.phone-input-variant-bordered.phone-input-two-box:not(.phone-input-has-error):hover .flag-dropdown {
+    border-color: #e4e4e7 !important;
+}
+
+.dark .phone-input-variant-bordered.phone-input-two-box:not(.phone-input-has-error):hover input,
+.dark .phone-input-variant-bordered.phone-input-two-box:not(.phone-input-has-error):hover .flag-dropdown {
+    border-color: var(--input-border-hover) !important;
+}
+
+/* Two-box faded: same fill on flag + input (matches Input faded / single-border faded) */
+.react-tel-input.phone-input-variant-faded.phone-input-two-box {
+    --phone-faded-bg: #f5f5f5;
+    --phone-faded-border: #e5e7eb;
+}
+
+.dark .react-tel-input.phone-input-variant-faded.phone-input-two-box {
+    --phone-faded-bg: var(--input-surface-bg);
+    --phone-faded-border: var(--input-border-subtle);
+}
+
+.react-tel-input.phone-input-variant-faded.phone-input-two-box input,
+.react-tel-input.phone-input-variant-faded.phone-input-two-box .flag-dropdown {
+    background-color: var(--phone-faded-bg) !important;
+    border-color: var(--phone-faded-border) !important;
+}
+
+.phone-input-variant-faded.phone-input-two-box:not(.phone-input-has-error):hover input,
+.phone-input-variant-faded.phone-input-two-box:not(.phone-input-has-error):hover .flag-dropdown {
+    border-color: #d4d4d8 !important;
+}
+
+.dark .phone-input-variant-faded.phone-input-two-box:not(.phone-input-has-error):hover input,
+.dark .phone-input-variant-faded.phone-input-two-box:not(.phone-input-has-error):hover .flag-dropdown {
+    border-color: var(--input-border-hover) !important;
+}
+
+/* Variant: bordered — legacy single-box only; two-box uses CSS above */
+.phone-input-variant-bordered:not(.phone-input-two-box) input {
     background-color: transparent !important;
     border: 2px solid #e4e4e7 !important;
     color: inherit;
 }
-.phone-input-variant-bordered:not(.phone-input-has-error) input:hover {
+.phone-input-variant-bordered:not(.phone-input-two-box):not(.phone-input-has-error) input:hover {
     border-color: #e4e4e7 !important;
 }
-.phone-input-variant-bordered:not(.phone-input-has-error) input:focus {
+.phone-input-variant-bordered:not(.phone-input-two-box):not(.phone-input-has-error) input:focus {
     border-color: var(--phone-focus-border, #e4e4e7) !important;
 }
-.phone-input-variant-bordered .flag-dropdown {
+.phone-input-variant-bordered:not(.phone-input-two-box) .flag-dropdown {
     background-color: transparent !important;
     border: 2px solid #e4e4e7 !important;
 }
-.phone-input-variant-bordered:not(.phone-input-has-error) .flag-dropdown:hover {
+.phone-input-variant-bordered:not(.phone-input-two-box):not(.phone-input-has-error) .flag-dropdown:hover {
     border-color: #e4e4e7 !important;
 }
 
@@ -145,23 +282,23 @@
     border: none !important;
 }
 
-/* Variant: faded */
-.phone-input-variant-faded input {
+/* Variant: faded — legacy single-box only; two-box uses CSS above */
+.phone-input-variant-faded:not(.phone-input-two-box) input {
     background-color: #f5f5f5 !important;
     border: 2px solid #e4e4e7 !important;
     color: inherit !important;
 }
-.phone-input-variant-faded:not(.phone-input-has-error) input:hover {
+.phone-input-variant-faded:not(.phone-input-two-box):not(.phone-input-has-error) input:hover {
     border-color: #e4e4e7 !important;
 }
-.phone-input-variant-faded:not(.phone-input-has-error) input:focus {
+.phone-input-variant-faded:not(.phone-input-two-box):not(.phone-input-has-error) input:focus {
     border-color: var(--phone-focus-border, #e4e4e7) !important;
 }
-.phone-input-variant-faded .flag-dropdown {
+.phone-input-variant-faded:not(.phone-input-two-box) .flag-dropdown {
     background-color: #f5f5f5 !important;
     border: 2px solid #e4e4e7 !important;
 }
-.phone-input-variant-faded:not(.phone-input-has-error) .flag-dropdown:hover {
+.phone-input-variant-faded:not(.phone-input-two-box):not(.phone-input-has-error) .flag-dropdown:hover {
     border-color: #e4e4e7 !important;
 }
 
@@ -287,44 +424,33 @@
    ======================================================== */
 
 .dark .phone-input-variant-flat input {
-    background-color: var(--phone-bg-dark, #27272a) !important;
     color: inherit !important;
 }
-.dark .phone-input-variant-flat:not(.phone-input-has-error) input:hover,
-.dark .phone-input-variant-flat:not(.phone-input-has-error) input:focus {
-    background-color: var(--phone-bg-dark-hover, #3f3f46) !important;
-}
-.dark .phone-input-variant-flat .flag-dropdown {
-    background-color: var(--phone-bg-dark, #27272a) !important;
-}
-.dark .phone-input-variant-flat:not(.phone-input-has-error) .flag-dropdown:hover {
-    background-color: var(--phone-bg-dark-hover, #3f3f46) !important;
-}
 
-.dark .phone-input-variant-bordered input {
+.dark .phone-input-variant-bordered:not(.phone-input-two-box) input {
     background-color: transparent !important;
-    border-color: #e4e4e7 !important;
+    border-color: var(--input-border-subtle) !important;
     color: inherit;
 }
-.dark .phone-input-variant-bordered:not(.phone-input-has-error) input:hover {
-    border-color: #e4e4e7 !important;
+.dark .phone-input-variant-bordered:not(.phone-input-two-box):not(.phone-input-has-error) input:hover {
+    border-color: var(--input-border-hover) !important;
 }
-.dark .phone-input-variant-bordered:not(.phone-input-has-error) input:focus {
-    border-color: var(--phone-focus-border, #3f3f46) !important;
+.dark .phone-input-variant-bordered:not(.phone-input-two-box):not(.phone-input-has-error) input:focus {
+    border-color: var(--phone-focus-border, var(--input-border-focus)) !important;
 }
-.dark .phone-input-variant-bordered .flag-dropdown {
+.dark .phone-input-variant-bordered:not(.phone-input-two-box) .flag-dropdown {
     background-color: transparent !important;
-    border-color: #e4e4e7 !important;
+    border-color: var(--input-border-subtle) !important;
 }
-.dark .phone-input-variant-bordered:not(.phone-input-has-error) .flag-dropdown:hover {
-    border-color: #e4e4e7 !important;
+.dark .phone-input-variant-bordered:not(.phone-input-two-box):not(.phone-input-has-error) .flag-dropdown:hover {
+    border-color: var(--input-border-hover) !important;
 }
 
 .dark .phone-input-variant-underlined {
-    border-bottom-color: #e4e4e7 !important;
+    border-bottom-color: var(--input-border-subtle) !important;
 }
 .dark .phone-input-variant-underlined:not(.phone-input-has-error):hover {
-    border-bottom-color: #e4e4e7 !important;
+    border-bottom-color: var(--input-border-hover) !important;
 }
 .dark .phone-input-variant-underlined input {
     background-color: transparent !important;
@@ -336,37 +462,37 @@
     border: none !important;
 }
 
-.dark .phone-input-variant-faded input {
-    background-color: #27272a !important;
-    border-color: #e4e4e7 !important;
+.dark .phone-input-variant-faded:not(.phone-input-two-box) input {
+    background-color: var(--input-surface-bg) !important;
+    border-color: var(--input-border-subtle) !important;
     color: inherit !important;
 }
-.dark .phone-input-variant-faded:not(.phone-input-has-error) input:hover {
-    border-color: #e4e4e7 !important;
+.dark .phone-input-variant-faded:not(.phone-input-two-box):not(.phone-input-has-error) input:hover {
+    border-color: var(--input-border-hover) !important;
 }
-.dark .phone-input-variant-faded:not(.phone-input-has-error) input:focus {
-    border-color: var(--phone-focus-border, #e4e4e7) !important;
+.dark .phone-input-variant-faded:not(.phone-input-two-box):not(.phone-input-has-error) input:focus {
+    border-color: var(--phone-focus-border, var(--input-border-focus)) !important;
 }
-.dark .phone-input-variant-faded .flag-dropdown {
-    background-color: #27272a !important;
-    border-color: #e4e4e7 !important;
+.dark .phone-input-variant-faded:not(.phone-input-two-box) .flag-dropdown {
+    background-color: var(--input-surface-bg) !important;
+    border-color: var(--input-border-subtle) !important;
 }
 
 .dark .react-tel-input .flag-dropdown .arrow {
-    border-top-color: #e4e4e7 !important;
+    border-top-color: var(--input-border-hover) !important;
 }
 .dark .react-tel-input .flag-dropdown .arrow.up {
-    border-top-color: #e4e4e7 !important;
+    border-top-color: var(--input-border-hover) !important;
 }
 
 .dark .react-tel-input .country-list {
     background-color: #18181b !important;
-    border-color: #e4e4e7 !important;
+    border-color: var(--input-border-subtle) !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3) !important;
 }
 .dark .react-tel-input .country-list .country:hover,
 .dark .react-tel-input .country-list .country.highlight {
-    background-color: #27272a !important;
+    background-color: var(--input-surface-bg) !important;
 }
 
 /* ========================================================
@@ -443,7 +569,9 @@
 
 /* Divider border on the right of the flag selector */
 .phone-input-variant-bordered.phone-input-single-border .flag-dropdown::after,
-.phone-input-variant-faded.phone-input-single-border .flag-dropdown::after {
+.phone-input-variant-faded.phone-input-single-border .flag-dropdown::after,
+.phone-input-variant-flat.phone-input-single-border .flag-dropdown::after,
+.phone-input-variant-underlined.phone-input-single-border .flag-dropdown::after {
     content: '';
     position: absolute;
     right: 0;
@@ -453,21 +581,33 @@
     background-color: #e4e4e7 !important;
 }
 .dark .phone-input-variant-bordered.phone-input-single-border .flag-dropdown::after,
-.dark .phone-input-variant-faded.phone-input-single-border .flag-dropdown::after {
-    background-color: #27272a !important;
+.dark .phone-input-variant-faded.phone-input-single-border .flag-dropdown::after,
+.dark .phone-input-variant-flat.phone-input-single-border .flag-dropdown::after,
+.dark .phone-input-variant-underlined.phone-input-single-border .flag-dropdown::after {
+    background-color: var(--input-border-subtle) !important;
 }
 
-/* Single Border Variant: flat */
+/* Single Border Variant: flat — bg from --phone-flat-bg on container */
 .phone-input-variant-flat.phone-input-single-border {
-    background-color: #f4f4f5 !important;
     border: 2px solid transparent !important;
     color: inherit !important;
 }
-.phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error):hover {
-    background-color: #e4e4e7 !important;
+
+/* Keep inner parts transparent so the unified container tint shows through */
+.phone-input-variant-flat.phone-input-single-border input,
+.phone-input-variant-flat.phone-input-single-border .flag-dropdown,
+.phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error) input:hover,
+.phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error) input:focus,
+.phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error) .flag-dropdown:hover {
+    background-color: transparent !important;
 }
-.phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error):focus-within {
-    background-color: #e4e4e7 !important;
+
+.dark .phone-input-variant-flat.phone-input-single-border input,
+.dark .phone-input-variant-flat.phone-input-single-border .flag-dropdown,
+.dark .phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error) input:hover,
+.dark .phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error) input:focus,
+.dark .phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error) .flag-dropdown:hover {
+    background-color: transparent !important;
 }
 
 /* Single Border Variant: bordered */
@@ -509,28 +649,115 @@
     pointer-events: none !important;
 }
 
-/* single-border: neutralize container so wrapper styles show through */
-.phone-input-variant-flat.phone-input-single-border.phone-input-disabled,
+.react-tel-input.phone-input-disabled:hover,
+.react-tel-input.phone-input-disabled:focus-within {
+    z-index: 10 !important;
+}
+
+/* Two-box flat disabled: variant + dim on each part (from fieldStyles in TSX) */
+.phone-input-variant-flat.phone-input-disabled.phone-input-two-box input,
+.phone-input-variant-flat.phone-input-disabled.phone-input-two-box .flag-dropdown,
+.phone-input-variant-flat.phone-input-disabled.phone-input-two-box:not(.phone-input-has-error) input:hover,
+.phone-input-variant-flat.phone-input-disabled.phone-input-two-box:not(.phone-input-has-error) input:focus,
+.phone-input-variant-flat.phone-input-disabled.phone-input-two-box:not(.phone-input-has-error) .flag-dropdown:hover {
+    cursor: not-allowed !important;
+}
+
+.phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined) input,
+.phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined) .flag-dropdown,
+.phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined):not(.phone-input-has-error) input:hover,
+.phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined):not(.phone-input-has-error) input:focus,
+.phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined):not(.phone-input-has-error) .flag-dropdown:hover {
+    background-color: #f9fafb !important;
+    border: 2px solid #e5e7eb !important;
+    color: inherit;
+}
+
+.dark .phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined) input,
+.dark .phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined) .flag-dropdown,
+.dark .phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined):not(.phone-input-has-error) input:hover,
+.dark .phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined):not(.phone-input-has-error) input:focus,
+.dark .phone-input-disabled:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-variant-flat):not(.phone-input-variant-underlined):not(.phone-input-has-error) .flag-dropdown:hover {
+    background-color: #262626 !important;
+    border-color: #404040 !important;
+}
+
+.phone-input-variant-underlined.phone-input-disabled:not(.phone-input-single-border) {
+    border-bottom: 1px solid #e5e7eb !important;
+    background-color: transparent !important;
+}
+
+.dark .phone-input-variant-underlined.phone-input-disabled:not(.phone-input-single-border) {
+    border-bottom-color: #404040 !important;
+}
+
+.phone-input-variant-underlined.phone-input-disabled:not(.phone-input-single-border) input,
+.phone-input-variant-underlined.phone-input-disabled:not(.phone-input-single-border) .flag-dropdown,
+.phone-input-variant-underlined.phone-input-disabled:not(.phone-input-single-border):not(.phone-input-has-error) input:hover,
+.phone-input-variant-underlined.phone-input-disabled:not(.phone-input-single-border):not(.phone-input-has-error) input:focus,
+.phone-input-variant-underlined.phone-input-disabled:not(.phone-input-single-border):not(.phone-input-has-error) .flag-dropdown:hover {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+/* single-border disabled: chrome on container (wrapper must not constrain height) */
 .phone-input-variant-bordered.phone-input-single-border.phone-input-disabled,
-.phone-input-variant-faded.phone-input-single-border.phone-input-disabled,
-.phone-input-variant-flat.phone-input-single-border.phone-input-disabled:hover,
-.phone-input-variant-flat.phone-input-single-border.phone-input-disabled:focus-within,
+.phone-input-variant-faded.phone-input-single-border.phone-input-disabled {
+    background-color: #f9fafb !important;
+    border: 2px solid #e5e7eb !important;
+    opacity: var(--input-disabled-opacity, 0.7) !important;
+    cursor: not-allowed !important;
+}
+
+.dark .phone-input-variant-bordered.phone-input-single-border.phone-input-disabled,
+.dark .phone-input-variant-faded.phone-input-single-border.phone-input-disabled {
+    background-color: #262626 !important;
+    border-color: #404040 !important;
+}
+
 .phone-input-variant-bordered.phone-input-single-border.phone-input-disabled:hover,
 .phone-input-variant-bordered.phone-input-single-border.phone-input-disabled:focus-within,
 .phone-input-variant-faded.phone-input-single-border.phone-input-disabled:hover,
 .phone-input-variant-faded.phone-input-single-border.phone-input-disabled:focus-within {
-    background-color: transparent !important;
-    border-color: transparent !important;
-    border-width: 0 !important;
-    height: 100% !important;
+    border-color: #e5e7eb !important;
 }
 
-.phone-input-disabled input,
-.phone-input-disabled .flag-dropdown,
-.phone-input-disabled .selected-flag,
-.phone-input-disabled:not(.phone-input-has-error) input:hover,
-.phone-input-disabled:not(.phone-input-has-error) input:focus,
-.phone-input-disabled:not(.phone-input-has-error) .flag-dropdown:hover {
+.dark .phone-input-variant-bordered.phone-input-single-border.phone-input-disabled:hover,
+.dark .phone-input-variant-bordered.phone-input-single-border.phone-input-disabled:focus-within,
+.dark .phone-input-variant-faded.phone-input-single-border.phone-input-disabled:hover,
+.dark .phone-input-variant-faded.phone-input-single-border.phone-input-disabled:focus-within {
+    border-color: #404040 !important;
+}
+
+/* Flat single-border disabled: dim only — bg from --phone-flat-bg on container */
+.phone-input-variant-flat.phone-input-single-border.phone-input-disabled {
+    opacity: var(--input-disabled-opacity, 0.7) !important;
+    border: 2px solid transparent !important;
+}
+
+/* Flat single-border disabled: inner parts stay transparent */
+.phone-input-variant-flat.phone-input-single-border.phone-input-disabled input,
+.phone-input-variant-flat.phone-input-single-border.phone-input-disabled .flag-dropdown,
+.phone-input-variant-flat.phone-input-single-border.phone-input-disabled:not(.phone-input-has-error) input:hover,
+.phone-input-variant-flat.phone-input-single-border.phone-input-disabled:not(.phone-input-has-error) input:focus,
+.phone-input-variant-flat.phone-input-single-border.phone-input-disabled:not(.phone-input-has-error) .flag-dropdown:hover {
+    background-color: transparent !important;
+}
+
+.dark .phone-input-variant-flat.phone-input-single-border.phone-input-disabled input,
+.dark .phone-input-variant-flat.phone-input-single-border.phone-input-disabled .flag-dropdown,
+.dark .phone-input-variant-flat.phone-input-single-border.phone-input-disabled:not(.phone-input-has-error) input:hover,
+.dark .phone-input-variant-flat.phone-input-single-border.phone-input-disabled:not(.phone-input-has-error) input:focus,
+.dark .phone-input-variant-flat.phone-input-single-border.phone-input-disabled:not(.phone-input-has-error) .flag-dropdown:hover {
+    background-color: transparent !important;
+}
+
+.phone-input-disabled.phone-input-single-border input,
+.phone-input-disabled.phone-input-single-border .flag-dropdown,
+.phone-input-disabled.phone-input-single-border .selected-flag,
+.phone-input-disabled.phone-input-single-border:not(.phone-input-has-error) input:hover,
+.phone-input-disabled.phone-input-single-border:not(.phone-input-has-error) input:focus,
+.phone-input-disabled.phone-input-single-border:not(.phone-input-has-error) .flag-dropdown:hover {
     background-color: transparent !important;
     border-color: transparent !important;
 }
@@ -549,39 +776,34 @@
     background-color: transparent !important;
 }
 
+.dark .phone-input-variant-underlined.phone-input-disabled {
+    border-bottom-color: #404040 !important;
+}
+
 .dark .phone-input-disabled.phone-input-single-border .flag-dropdown::after {
     background-color: #3f3f46 !important;
 }
 
 /* Dark Mode Single Border Styles */
-.dark .phone-input-variant-flat.phone-input-single-border {
-    background-color: #27272a !important;
-    color: inherit !important;
-}
-.dark .phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error):hover,
-.dark .phone-input-variant-flat.phone-input-single-border:not(.phone-input-has-error):focus-within {
-    background-color: #3f3f46 !important;
-}
-
 .dark .phone-input-variant-bordered.phone-input-single-border {
-    border-color: #e4e4e7 !important;
+    border-color: var(--input-border-subtle) !important;
 }
 .dark .phone-input-variant-bordered.phone-input-single-border:not(.phone-input-has-error):hover {
-    border-color: #e4e4e7 !important;
+    border-color: var(--input-border-hover) !important;
 }
 .dark .phone-input-variant-bordered.phone-input-single-border:not(.phone-input-has-error):focus-within {
-    border-color: var(--phone-focus-border, #3f3f46) !important;
+    border-color: var(--phone-focus-border, var(--input-border-focus)) !important;
 }
 
 .dark .phone-input-variant-faded.phone-input-single-border {
-    background-color: #27272a !important;
-    border-color: #e4e4e7 !important;
+    background-color: var(--input-surface-bg) !important;
+    border-color: var(--input-border-subtle) !important;
 }
 .dark .phone-input-variant-faded.phone-input-single-border:not(.phone-input-has-error):hover {
-    border-color: #e4e4e7 !important;
+    border-color: var(--input-border-hover) !important;
 }
 .dark .phone-input-variant-faded.phone-input-single-border:not(.phone-input-has-error):focus-within {
-    border-color: var(--phone-focus-border, #e4e4e7) !important;
+    border-color: var(--phone-focus-border, var(--input-border-focus)) !important;
 }
 
 /* ========================================================
@@ -650,7 +872,7 @@
 }
 
 .dark .react-tel-input.phone-input-placement-outlined:not(.phone-input-single-border) .flag-dropdown {
-    border-color: #e4e4e7 !important;
+    border-color: var(--input-border-subtle) !important;
 }
 
 .react-tel-input.phone-input-placement-outlined:not(.phone-input-single-border):hover .flag-dropdown {
@@ -658,7 +880,7 @@
 }
 
 .dark .react-tel-input.phone-input-placement-outlined:not(.phone-input-single-border):hover .flag-dropdown {
-    border-color: #e4e4e7 !important;
+    border-color: var(--input-border-hover) !important;
 }
 
 .react-tel-input.phone-input-placement-outlined:not(.phone-input-single-border):focus-within .flag-dropdown {
@@ -673,44 +895,64 @@
    UNIFIED HOVER AND FOCUS STYLING (singleBorder false)
    ======================================================== */
 
-/* --- Bordered Variant --- */
-.phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-has-error):hover input,
-.phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-has-error):hover .flag-dropdown {
-    border-color: #e4e4e7 !important;
-}
-.dark .phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-has-error):hover input,
-.dark .phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-has-error):hover .flag-dropdown {
-    border-color: #e4e4e7 !important;
-}
-
-.phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-has-error):focus-within input,
-.phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-has-error):focus-within .flag-dropdown {
+/* --- Bordered two-box: sync focus ring on both parts --- */
+.phone-input-variant-bordered.phone-input-two-box:not(.phone-input-has-error):focus-within input,
+.phone-input-variant-bordered.phone-input-two-box:not(.phone-input-has-error):focus-within .flag-dropdown {
     border-color: var(--phone-focus-border, #e4e4e7) !important;
 }
-.dark .phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-has-error):focus-within input,
-.dark .phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-has-error):focus-within .flag-dropdown {
-    border-color: var(--phone-focus-border, #3f3f46) !important;
+.dark .phone-input-variant-bordered.phone-input-two-box:not(.phone-input-has-error):focus-within input,
+.dark .phone-input-variant-bordered.phone-input-two-box:not(.phone-input-has-error):focus-within .flag-dropdown {
+    border-color: var(--phone-focus-border, var(--input-border-focus)) !important;
 }
 
-/* --- Faded Variant --- */
-.dark .phone-input-variant-faded:not(.phone-input-single-border) .flag-dropdown {
-    border-color: #e4e4e7 !important;
-}
-
-.phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-has-error):hover input,
-.phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-has-error):hover .flag-dropdown {
-    border-color: #e4e4e7 !important;
-}
-.dark .phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-has-error):hover input,
-.dark .phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-has-error):hover .flag-dropdown {
-    border-color: #e4e4e7 !important;
-}
-
-.phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-has-error):focus-within input,
-.phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-has-error):focus-within .flag-dropdown {
+/* --- Faded two-box: sync focus border on both parts --- */
+.phone-input-variant-faded.phone-input-two-box:not(.phone-input-has-error):focus-within input,
+.phone-input-variant-faded.phone-input-two-box:not(.phone-input-has-error):focus-within .flag-dropdown {
     border-color: var(--phone-focus-border, #e4e4e7) !important;
 }
-.dark .phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-has-error):focus-within input,
-.dark .phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-has-error):focus-within .flag-dropdown {
+.dark .phone-input-variant-faded.phone-input-two-box:not(.phone-input-has-error):focus-within input,
+.dark .phone-input-variant-faded.phone-input-two-box:not(.phone-input-has-error):focus-within .flag-dropdown {
+    border-color: var(--phone-focus-border, var(--input-border-focus)) !important;
+}
+
+/* --- Legacy bordered (non-two-box) hover/focus --- */
+.phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):hover input,
+.phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):hover .flag-dropdown {
+    border-color: #e4e4e7 !important;
+}
+.dark .phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):hover input,
+.dark .phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):hover .flag-dropdown {
+    border-color: var(--input-border-hover) !important;
+}
+
+.phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):focus-within input,
+.phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):focus-within .flag-dropdown {
     border-color: var(--phone-focus-border, #e4e4e7) !important;
+}
+.dark .phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):focus-within input,
+.dark .phone-input-variant-bordered:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):focus-within .flag-dropdown {
+    border-color: var(--phone-focus-border, var(--input-border-focus)) !important;
+}
+
+/* --- Legacy faded (non-two-box) hover/focus --- */
+.dark .phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-two-box) .flag-dropdown {
+    border-color: var(--input-border-subtle) !important;
+}
+
+.phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):hover input,
+.phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):hover .flag-dropdown {
+    border-color: #e4e4e7 !important;
+}
+.dark .phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):hover input,
+.dark .phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):hover .flag-dropdown {
+    border-color: var(--input-border-hover) !important;
+}
+
+.phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):focus-within input,
+.phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):focus-within .flag-dropdown {
+    border-color: var(--phone-focus-border, #e4e4e7) !important;
+}
+.dark .phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):focus-within input,
+.dark .phone-input-variant-faded:not(.phone-input-single-border):not(.phone-input-two-box):not(.phone-input-has-error):focus-within .flag-dropdown {
+    border-color: var(--phone-focus-border, var(--input-border-focus)) !important;
 }

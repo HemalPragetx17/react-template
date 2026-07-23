@@ -21,6 +21,8 @@ import {
   fieldPlaceholderClasses,
   fieldValueClasses,
   errorClasses,
+  getInputDisabledClasses,
+  getInputVariantClasses,
   getInteractiveBorderClass,
   getWrapperBaseClasses,
   labelClasses,
@@ -560,47 +562,11 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   const radiusClass = resolvedVariant === "underlined" ? "rounded-none" : getRadiusClass(radius);
   const menuRadiusClass = resolvedVariant === "underlined" ? "rounded-none" : (radius === "full" ? getRadiusClass("xl") : getRadiusClass(radius));
 
-  const flatColorClasses = {
-    default: "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 focus-within:bg-neutral-200 dark:focus-within:bg-neutral-700 text-foreground",
-    primary: "bg-primary-50 dark:bg-primary-950/20 hover:bg-primary-100 dark:hover:bg-primary-950/40 focus-within:bg-primary-100 dark:focus-within:bg-primary-950/40 text-primary",
-    secondary: "bg-secondary-50 dark:bg-secondary-950/20 hover:bg-secondary-100 dark:hover:bg-secondary-950/40 focus-within:bg-secondary-100 dark:focus-within:bg-secondary-950/40 text-secondary",
-    success: "bg-success-50 dark:bg-success-950/20 hover:bg-success-100 dark:hover:bg-success-950/40 focus-within:bg-success-100 dark:focus-within:bg-success-950/40 text-success",
-    warning: "bg-warning-50 dark:bg-warning-950/20 hover:bg-warning-100 dark:hover:bg-warning-950/40 focus-within:bg-warning-100 dark:focus-within:bg-warning-950/40 text-warning",
-    danger: "bg-danger-50 dark:bg-danger-950/20 hover:bg-danger-100 dark:hover:bg-danger-950/40 focus-within:bg-danger-100 dark:focus-within:bg-danger-950/40 text-danger",
-  };
-
-  const borderedColorClasses = {
-    default: "border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 focus-within:border-neutral-500 dark:focus-within:border-neutral-500 text-foreground",
-    primary: "border-neutral-300 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-400 focus-within:border-primary text-primary",
-    secondary: "border-neutral-300 dark:border-neutral-700 hover:border-secondary-300 dark:hover:border-secondary-400 focus-within:border-secondary text-secondary",
-    success: "border-neutral-300 dark:border-neutral-700 hover:border-success-300 dark:hover:border-success-400 focus-within:border-success text-success",
-    warning: "border-neutral-300 dark:border-neutral-700 hover:border-warning-300 dark:hover:border-warning-400 focus-within:border-warning text-warning",
-    danger: "border-neutral-300 dark:border-neutral-700 hover:border-danger-300 dark:hover:border-danger-400 focus-within:border-danger text-danger",
-  };
-
-  const underlinedColorClasses = {
-    default: "border-b-neutral-200 focus-within:border-b-neutral-500 text-foreground",
-    primary: "border-b-primary-200 focus-within:border-b-primary text-primary",
-    secondary: "border-b-secondary-200 focus-within:border-b-secondary text-secondary",
-    success: "border-b-success-200 focus-within:border-b-success text-success",
-    warning: "border-b-warning-200 focus-within:border-b-warning text-warning",
-    danger: "border-b-danger-200 focus-within:border-b-danger text-danger",
-  };
-
-  const fadedColorClasses = {
-    default: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-neutral-400 text-foreground",
-    primary: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-primary text-primary",
-    secondary: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-secondary text-secondary",
-    success: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-success text-success",
-    warning: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-warning text-warning",
-    danger: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-danger text-danger",
-  };
-
   const variantConfigs = {
-    flat: `border-2 border-transparent ${flatColorClasses[color] || flatColorClasses.default}`,
-    bordered: `border-2 ${borderedColorClasses[color] || borderedColorClasses.default}`,
-    underlined: `border-b rounded-none relative ${underlinedColorClasses[color] || underlinedColorClasses.default}`,
-    faded: `border-2 ${fadedColorClasses[color] || fadedColorClasses.default}`,
+    flat: getInputVariantClasses("flat", color as FieldColor),
+    bordered: getInputVariantClasses("bordered", color as FieldColor),
+    underlined: getInputVariantClasses("underlined", color as FieldColor),
+    faded: getInputVariantClasses("faded", color as FieldColor),
   };
 
   // When labelPlacement="outlined" the fieldset draws the border; wrapper gets no border
@@ -765,7 +731,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
             ${wrapperBaseClasses}
             ${interactiveBorderClass}
             ${fieldHeightClass}
-            ${isDisabled ? "!bg-gray-50 !border-gray-200 cursor-not-allowed pointer-events-none" : ""}
+            ${isDisabled ? getInputDisabledClasses(resolvedVariant, color as FieldColor) : ""}
           `}
         >
           {/* ── Outlined Fieldset Border + Legend Notch ────────────────────── */}

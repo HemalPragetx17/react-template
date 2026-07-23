@@ -9,10 +9,16 @@ import {
   errorClasses,
   fieldPlaceholderClasses,
   fieldValueClasses,
+  focusBorderColors,
+  focusTextColors,
+  getFlatFloatingLabelClass,
+  getInputVariantClasses,
   getInteractiveBorderClass,
   getWrapperBaseClasses,
+  inputDisabledWrapperClasses,
   labelClasses,
   labelFloatingClasses,
+  underlineColors,
   type FieldColor,
 } from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
@@ -217,75 +223,11 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       },
     };
 
-    const flatColorClasses = {
-      default: "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 focus-within:bg-neutral-200 dark:focus-within:bg-neutral-700 text-foreground",
-      primary: "bg-primary-50 dark:bg-primary-950/20 hover:bg-primary-100 dark:hover:bg-primary-950/40 focus-within:bg-primary-100 dark:focus-within:bg-primary-950/40 text-primary",
-      secondary: "bg-secondary-50 dark:bg-secondary-950/20 hover:bg-secondary-100 dark:hover:bg-secondary-950/40 focus-within:bg-secondary-100 dark:focus-within:bg-secondary-950/40 text-secondary",
-      success: "bg-success-50 dark:bg-success-950/20 hover:bg-success-100 dark:hover:bg-success-950/40 focus-within:bg-success-100 dark:focus-within:bg-success-950/40 text-success",
-      warning: "bg-warning-50 dark:bg-warning-950/20 hover:bg-warning-100 dark:hover:bg-warning-950/40 focus-within:bg-warning-100 dark:focus-within:bg-warning-950/40 text-warning",
-      danger: "bg-danger-50 dark:bg-danger-950/20 hover:bg-danger-100 dark:hover:bg-danger-950/40 focus-within:bg-danger-100 dark:focus-within:bg-danger-950/40 text-danger",
-    };
-
-    const borderedColorClasses = {
-      default: "border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 focus-within:border-neutral-500 dark:focus-within:border-neutral-500 text-foreground",
-      primary: "border-neutral-300 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-400 focus-within:border-primary text-primary",
-      secondary: "border-neutral-300 dark:border-neutral-700 hover:border-secondary-300 dark:hover:border-secondary-400 focus-within:border-secondary text-secondary",
-      success: "border-neutral-300 dark:border-neutral-700 hover:border-success-300 dark:hover:border-success-400 focus-within:border-success text-success",
-      warning: "border-neutral-300 dark:border-neutral-700 hover:border-warning-300 dark:hover:border-warning-400 focus-within:border-warning text-warning",
-      danger: "border-neutral-300 dark:border-neutral-700 hover:border-danger-300 dark:hover:border-danger-400 focus-within:border-danger text-danger",
-    };
-
-    const underlinedColorClasses = {
-      default: "border-b-neutral-200 focus-within:border-b-neutral-500 text-foreground",
-      primary: "border-b-primary-200 focus-within:border-b-primary text-primary",
-      secondary: "border-b-secondary-200 focus-within:border-b-secondary text-secondary",
-      success: "border-b-success-200 focus-within:border-b-success text-success",
-      warning: "border-b-warning-200 focus-within:border-b-warning text-warning",
-      danger: "border-b-danger-200 focus-within:border-b-danger text-danger",
-    };
-
-    const fadedColorClasses = {
-      default: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-neutral-400 text-foreground",
-      primary: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-primary text-primary",
-      secondary: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-secondary text-secondary",
-      success: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-success text-success",
-      warning: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-warning text-warning",
-      danger: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-danger text-danger",
-    };
-
-    const focusBorderColors = {
-      default: "border-neutral-500",
-      primary: "border-primary",
-      secondary: "border-secondary",
-      success: "border-success",
-      warning: "border-warning",
-      danger: "border-danger",
-    };
-
-    const focusTextColors = {
-      default: "text-foreground",
-      primary: "text-primary",
-      secondary: "text-secondary",
-      success: "text-success",
-      warning: "text-warning",
-      danger: "text-danger",
-    };
-
-    const underlineColors = {
-      default: "bg-neutral-500",
-      primary: "bg-primary",
-      secondary: "bg-secondary",
-      success: "bg-success",
-      warning: "bg-warning",
-      danger: "bg-danger",
-    };
-
-    // ── Variant ───────────────────────────────────────────────────────────
     const variantConfigs = {
-      flat: `border-2 border-transparent ${flatColorClasses[color] || flatColorClasses.default}`,
-      bordered: `border-2 ${borderedColorClasses[color] || borderedColorClasses.default}`,
-      underlined: `border-b rounded-none relative ${underlinedColorClasses[color] || underlinedColorClasses.default}`,
-      faded: `border-2 ${fadedColorClasses[color] || fadedColorClasses.default}`,
+      flat: getInputVariantClasses("flat", color as FieldColor),
+      bordered: getInputVariantClasses("bordered", color as FieldColor),
+      underlined: getInputVariantClasses("underlined", color as FieldColor),
+      faded: getInputVariantClasses("faded", color as FieldColor),
     };
 
     const isOutlined = labelPlacement === "outlined";
@@ -348,7 +290,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
               ${labelPlacement === "inside" ? "" : (isFloating && label && !isOutlined ? "mt-6" : "")}
               ${isOutlined && label ? "mt-[10px]" : ""}
               ${cs.px}
-              ${disabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}
+              ${disabled ? inputDisabledWrapperClasses : ""}
             `}
             onClick={() => internalRef.current?.focus()}
           >
@@ -407,13 +349,15 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 className={`
                   absolute left-3 top-0 z-10 ${labelFloatingClasses} transition-colors duration-200
                   ${cs.textSize} ${labelClassName} ${
-                    isFocused && color !== "default"
-                      ? (focusTextColors[color] || "text-primary")
-                      : (shouldFloat || (isOutlined && (isFocused || hasValue)))
-                        ? isFocused
-                          ? "text-neutral-800 dark:text-neutral-200"
-                          : "text-neutral-700 dark:text-neutral-300"
-                        : "text-neutral-400 dark:text-neutral-500"
+                    resolvedVariant === "flat"
+                      ? getFlatFloatingLabelClass(color as FieldColor, shouldFloat || (isOutlined && (isFocused || hasValue)), isFocused)
+                      : isFocused && color !== "default"
+                        ? (focusTextColors[color] || "text-primary")
+                        : (shouldFloat || (isOutlined && (isFocused || hasValue)))
+                          ? isFocused
+                            ? "text-neutral-800 dark:text-neutral-200"
+                            : "text-neutral-700 dark:text-neutral-300"
+                          : "text-neutral-400 dark:text-neutral-500"
                   }
                 `}
                 style={{ transformOrigin: isOutlined ? "left" : "top left" }}
@@ -463,7 +407,6 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                 }
                 className={`
                   w-full bg-transparent border-none outline-none focus:outline-none focus:ring-0
-                  text-neutral-800 dark:text-neutral-100
                   ${disableAutosize ? "resize-y" : "resize-none"} transition-all duration-200
                   ${fieldValueClasses} ${fieldPlaceholderClasses} p-0
                   ${labelPlacement === "inside" ? (size === "sm" ? "mt-4" : size === "lg" ? "mt-6" : "mt-5") : "mt-2.5"}

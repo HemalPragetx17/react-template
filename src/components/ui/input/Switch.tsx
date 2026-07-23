@@ -1,7 +1,7 @@
 import React, { forwardRef } from "react";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
-import { errorClasses, labelClasses } from "../shared/fieldStyles";
+import { errorClasses, inputDisabledWrapperClasses, labelClasses } from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 interface SwitchProps {
@@ -213,7 +213,7 @@ const Switch = forwardRef<HTMLDivElement, SwitchProps>((props, ref) => {
           className={`
             relative inline-flex shrink-0 cursor-pointer rounded-full items-center
             transition-colors duration-300 ease-in-out focus:outline-none
-            ${disabled ? "opacity-50 cursor-not-allowed" : ""}
+            ${disabled ? inputDisabledWrapperClasses : ""}
             ${trackColorClass}
             ${currentSize.track}
           `}

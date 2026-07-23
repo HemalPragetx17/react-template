@@ -2,7 +2,7 @@ import React, { forwardRef, useId } from "react";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
 import { getRadiusClass, type Radius } from "../shared/radius";
-import { errorClasses, labelClasses } from "../shared/fieldStyles";
+import { errorClasses, inputDisabledWrapperClasses, labelClasses } from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ export const CheckAtom: React.FC<CheckAtomProps> = ({
     <label
       htmlFor={inputId}
       className={`relative inline-flex items-start gap-2.5 cursor-pointer group select-none ${
-        disabled ? "opacity-50 cursor-not-allowed" : ""
+        disabled ? inputDisabledWrapperClasses : ""
       }`}
     >
       {/* Hidden native input */}

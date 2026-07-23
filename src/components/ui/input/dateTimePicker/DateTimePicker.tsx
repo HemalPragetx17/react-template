@@ -23,7 +23,7 @@ import {
 import { FaXmark } from "react-icons/fa6";
 import Button from "../../button/Button";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../../shared/radius";
-import { errorClasses, fieldPlaceholderClasses, fieldValueClasses, getCalendarRadiusClass, getInteractiveBorderClass, getWrapperBaseClasses, labelClasses, labelFloatingClasses, type FieldColor } from "../../shared/fieldStyles";
+import { errorClasses, fieldPlaceholderClasses, fieldValueClasses, focusBorderColors, focusTextColors, fieldsetBorderColors, getCalendarRadiusClass, getInputVariantClasses, getInteractiveBorderClass, getWrapperBaseClasses, inputDisabledWrapperClasses, labelClasses, labelFloatingClasses, stripInteractiveFieldClasses, underlineColors, type FieldColor } from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
 import "../timePicker/index.css";
 
@@ -1282,78 +1282,6 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
 }) => {
   const resolvedVariant = labelPlacement === "outlined" ? "bordered" : variant;
 
-  // Color-specific configurations
-  const flatColorClasses = {
-    default: "bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 focus-within:bg-neutral-200 dark:focus-within:bg-neutral-700 text-foreground",
-    primary: "bg-primary-50 dark:bg-primary-950/20 hover:bg-primary-100 dark:hover:bg-primary-950/40 focus-within:bg-primary-100 dark:focus-within:bg-primary-950/40 text-primary",
-    secondary: "bg-secondary-50 dark:bg-secondary-950/20 hover:bg-secondary-100 dark:hover:bg-secondary-950/40 focus-within:bg-secondary-100 dark:focus-within:bg-secondary-950/40 text-secondary",
-    success: "bg-success-50 dark:bg-success-950/20 hover:bg-success-100 dark:hover:bg-success-950/40 focus-within:bg-success-100 dark:focus-within:bg-success-950/40 text-success",
-    warning: "bg-warning-50 dark:bg-warning-950/20 hover:bg-warning-100 dark:hover:bg-warning-950/40 focus-within:bg-warning-100 dark:focus-within:bg-warning-950/40 text-warning",
-    danger: "bg-danger-50 dark:bg-danger-950/20 hover:bg-danger-100 dark:hover:bg-danger-950/40 focus-within:bg-danger-100 dark:focus-within:bg-danger-950/40 text-danger",
-  };
-
-  const borderedColorClasses = {
-    default: "border-neutral-300 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-600 focus-within:border-neutral-500 dark:focus-within:border-neutral-500 text-foreground",
-    primary: "border-neutral-300 dark:border-neutral-700 hover:border-primary-300 dark:hover:border-primary-400 focus-within:border-primary text-primary",
-    secondary: "border-neutral-300 dark:border-neutral-700 hover:border-secondary-300 dark:hover:border-secondary-400 focus-within:border-secondary text-secondary",
-    success: "border-neutral-300 dark:border-neutral-700 hover:border-success-300 dark:hover:border-success-400 focus-within:border-success text-success",
-    warning: "border-neutral-300 dark:border-neutral-700 hover:border-warning-300 dark:hover:border-warning-400 focus-within:border-warning text-warning",
-    danger: "border-neutral-300 dark:border-neutral-700 hover:border-danger-300 dark:hover:border-danger-400 focus-within:border-danger text-danger",
-  };
-
-  const underlinedColorClasses = {
-    default: "border-b-neutral-200 focus-within:border-b-neutral-500 text-foreground",
-    primary: "border-b-primary-200 focus-within:border-b-primary text-primary",
-    secondary: "border-b-secondary-200 focus-within:border-b-secondary text-secondary",
-    success: "border-b-success-200 focus-within:border-b-success text-success",
-    warning: "border-b-warning-200 focus-within:border-b-warning text-warning",
-    danger: "border-b-danger-200 focus-within:border-b-danger text-danger",
-  };
-
-  const fadedColorClasses = {
-    default: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-neutral-400 text-foreground",
-    primary: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-primary text-primary",
-    secondary: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-secondary text-secondary",
-    success: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-success text-success",
-    warning: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-warning text-warning",
-    danger: "bg-neutral-100 dark:bg-neutral-800 border-neutral-200 focus-within:border-danger text-danger",
-  };
-
-  const focusTextColors = {
-    default: "text-foreground",
-    primary: "text-primary",
-    secondary: "text-secondary-700 dark:text-secondary",
-    success: "text-success",
-    warning: "text-warning",
-    danger: "text-danger",
-  };
-
-  const underlineColors = {
-    default: "bg-neutral-500",
-    primary: "bg-primary",
-    secondary: "bg-secondary",
-    success: "bg-success",
-    warning: "bg-warning",
-    danger: "bg-danger",
-  };
-
-  const focusBorderColors = {
-    default: "border-neutral-500",
-    primary: "border-primary",
-    secondary: "border-secondary-700 dark:border-secondary",
-    success: "border-success",
-    warning: "border-warning",
-    danger: "border-danger",
-  };
-
-  const fieldsetBorderColors = {
-    default: "border-neutral-300 dark:border-neutral-700 group-hover:border-neutral-400 dark:group-hover:border-neutral-500 focus-within:border-neutral-500",
-    primary: "border-neutral-300 dark:border-neutral-700 group-hover:border-primary-300 dark:group-hover:border-primary-800 focus-within:border-primary",
-    secondary: "border-neutral-300 dark:border-neutral-700 group-hover:border-secondary-300 dark:group-hover:border-secondary-800 focus-within:border-secondary",
-    success: "border-neutral-300 dark:border-neutral-700 group-hover:border-success-300 dark:group-hover:border-success-800 focus-within:border-success",
-    warning: "border-neutral-300 dark:border-neutral-700 group-hover:border-warning-300 dark:group-hover:border-warning-800 focus-within:border-warning",
-    danger: "border-neutral-300 dark:border-neutral-700 group-hover:border-danger-300 dark:group-hover:border-danger-800 focus-within:border-danger",
-  };
   const fieldName = field?.name || "";
   const rawValue = value !== undefined ? value : field?.value;
   const parsedValue = useMemo(() => parseInput(rawValue), [rawValue]);
@@ -1498,21 +1426,25 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
 
   const variantClass = isOutlined
     ? "bg-transparent border-none"
-    : resolvedVariant === "flat"
-      ? `border-2 border-transparent ${flatColorClasses[color] || flatColorClasses.default}`
-      : resolvedVariant === "bordered"
-        ? `border-2 ${borderedColorClasses[color] || borderedColorClasses.default}`
-        : resolvedVariant === "underlined"
-          ? `border-b rounded-none relative ${underlinedColorClasses[color] || underlinedColorClasses.default}`
-          : `border-2 ${fadedColorClasses[color] || fadedColorClasses.default}`;
+    : disabled
+      ? stripInteractiveFieldClasses(getInputVariantClasses(resolvedVariant, color as FieldColor))
+      : getInputVariantClasses(resolvedVariant, color as FieldColor);
 
-  const wrapperBaseClasses = getWrapperBaseClasses({
-    wrapperClassName,
-    variant: resolvedVariant,
-    isOutlined,
-    isActive: isOpen,
-    hasError,
-  });
+  const wrapperBaseClasses = disabled
+    ? stripInteractiveFieldClasses(getWrapperBaseClasses({
+        wrapperClassName,
+        variant: resolvedVariant,
+        isOutlined,
+        isActive: isOpen,
+        hasError,
+      }))
+    : getWrapperBaseClasses({
+        wrapperClassName,
+        variant: resolvedVariant,
+        isOutlined,
+        isActive: isOpen,
+        hasError,
+      });
 
   const interactiveBorderClass = getInteractiveBorderClass({
     variant: resolvedVariant,
@@ -1674,7 +1606,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
             id={fieldName || undefined}
             onClick={() => { if (!disabled) setIsOpen((o) => !o); }}
             className={`
-              relative flex items-center w-full
+              relative flex items-center w-full ${disabled ? "" : "group"}
               ${variantClass}
               ${radiusClass}
               ${wrapperBaseClasses}
@@ -1682,7 +1614,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
               ${labelPlacement === "inside" ? sz.insideHeight : `${sz.outsideHeight} ${isFloating && label && !isOutlined ? "mt-6" : ""} ${isOutlined && label ? "mt-[10px]" : ""}`}
               transition-all duration-200
               ${interactiveBorderClass}
-              ${disabled ? "opacity-50 cursor-default" : "cursor-pointer"}
+              ${disabled ? inputDisabledWrapperClasses : "cursor-pointer"}
             `}
             role="button"
             tabIndex={disabled ? -1 : 0}
@@ -1718,12 +1650,12 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                   <FaXmark className="w-3.5 h-3.5" aria-hidden />
                 </Button>
               ) : (
-                <FaCalendar className={`w-4 h-4 transition-colors ${isOpen && color !== "default" ? (focusTextColors[color] || "text-primary") : "text-neutral-600 dark:text-neutral-350 group-hover:text-neutral-800 dark:group-hover:text-neutral-100"}`} />
+                <FaCalendar className={`w-4 h-4 transition-colors ${isOpen && color !== "default" ? (focusTextColors[color] || "text-primary") : disabled ? "text-neutral-600 dark:text-neutral-350" : "text-neutral-600 dark:text-neutral-350 group-hover:text-neutral-800 dark:group-hover:text-neutral-100"}`} />
               )}
             </div>
 
             {isOutlined && (
-              <fieldset className={`absolute inset-0 pointer-events-none border-2 transition-colors duration-200 m-0 p-0 ${radiusClass} ${isOpen && !hasError ? applyImportant(focusBorderColors[color] || "border-primary") : hasError ? "border-danger" : (fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700")
+              <fieldset className={`absolute inset-0 pointer-events-none border-2 transition-colors duration-200 m-0 p-0 ${radiusClass} ${isOpen && !hasError ? applyImportant(focusBorderColors[color] || "border-primary") : hasError ? "border-danger" : applyImportant(disabled ? stripInteractiveFieldClasses(fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700") : (fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700"))
                 }`}>
                 {label && (
                   <legend

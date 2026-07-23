@@ -11,7 +11,10 @@ import {
     fieldPlaceholderClasses,
     fieldValueClasses,
     getInteractiveBorderClass,
+    getPhoneTwoBoxPartClasses,
     getWrapperBaseClasses,
+    inputDisabledInteractionClasses,
+    inputDisabledOpacityClass,
     labelClasses,
     labelFloatingClasses,
     type FieldColor,
@@ -147,42 +150,6 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
     const primaryColorVal = colorMap[color] || colorMap.primary;
 
 
-    const bgMap = {
-        default: "",
-        primary: "#e6f1fe",
-        secondary: "#f4edfd",
-        success: "#e7faf0",
-        warning: "#fefce8",
-        danger: "#fee7ef",
-    };
-
-    const bgHoverMap = {
-        default: "",
-        primary: "#cce3fd",
-        secondary: "#ebdcfb",
-        success: "#cef7e2",
-        warning: "#fef9c3",
-        danger: "#fdd0df",
-    };
-
-    const darkBgMap = {
-        default: "",
-        primary: "rgba(0, 114, 245, 0.15)",
-        secondary: "rgba(155, 93, 229, 0.15)",
-        success: "rgba(23, 201, 100, 0.15)",
-        warning: "rgba(245, 165, 36, 0.15)",
-        danger: "rgba(243, 18, 96, 0.15)",
-    };
-
-    const darkBgHoverMap = {
-        default: "",
-        primary: "rgba(0, 114, 245, 0.25)",
-        secondary: "rgba(155, 93, 229, 0.25)",
-        success: "rgba(23, 201, 100, 0.25)",
-        warning: "rgba(245, 165, 36, 0.25)",
-        danger: "rgba(243, 18, 96, 0.25)",
-    };
-
     const underlineColors = {
         default: "bg-neutral-500",
         primary: "bg-primary",
@@ -213,11 +180,6 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         "--color-primary": primaryColorVal,
         "--phone-focus-border": focusBorderMap[color] || focusBorderMap.primary,
     } as any;
-
-    if (bgMap[color]) inlineStyles["--phone-bg-light"] = bgMap[color];
-    if (bgHoverMap[color]) inlineStyles["--phone-bg-light-hover"] = bgHoverMap[color];
-    if (darkBgMap[color]) inlineStyles["--phone-bg-dark"] = darkBgMap[color];
-    if (darkBgHoverMap[color]) inlineStyles["--phone-bg-dark-hover"] = darkBgHoverMap[color];
 
     const updateDropdownCoords = React.useCallback(() => {
         if (!containerRef.current) return;
@@ -494,9 +456,13 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
 
     const currentRadiusClass = resolvedVariant === "underlined" ? "!rounded-none" : getImportantRadiusClass(radius);
 
-    // Merge standard classes with the dynamic border-radius utility class
-    const finalInputClass = `${singleBorder ? "!rounded-none" : currentRadiusClass} ${fieldValueClasses} ${fieldPlaceholderClasses} ${inputClassName}`.trim();
-    const finalButtonClass = `${singleBorder ? "!rounded-none" : currentRadiusClass} ${buttonClassName}`.trim();
+    const twoBoxPartClasses =
+        !singleBorder && resolvedVariant !== "underlined"
+            ? getPhoneTwoBoxPartClasses(resolvedVariant, color as FieldColor, disabled)
+            : "";
+
+    const finalInputClass = `${twoBoxPartClasses} ${singleBorder ? "!rounded-none" : currentRadiusClass} ${fieldValueClasses} ${fieldPlaceholderClasses} ${inputClassName}`.trim();
+    const finalButtonClass = `${twoBoxPartClasses} ${singleBorder ? "!rounded-none" : currentRadiusClass} ${buttonClassName}`.trim();
 
     const isOutlined = labelPlacement === "outlined";
     const isOutsideLeft = labelPlacement === "outside-left";
@@ -509,13 +475,15 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
         react-tel-input
         phone-input-size-${size}
         phone-input-variant-${resolvedVariant}
+        phone-input-color-${color}
         phone-input-placement-${labelPlacement}
         phone-input-dropdown-${finalDropdownPosition}
         ${shouldFloat ? "phone-input-should-float" : ""}
-        ${singleBorder ? `phone-input-single-border ${currentRadiusClass}` : ""}
+        ${singleBorder ? `phone-input-single-border ${currentRadiusClass}` : "phone-input-two-box"}
         ${isOutlined ? "h-full w-full" : ""}
         ${hasError ? "phone-input-has-error" : ""}
         ${disabled ? "phone-input-disabled" : ""}
+        ${singleBorder && resolvedVariant === "flat" && disabled ? inputDisabledOpacityClass : ""}
         ${containerClassName}
     `.trim().replace(/\s+/g, ' ');
 
@@ -567,11 +535,9 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                         ${labelPlacement === "inside" ? "" : (isFloating && label && !isOutlined ? "mt-6" : "")}
                         ${isOutlined && label ? "mt-[10px]" : ""}
                         ${disabled && !isOutlined
-                            ? `box-border !bg-gray-50 !border-gray-200 cursor-not-allowed pointer-events-none ${
-                                singleBorder
-                                    ? `border-2 ${currentRadiusClass} overflow-hidden ${size === "sm" ? "h-10" : size === "lg" ? "h-14" : "h-12"}`
-                                    : ""
-                            }`
+                            ? singleBorder
+                                ? inputDisabledInteractionClasses
+                                : "cursor-not-allowed pointer-events-none"
                             : ""}
                     `}
                 >
@@ -586,7 +552,7 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                                     ? "border-2 border-red-500 dark:border-red-500"
                                     : isFocused
                                         ? "border-2 border-neutral-500 dark:border-neutral-500"
-                                        : "border-2 border-neutral-300 dark:border-neutral-700 group-hover:border-neutral-400 dark:group-hover:border-neutral-500"
+                                        : `border-2 border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400 dark:group-hover:border-neutral-500`
                                 }
                             `}
                         >

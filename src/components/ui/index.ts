@@ -13,16 +13,31 @@ export {
   syncDefaultRadiusCssVariable,
 } from "./shared/radius";
 export {
+  borderedColorClasses,
   CALENDAR_RADIUS_CSS_VAR,
   DEFAULT_CALENDAR_RADIUS,
   errorClasses,
+  fadedColorClasses,
+  flatColorClasses,
+  getFlatSurfaceClasses,
+  getPhoneTwoBoxPartClasses,
+  focusBorderColors,
+  focusTextColors,
   getCalendarRadiusClass,
   getCalendarRadiusCssVar,
+  getFlatFloatingLabelClass,
+  getInputDisabledClasses,
+  getInputVariantClasses,
+  stripInteractiveFieldClasses,
+  inputDisabledClasses,
+  inputDisabledOpacityClass,
+  inputDisabledWrapperClasses,
   labelClasses,
   labelFloatingClasses,
   labelGroupClasses,
   requiredIndicatorClasses,
   syncCalendarRadiusCssVariable,
+  underlinedColorClasses,
 } from "./shared/fieldStyles";
 export { FieldLabelContent } from "./shared/FieldLabelContent";
 

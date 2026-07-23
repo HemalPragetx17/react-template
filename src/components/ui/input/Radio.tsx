@@ -1,7 +1,7 @@
 import React, { forwardRef, useId } from "react";
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { motion, AnimatePresence } from "framer-motion";
-import { errorClasses, labelClasses } from "../shared/fieldStyles";
+import { errorClasses, inputDisabledWrapperClasses, labelClasses } from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -165,7 +165,7 @@ const Radio = forwardRef<HTMLDivElement, RadioProps>((props, ref) => {
               key={i}
               htmlFor={optId}
               className={`relative inline-flex items-start gap-2.5 cursor-pointer group select-none ${
-                isOptDisabled ? "opacity-50 cursor-not-allowed pointer-events-none" : ""
+                isOptDisabled ? inputDisabledWrapperClasses : ""
               }`}
             >
               {/* Hidden native input */}
