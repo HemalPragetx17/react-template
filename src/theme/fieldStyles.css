@@ -3,6 +3,11 @@
  * Utility classes always work (no Tailwind JIT required).
  */
 
+:root {
+  /* Default — keep in sync with DEFAULT_CALENDAR_RADIUS in shared/fieldStyles.ts */
+  --calendar-radius: var(--radius-md);
+}
+
 @layer utilities {
     .input-label {
         @apply block text-sm font-medium select-none transition-colors duration-200;

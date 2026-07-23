@@ -1098,10 +1098,31 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(({
     }
 
     if (selectsRange) {
-      if (isSameDate(cleanDate, startDate)) stateClasses.push("drp-day--range-start");
-      if (isSameDate(cleanDate, endDate)) stateClasses.push("drp-day--range-end");
-      if (startDate && endDate && cleanDate > startDate && cleanDate < endDate)
+      if (startDate && isSameDate(cleanDate, startDate)) stateClasses.push("drp-day--range-start");
+      if (endDate && isSameDate(cleanDate, endDate)) stateClasses.push("drp-day--range-end");
+      if (startDate && endDate && cleanDate > startDate && cleanDate < endDate) {
         stateClasses.push("drp-day--in-range");
+      }
+
+      if (startDate && endDate) {
+        const rangeStart = stripTime(startDate);
+        const rangeEnd = stripTime(endDate);
+        if (cleanDate >= rangeStart && cleanDate <= rangeEnd) {
+          const prevDay = new Date(cleanDate);
+          prevDay.setDate(prevDay.getDate() - 1);
+          const nextDay = new Date(cleanDate);
+          nextDay.setDate(nextDay.getDate() + 1);
+          const prevInRange = stripTime(prevDay) >= rangeStart && stripTime(prevDay) <= rangeEnd;
+          const nextInRange = stripTime(nextDay) >= rangeStart && stripTime(nextDay) <= rangeEnd;
+
+          if (!prevInRange || cleanDate.getDay() === 0) {
+            stateClasses.push("drp-day--range-row-start");
+          }
+          if (!nextInRange || cleanDate.getDay() === 6) {
+            stateClasses.push("drp-day--range-row-end");
+          }
+        }
+      }
     } else {
       if (isSameDate(cleanDate, startDate)) stateClasses.push("drp-day--selected-single");
     }

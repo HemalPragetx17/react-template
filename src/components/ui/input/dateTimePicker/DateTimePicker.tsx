@@ -23,7 +23,7 @@ import {
 import { FaXmark } from "react-icons/fa6";
 import Button from "../../button/Button";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../../shared/radius";
-import { errorClasses, fieldPlaceholderClasses, fieldValueClasses, getInteractiveBorderClass, getWrapperBaseClasses, labelClasses, labelFloatingClasses, type FieldColor } from "../../shared/fieldStyles";
+import { errorClasses, fieldPlaceholderClasses, fieldValueClasses, getCalendarRadiusClass, getInteractiveBorderClass, getWrapperBaseClasses, labelClasses, labelFloatingClasses, type FieldColor } from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
 import "../timePicker/index.css";
 
@@ -896,7 +896,7 @@ const MiniCalendar: React.FC<MiniCalendarProps> = ({
                   key={`d-${day}`}
                   type="button"
                   onClick={() => onSelectDate(new Date(year, month, day))}
-                  className={`flex items-center justify-center h-9 w-full rounded-full ${fieldValueClasses} transition-all
+                  className={`flex items-center justify-center h-9 w-full ${getCalendarRadiusClass()} ${fieldValueClasses} transition-all
                     ${sel
                       ? `${activeColor.bg} text-white`
                       : tod

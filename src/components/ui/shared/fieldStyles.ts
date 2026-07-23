@@ -2,6 +2,38 @@
  * Field label & error design tokens — edit fieldStyles.css to change styles project-wide.
  */
 
+import { getRadiusClass, radiusCssVarNames, type Radius } from "./radius";
+
+/** Change this to update date calendar day-cell radius project-wide */
+export const DEFAULT_CALENDAR_RADIUS: Radius = "full";
+
+/** CSS variable for calendar day cells — synced via syncCalendarRadiusCssVariable() */
+export const CALENDAR_RADIUS_CSS_VAR = "var(--calendar-radius)";
+
+/** Sync --calendar-radius in CSS to match DEFAULT_CALENDAR_RADIUS. Call once at app startup. */
+export function syncCalendarRadiusCssVariable(): void {
+  if (typeof document === "undefined") return;
+
+  document.documentElement.style.setProperty(
+    "--calendar-radius",
+    `var(${radiusCssVarNames[DEFAULT_CALENDAR_RADIUS]})`,
+  );
+}
+
+export function getCalendarRadiusCssVar(
+  radius: Radius = DEFAULT_CALENDAR_RADIUS,
+): string {
+  return radius === DEFAULT_CALENDAR_RADIUS
+    ? CALENDAR_RADIUS_CSS_VAR
+    : `var(${radiusCssVarNames[radius]})`;
+}
+
+export function getCalendarRadiusClass(
+  radius: Radius = DEFAULT_CALENDAR_RADIUS,
+): string {
+  return getRadiusClass(radius);
+}
+
 /** External / top field label (Input, Textarea, Select, Date pickers, etc.) */
 export const labelClasses = "input-label";
 
