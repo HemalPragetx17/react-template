@@ -33,7 +33,8 @@ import TableFooter from "./TableFooter";
 import type { IColumn } from "../../models/base-type";
 import {
     ProviderStatus,
-    ProviderStatusColor
+    ProviderStatusColor,
+    type ProviderStatusValue,
 } from "../../shared/enums/status";
 import { PageActions } from "../../shared/enums/table-page-actions";
 
@@ -301,7 +302,7 @@ const CustomTable: React.FC<CustomTableProps> = (props) => {
                     <Dropdown>
                         <DropdownTrigger>
                             <Button variant="bordered" className="capitalize min-w-[110px]" size="sm">
-                                <CgRadioChecked color={ProviderStatusColor[row?.status]} />
+                                <CgRadioChecked color={ProviderStatusColor[row?.status as ProviderStatusValue]} />
                                 {row?.status}
                                 <FiChevronDown />
                             </Button>
@@ -316,14 +317,14 @@ const CustomTable: React.FC<CustomTableProps> = (props) => {
                                 handleStatusChangeClick(row?.id, e?.currentKey)
                             }
                         >
-                            {Object.entries(ProviderStatus).map(([label, value]) => (
+                            {Object.values(ProviderStatus).map((value) => (
                                 <DropdownItem
                                     key={value}
                                     textValue={value}
                                 >
                                     <div className="flex items-center gap-2">
                                         <CgRadioChecked color={ProviderStatusColor[value]} />
-                                        {label}
+                                        {capitalize(value)}
                                     </div>
                                 </DropdownItem>
                             ))}

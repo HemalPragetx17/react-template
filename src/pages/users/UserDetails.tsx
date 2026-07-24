@@ -5,7 +5,6 @@ import { Avatar, Button, Chip } from "../../components/ui";
 import type { IAppointmentModal } from "../../models/appointment";
 import type { Pagination } from "../../models/base-type";
 import { Routing } from "../../routes/routing";
-import userService from "../../services/user-service";
 import { DEFAULT_PAGE_SIZE } from "../../shared/constants/pagination";
 import { TanstackTable } from "../../components/custom-table/TanstackTable";
 

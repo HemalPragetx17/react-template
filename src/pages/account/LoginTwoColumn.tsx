@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import { Button, Input } from '../../components/ui';
 import type { ILoginRequestModel } from '../../models/account';
 import { Routing } from "../../routes/routing";
-import accountService from "../../services/account-service";
 import { adminLogin } from '../../store/slices/authSlice';
 import { handleFormLoader } from "../../store/slices/generalSlice";
 import { LoginValidationSchema } from "../../validation/account";

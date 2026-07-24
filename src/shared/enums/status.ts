@@ -15,14 +15,16 @@ export const ProviderStatus = {
   Verified: "verified",
   Declined: "declined",
   Blocked: "blocked",
-}
+} as const;
 
-export const ProviderStatusColor = {
+export type ProviderStatusValue = (typeof ProviderStatus)[keyof typeof ProviderStatus];
+
+export const ProviderStatusColor: Record<ProviderStatusValue, string> = {
   pending: "#d27b3a",
   verified: "#209563",
   declined: "#c34a41",
   blocked: "#6f7983",
-}
+};
 
 export const WithdrawalPendingStatus = {
   pending: 'pending',

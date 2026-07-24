@@ -5,7 +5,6 @@ import NotificationsMenu from '../components/header/NotificationsMenu';
 import UserMenu from '../components/header/UserMenu';
 import { Routing } from '../routes/routing';
 import { adminLogout } from '../store/slices/authSlice';
-import accountService from '../services/account-service';
 import ThemeToggle from '../components/themeToggle/ThemeToggle';
 import {
   Navbar,
