@@ -7,9 +7,7 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   FaCalendar,
@@ -373,6 +371,12 @@ function useDrumPicker<T extends { value: number; label: string }>(
 /* -------------------------------------------------------------------------- */
 /*                           DateInput Component                       */
 /* -------------------------------------------------------------------------- */
+
+const LazyDatePicker = React.lazy(async () => {
+  await import("react-datepicker/dist/react-datepicker.css");
+  const mod = await import("react-datepicker");
+  return { default: mod.default };
+});
 
 const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(({
   field,
@@ -1259,24 +1263,26 @@ const DateInput = React.forwardRef<HTMLDivElement, DateInputProps>(({
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
-                <DatePicker
-                  {...({
-                    selected: startDate,
-                    onChange: handleDateChange,
-                    startDate: startDate,
-                    endDate: endDate,
-                    selectsRange: selectsRange,
-                    minDate: resolvedMinDate || undefined,
-                    maxDate: resolvedMaxDate || undefined,
-                    shouldCloseOnSelect: false,
-                    inline: true,
-                    calendarClassName:
-                      "drp-calendar !border-none !rounded-xl !shadow-none",
-                    dayClassName: getDayClass,
-                    renderCustomHeader: renderHeader,
-                    fixedHeight: true,
-                  } as any)}
-                />
+                <Suspense fallback={null}>
+                  <LazyDatePicker
+                    {...({
+                      selected: startDate,
+                      onChange: handleDateChange,
+                      startDate: startDate,
+                      endDate: endDate,
+                      selectsRange: selectsRange,
+                      minDate: resolvedMinDate || undefined,
+                      maxDate: resolvedMaxDate || undefined,
+                      shouldCloseOnSelect: false,
+                      inline: true,
+                      calendarClassName:
+                        "drp-calendar !border-none !rounded-xl !shadow-none",
+                      dayClassName: getDayClass,
+                      renderCustomHeader: renderHeader,
+                      fixedHeight: true,
+                    } as any)}
+                  />
+                </Suspense>
               </motion.div>
             ) : null,
             document.body

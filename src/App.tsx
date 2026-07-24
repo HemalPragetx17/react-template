@@ -2,7 +2,7 @@ import { Suspense, useEffect } from "react";
 import { Provider } from "react-redux";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Spinner } from "./components/ui";
+import Spinner from "./components/ui/spinner/Spinner";
 import AppRouting from "./routes/AppRouting";
 import store from "./store/store";
 

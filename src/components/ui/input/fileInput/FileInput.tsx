@@ -1,6 +1,6 @@
 import type { FieldInputProps, FormikErrors, FormikTouched } from "formik";
 import { AnimatePresence, motion } from "framer-motion";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDropzone } from "react-dropzone";
 import {
@@ -27,8 +27,9 @@ import {
   type FieldColor,
 } from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
-import PdfPreview from "./PdfPreview";
 import "./index.css";
+
+const PdfPreview = React.lazy(() => import("./PdfPreview"));
 
 /* -------------------------------------------------------------------------- */
 /*                                   Types                                    */
@@ -208,7 +209,9 @@ const ImagePreviewItem = ({
       >
         <div className={`w-full h-full overflow-hidden ${dropzoneRadiusClass}`}>
           {isPdf ? (
-            <PdfPreview file={image.url} />
+            <Suspense fallback={<div className="w-full h-full bg-neutral-100 dark:bg-neutral-800 animate-pulse" />}>
+              <PdfPreview file={image.url} />
+            </Suspense>
           ) : isVideo ? (
             <video
               src={previewUrl}
@@ -737,7 +740,9 @@ const FileInput = ({
               >
                 <div className={`w-full h-full overflow-hidden ${dropzoneRadiusClass}`}>
                   {isPdf ? (
-                    <PdfPreview file={singleFile} />
+                    <Suspense fallback={<div className="w-full h-full bg-neutral-100 dark:bg-neutral-800 animate-pulse" />}>
+                      <PdfPreview file={singleFile} />
+                    </Suspense>
                   ) : isVideo ? (
                     <video
                       src={previewUrl}
