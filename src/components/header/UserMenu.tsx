@@ -25,7 +25,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ onLogout }) => {
     return () => window.clearTimeout(timeoutId)
   }, [copied])
 
-  const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ').trim()
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim()
   const displayName = fullName || user.email || 'User'
 
   const handleCopyEmail = async (e: React.MouseEvent) => {

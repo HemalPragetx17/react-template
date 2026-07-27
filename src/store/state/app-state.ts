@@ -4,14 +4,15 @@ export interface IApplicationState {
 }
 
 export interface IAuthState {
-    id: string;
+    _id: string;
     email: string;
     phone: string;
     role: string;
-    token: string;
-    first_name: string;
-    last_name: string;
-    is_active: boolean;
+    firstName: string;
+    lastName: string;
+    isActive: boolean;
+    accessToken: string;
+    refreshToken: string;
 }
 
 

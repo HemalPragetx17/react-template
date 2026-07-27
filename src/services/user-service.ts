@@ -11,10 +11,8 @@ const endPointBaseURL = `admin`;
 const getAllUsers = async (params: Record<string, any>): Promise<AxiosResponse<ApiResponseModel<Array<IUserModal>>>> =>
     httpService.get<ApiResponseModel<Array<IUserModal>>>(`${endPointBaseURL}/hcp/list${buildQueryParams(params)}`);
 
-const getAllAppointments = async (params: Record<string, any>): Promise<IAppointmentListResponse> => {
-    const response = await httpService.get(`${endPointBaseURL}/appointment-list${buildQueryParams(params)}`);
-    return response as unknown as IAppointmentListResponse;
-};
+const getAllAppointments = async (params: Record<string, any>): Promise<AxiosResponse<ApiResponseModel<IAppointmentListResponse>>> => 
+    httpService.get<ApiResponseModel<IAppointmentListResponse>>(`${endPointBaseURL}/appointment-list${buildQueryParams(params)}`);
 
 const addUser = async (requestBody: IUserModal): Promise<AxiosResponse<ApiResponseModel<boolean>>> =>
     httpService.post<ApiResponseModel<boolean>>(`${endPointBaseURL}/addHcp`, requestBody);

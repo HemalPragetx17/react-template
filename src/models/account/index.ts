@@ -4,15 +4,16 @@ export interface ILoginRequestModel {
 }
 
 export interface ILoginResponseModel {
-    token: string;
+    accessToken: string;
+    refreshToken: string;
     user: {
-        id: string;
+        _id: string;
         email?: string;
         phone?: string;
         role?: string;
-        is_active?: boolean;
-        first_name: string;
-        last_name: string;
+        isActive?: boolean;
+        firstName: string;
+        lastName: string;
     }
 }
 
@@ -33,4 +34,8 @@ export interface IForgotPasswordOTPModel {
 export interface IForgotPasswordPasswordModel {
     password: string;
     confirmPassword: string;
+}
+
+export interface IRefreshTokenResponseModel {
+    accessToken: string;
 }

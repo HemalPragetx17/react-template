@@ -10,9 +10,11 @@ const ProtectedRoute = ({ element }: { element: ReactNode }) => {
   const dispatch = useDispatch();
   const state = store?.getState();
 
-  const isAuthenticated = state?.UserData && state?.UserData?.token && state?.UserData?.email ? true : false;
-  
-  if (!isAuthenticated ) {
+  const isAuthenticated = Boolean(
+    state?.UserData?.accessToken && state?.UserData?.email,
+  );
+
+  if (!isAuthenticated) {
     dispatch(adminLogout());
     return <Navigate to={Routing.Login} />;
   }

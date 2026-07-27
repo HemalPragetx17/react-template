@@ -4,14 +4,15 @@ import type { ILoginResponseModel } from "../../models/account";
 import type { IAuthState } from "../state/app-state";
 
 const initialState: IAuthState = {
-  id: "",
+  _id: "",
   email: "",
   phone: "",
-  role: "",
-  token: "",
-  first_name: "",
-  last_name: "",
-  is_active: false
+  role: "",  
+  firstName: "",
+  lastName: "",
+  isActive: false,
+  accessToken: "",
+  refreshToken: "",
 };
 
 const authSlice = createSlice({
@@ -19,17 +20,22 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     adminLogin: (state: IAuthState, action: PayloadAction<ILoginResponseModel>) => {
-      state.id = action.payload.user.id ?? "";
+      state._id = action.payload.user._id ?? "";
       state.email = action.payload.user.email ?? "";
       state.phone = action.payload.user.phone ?? "";
       state.role = action.payload.user.role ?? "";
-      state.token = action.payload.token;
-      state.first_name = action.payload.user.first_name;
-      state.last_name = action.payload.user.last_name;
-      state.is_active = action.payload.user.is_active ?? false;
+      state.firstName = action.payload.user.firstName;
+      state.lastName = action.payload.user.lastName;
+      state.isActive = action.payload.user.isActive ?? false;
+      state.accessToken = action.payload.accessToken ?? "";
+      state.refreshToken = action.payload.refreshToken ?? "";
     },
 
     adminLogout: () => initialState,
+
+    updateTokens: (state: IAuthState, action: PayloadAction<string>) => {
+      state.accessToken = action.payload ?? "";
+    },
 
     // updatePermission: (state, action: PayloadAction<IRoutesModel[]>) => {
     //   const permissions = action.payload?.sort((a, b) => (a?.priority > b?.priority ? 1 : -1));
@@ -73,7 +79,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { adminLogin, adminLogout } =
+export const { adminLogin, adminLogout, updateTokens } =
   authSlice.actions;
 
 export default authSlice.reducer;
