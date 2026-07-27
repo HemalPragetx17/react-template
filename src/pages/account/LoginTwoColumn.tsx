@@ -24,15 +24,16 @@ const LoginTwoColumn = () => {
     // bypass the api call
     dispatch(handleFormLoader(true));
     const response = {
-      token: "mock-jwt-token-xyz123",
+      accessToken: "mock-jwt-token-xyz123",
+      refreshToken: "mock-jwt-refresh-token-xyz123",
       user: {
-        id: "mock-user-id-001",
+        _id: "mock-user-id-001",
         email: values.email || "admin@gmail.com",
         phone: "1234567890",
         role: "admin",
-        is_active: true,
-        first_name: "Admin",
-        last_name: "User"
+        isActive: true,
+        firstName: "Admin",
+        lastName: "User"
       }
     }
     toast.success("Login successful");
