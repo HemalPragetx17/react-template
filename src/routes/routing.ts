@@ -1,4 +1,4 @@
-const PATH_PREFIX = import.meta.env.VITE_PATH_PREFIX;
+const PATH_PREFIX = import.meta.env.VITE_PATH_PREFIX || "/admin";
 
 export const Routing = {
   Login: `${PATH_PREFIX}/login`,

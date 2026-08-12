@@ -154,7 +154,7 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
 
         // Fallback: Dynamically generate from path segments if not registered in sidebar (e.g. /dashboard/demo-form)
         if (!foundInSidebar) {
-            const prefix = import.meta.env.VITE_PATH_PREFIX || "";
+            const prefix = import.meta.env.VITE_PATH_PREFIX || "/admin";
             const cleanPrefix = prefix.replace(/^\/|\/$/g, "");
             const segments = pathname
                 .split("/")
