@@ -423,3 +423,78 @@ export const fieldValueClasses = "field-value";
 
 /** Placeholder typography (Input, Textarea, Select, Date/Time pickers, FileInput, Phone) */
 export const fieldPlaceholderClasses = "field-placeholder";
+
+/** Field size token used by outlined labelPlacement legend + float label */
+export type OutlinedFieldSize = "sm" | "md" | "lg";
+
+/** Legend font-size = floated label (textSize × 0.75) — keeps fieldset notch width in sync */
+export function getOutlinedLegendFontSize(size: OutlinedFieldSize): number {
+  return size === "sm" ? 9 : size === "lg" ? 12 : 10.5;
+}
+
+/** Extra upward offset when outlined label sits on the notch (applied to floated y) */
+export function getOutlinedNotchFloatYOffset(size: OutlinedFieldSize): number {
+  return size === "sm" ? -2.6 : size === "lg" ? -4.5 : -3.5;
+}
+
+/** Floated outlined label y — base float y minus size-specific notch alignment */
+export function getOutlinedNotchFloatY(size: OutlinedFieldSize, outlinedFloatY: number): number {
+  return outlinedFloatY - getOutlinedNotchFloatYOffset(size);
+}
+
+/** Whether outlined label should sit on the top border (notch visible) */
+export function getShowOutlinedFloated(
+  isOutlined: boolean,
+  label: unknown,
+  shouldFloat: boolean,
+  isActive: boolean,
+  hasValue: boolean,
+): boolean {
+  return Boolean(isOutlined && label && (shouldFloat || isActive || hasValue));
+}
+
+/** Shared fieldset wrapper classes for outlined inputs */
+export const outlinedFieldsetClasses =
+  "absolute inset-0 z-10 pointer-events-none transition-all duration-200 m-0 p-0 min-w-0";
+
+/** Shared legend classes for outlined notch */
+export const outlinedLegendClasses =
+  "ml-3 font-medium transition-all duration-200 ease-out block whitespace-nowrap invisible";
+
+/** Legend expanded — width follows label text (not full field width) */
+export const outlinedLegendFloatedClasses =
+  "w-max max-w-[calc(100%-1.5rem)] px-1 leading-none";
+
+/** Legend collapsed — no notch */
+export const outlinedLegendCollapsedClasses = "max-w-0 px-0 overflow-hidden";
+
+/** Shared visible floated label classes for outlined placement */
+export const outlinedFloatLabelClasses =
+  "field-outlined-float-label absolute z-20 whitespace-nowrap bg-white dark:bg-neutral-900 font-medium leading-none";
+
+/** Chrome on animated outlined label when floated (bg covers border line) */
+export const outlinedFloatedLabelChromeClasses =
+  "bg-white dark:bg-neutral-900 px-1 leading-none font-medium whitespace-nowrap pointer-events-none";
+
+/** Floating label color for inside/outside/outlined placements */
+export function getFloatingLabelColorClass(
+  resolvedVariant: "flat" | "bordered" | "underlined" | "faded",
+  color: FieldColor,
+  isFloated: boolean,
+  isActive: boolean,
+  hasError = false,
+): string {
+  if (hasError) return "text-danger";
+  if (resolvedVariant === "flat") {
+    return getFlatFloatingLabelClass(color, isFloated, isActive);
+  }
+  if (isActive && color !== "default") {
+    return focusTextColors[color] || "text-primary";
+  }
+  if (isFloated) {
+    return isActive
+      ? "text-neutral-800 dark:text-neutral-200"
+      : "text-neutral-700 dark:text-neutral-300";
+  }
+  return "text-neutral-400 dark:text-neutral-500";
+}

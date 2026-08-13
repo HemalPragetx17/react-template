@@ -17,8 +17,10 @@ import {
   focusBorderColors,
   focusTextColors,
   fieldsetBorderColors,
+  getFloatingLabelColorClass,
   getInputVariantClasses,
   getInteractiveBorderClass,
+  getShowOutlinedFloated,
   getWrapperBaseClasses,
   labelClasses,
   labelFloatingClasses,
@@ -28,6 +30,7 @@ import {
   type FieldColor,
 } from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
+import { OutlinedFieldset, OutlinedMotionLabel } from "../../shared/OutlinedFieldLabel";
 import "./index.css";
 
 /* -------------------------------------------------------------------------- */
@@ -711,6 +714,7 @@ const TimePicker: React.FC<TimePickerProps> = ({
   const isOutlined = labelPlacement === "outlined";
   const isFloating = labelPlacement === "inside" || labelPlacement === "outside";
   const shouldFloat = isOpen || hasValue || (isFloating && !!placeholder) || (isOutlined && !!placeholder);
+  const showOutlinedFloated = getShowOutlinedFloated(isOutlined, label, shouldFloat, isOpen, hasValue);
   const resolvedPlaceholder = placeholder || (isFloating || isOutlined ? "" : "Select Time");
 
   const sizeConfigs = {
@@ -1296,68 +1300,61 @@ const TimePicker: React.FC<TimePickerProps> = ({
             setIsOpen((prev) => !prev);
           }}
         >
-          {/* Outlined Fieldset Border + Legend Notch */}
           {isOutlined && (
-            <fieldset
-              className={`
-                absolute inset-0 pointer-events-none transition-all duration-200 m-0 p-0
-                ${radiusClass}
-                ${hasError
+            <OutlinedFieldset
+              showFloated={showOutlinedFloated}
+              radiusClass={radiusClass}
+              borderClassName={
+                hasError
                   ? "border-2 border-red-500 dark:border-red-500"
                   : isOpen
                     ? `border-2 ${focusBorderColors[color] || "border-primary"}`
                     : `border-2 ${disabled
                         ? stripInteractiveFieldClasses(fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700 group-hover:border-neutral-400 dark:group-hover:border-neutral-500")
                         : fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700 group-hover:border-neutral-400 dark:group-hover:border-neutral-500"}`
-                }
-              `}
-            >
-              {label && (
-                <legend
-                  className={`
-                    ml-2 font-medium transition-all duration-200 ease-out block whitespace-nowrap overflow-hidden invisible
-                    ${shouldFloat || isOpen || hasValue ? "max-w-full px-1" : "max-w-0 px-0"}
-                  `}
-                  style={{
-                    fontSize: `${size === "sm" ? 9 : size === "lg" ? 12 : 10.5}px`,
-                    height: 0,
-                  }}
-                >
-                  <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
-                </legend>
-              )}
-            </fieldset>
+              }
+              label={label}
+              isRequired={isRequired}
+              size={size}
+            />
+          )}
+
+          {isOutlined && label && (
+            <OutlinedMotionLabel
+              htmlFor={fieldName}
+              label={label}
+              isRequired={isRequired}
+              size={size}
+              showFloated={showOutlinedFloated}
+              outlinedFloatY={sz.outlinedFloatY}
+              outlinedInitialY={sz.outlinedInitialY}
+              textSizeClass={sz.textSize}
+              labelClassName={labelClassName}
+              colorClassName={getFloatingLabelColorClass(resolvedVariant, color as FieldColor, showOutlinedFloated, isOpen, hasError)}
+            />
           )}
 
           {/* Floating Label */}
-          {(isFloating || isOutlined) && label && (
+          {isFloating && !isOutlined && label && (
             <motion.label
               htmlFor={fieldName}
               initial={false}
               animate={{
                 y:
-                  shouldFloat || (isOutlined && (isOpen || hasValue))
-                    ? isOutlined
-                      ? sz.outlinedFloatY
-                      : labelPlacement === "inside"
-                        ? sz.floatY
-                        : sz.floatYOutside
-                    : isOutlined
-                      ? sz.outlinedInitialY
-                      : sz.initialY,
+                  shouldFloat
+                    ? labelPlacement === "inside"
+                      ? sz.floatY
+                      : sz.floatYOutside
+                    : sz.initialY,
                 x:
-                  shouldFloat || (isOutlined && (isOpen || hasValue))
-                    ? isOutlined
-                      ? 0
-                      : labelPlacement === "inside"
-                        ? sz.floatX
-                        : sz.floatXOutside
+                  shouldFloat
+                    ? labelPlacement === "inside"
+                      ? sz.floatX
+                      : sz.floatXOutside
                     : sz.initialX,
                 scale:
-                  shouldFloat || (isOutlined && (isOpen || hasValue))
-                    ? isOutlined
-                      ? 0.75
-                      : sz.floatScale
+                  shouldFloat
+                    ? sz.floatScale
                     : 1,
               }}
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
@@ -1366,14 +1363,14 @@ const TimePicker: React.FC<TimePickerProps> = ({
                 ${sz.textSize} ${labelClassName} ${
                   isOpen && color !== "default"
                     ? (focusTextColors[color] || "text-primary")
-                    : shouldFloat || (isOutlined && (isOpen || hasValue))
+                    : shouldFloat
                       ? isOpen
                         ? "text-neutral-800 dark:text-neutral-200"
                         : "text-neutral-700 dark:text-neutral-300"
                       : "text-neutral-400 dark:text-neutral-500"
                 }
               `}
-              style={{ transformOrigin: isOutlined ? "left" : "top left" }}
+              style={{ transformOrigin: "top left" }}
             >
               <FieldLabelContent label={label} isRequired={isRequired} />
             </motion.label>

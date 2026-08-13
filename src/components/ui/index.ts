@@ -20,6 +20,12 @@ export {
   fadedColorClasses,
   flatColorClasses,
   getFlatSurfaceClasses,
+  getFloatingLabelColorClass,
+  getOutlinedLegendFontSize,
+  getShowOutlinedFloated,
+  outlinedFieldsetClasses,
+  outlinedFloatLabelClasses,
+  outlinedLegendClasses,
   getPhoneTwoBoxPartClasses,
   focusBorderColors,
   focusTextColors,
@@ -73,6 +79,7 @@ export { default as DateTimePicker } from "./input/dateTimePicker/DateTimePicker
 export { default as FileInput } from "./input/fileInput/FileInput";
 export { default as Input } from "./input/Input";
 export { default as OTPInput } from "./input/OTPInput";
+export { default as PhoneInput } from "./input/phone-input/PhoneInput";
 export { default as PhoneNumberInput } from "./input/phoneInput/PhoneNumberInput";
 export { default as Radio } from "./input/Radio";
 export { default as SelectDropdown } from "./input/SelectDropdown";

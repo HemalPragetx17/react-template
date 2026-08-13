@@ -1,0 +1,71 @@
+/* ========================================================
+   PhoneInput Dedicated Custom Styles
+   ======================================================== */
+
+.phone-input-root {
+    position: relative;
+    width: 100%;
+    font-family: inherit;
+}
+
+.phone-input-root:focus-within,
+.phone-input-root:hover {
+    z-index: 50;
+}
+
+/* ReactPhoneInput reset */
+.PhoneInput {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.PhoneInputInput {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    font-family: inherit;
+}
+
+/* Arrow indicator */
+.phone-select-arrow {
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid #a3a3a3;
+    transition: transform 0.2s ease-in-out;
+    margin-left: 2px;
+}
+
+.phone-select-arrow.open {
+    transform: rotate(180deg);
+}
+
+/* Custom Scrollbar for Popover */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(163, 163, 163, 0.4);
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(163, 163, 163, 0.7);
+}
+
+/* Inside placement floating layout */
+.phone-input-inside-floating .PhoneInputInput {
+    height: auto !important;
+}

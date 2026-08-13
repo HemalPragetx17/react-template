@@ -15,9 +15,11 @@ import {
   focusTextColors,
   fieldsetBorderColors,
   getFlatFloatingLabelClass,
+  getFloatingLabelColorClass,
   getInputDisabledClasses,
   getInputVariantClasses,
   getInteractiveBorderClass,
+  getShowOutlinedFloated,
   getWrapperBaseClasses,
   labelClasses,
   labelFloatingClasses,
@@ -25,6 +27,7 @@ import {
   type FieldColor,
 } from "../shared/fieldStyles";
 import { FieldLabelContent } from "../shared/FieldLabelContent";
+import { OutlinedFieldset, OutlinedMotionLabel } from "../shared/OutlinedFieldLabel";
 import {
   formatDurationWhileTyping,
   getDurationPlaceholder,
@@ -449,6 +452,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
 
   const isFloating = labelPlacement === "inside" || labelPlacement === "outside";
   const shouldFloat = isFocused || hasValue || (isFloating && !!placeholder) || (isOutlined && !!placeholder);
+  const showOutlinedFloated = getShowOutlinedFloated(isOutlined, label, shouldFloat, isFocused, hasValue);
+  const fieldId = field?.name || props.id || props.name;
 
   // Render Label Helper
   const renderExternalLabel = () => {
@@ -496,54 +501,49 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
         >
           {/* Outlined Fieldset Border and Legend Cutout */}
           {isOutlined && (
-            <fieldset
-              className={`
-                absolute inset-0 pointer-events-none transition-all duration-200 m-0 p-0
-                ${currentRadiusClass}
-                ${hasError
+            <OutlinedFieldset
+              showFloated={showOutlinedFloated}
+              radiusClass={currentRadiusClass}
+              borderClassName={
+                hasError
                   ? "border-2 border-red-500 dark:border-red-500"
                   : isFocused
                     ? `border-2 ${focusBorderColors[color] || "border-primary"}`
                     : `border-2 ${fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700 group-hover:border-neutral-400 dark:group-hover:border-neutral-500"}`
-                }
-              `}
-            >
-              {label && (
-                <legend
-                  className={`
-                    ml-2 font-medium transition-all duration-200 ease-out block whitespace-nowrap overflow-hidden invisible
-                    ${shouldFloat || isFocused || hasValue ? "max-w-full px-1" : "max-w-0 px-0"}
-                  `}
-                  style={{
-                    fontSize: `${size === "sm" ? 9 : size === "lg" ? 12 : 10.5}px`,
-                    height: 0,
-                  }}
-                >
-                  <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
-                </legend>
-              )}
-            </fieldset>
+              }
+              label={label}
+              isRequired={isRequired}
+              size={size}
+            />
           )}
 
-          {/* Floating Label */}
-          {(isFloating || isOutlined) && label && (
+          {isOutlined && label && (
+            <OutlinedMotionLabel
+              htmlFor={fieldId}
+              label={label}
+              isRequired={isRequired}
+              size={size}
+              showFloated={showOutlinedFloated}
+              outlinedFloatY={currentSize.outlinedFloatY}
+              outlinedInitialY={currentSize.outlinedInitialY}
+              textSizeClass={currentSize.textSize}
+              labelClassName={labelClassName}
+              colorClassName={getFloatingLabelColorClass(resolvedVariant, color as FieldColor, showOutlinedFloated, isFocused, hasError)}
+            />
+          )}
+
+          {isFloating && !isOutlined && label && (
             <motion.label
-              htmlFor={field?.name || props.id || props.name}
+              htmlFor={fieldId}
               initial={false}
               animate={{
-                y: shouldFloat || (isOutlined && (isFocused || hasValue))
-                  ? (isOutlined
-                    ? currentSize.outlinedFloatY
-                    : (labelPlacement === "inside" ? currentSize.floatY : currentSize.floatYOutside))
-                  : (isOutlined ? currentSize.outlinedInitialY : currentSize.initialY),
-                x: shouldFloat || (isOutlined && (isFocused || hasValue))
-                  ? (isOutlined
-                    ? 0
-                    : (labelPlacement === "inside" ? currentSize.floatX : currentSize.floatXOutside))
+                y: shouldFloat
+                  ? (labelPlacement === "inside" ? currentSize.floatY : currentSize.floatYOutside)
+                  : currentSize.initialY,
+                x: shouldFloat
+                  ? (labelPlacement === "inside" ? currentSize.floatX : currentSize.floatXOutside)
                   : (actualStartContent ? 32 : 0),
-                scale: shouldFloat || (isOutlined && (isFocused || hasValue))
-                  ? (isOutlined ? 0.75 : currentSize.floatScale)
-                  : 1,
+                scale: shouldFloat ? currentSize.floatScale : 1,
               }}
               transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
               className={`
@@ -551,10 +551,10 @@ const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
                 ${currentSize.textSize}
                  ${labelClassName} ${
                   resolvedVariant === "flat"
-                    ? getFlatFloatingLabelClass(color as FieldColor, shouldFloat || (isOutlined && (isFocused || hasValue)), isFocused)
+                    ? getFlatFloatingLabelClass(color as FieldColor, shouldFloat, isFocused)
                     : isFocused && color !== "default"
                       ? (focusTextColors[color] || "text-primary")
-                      : (shouldFloat || (isOutlined && (isFocused || hasValue)))
+                      : shouldFloat
                         ? isFocused
                           ? "text-neutral-800 dark:text-neutral-200"
                           : "text-neutral-700 dark:text-neutral-300"

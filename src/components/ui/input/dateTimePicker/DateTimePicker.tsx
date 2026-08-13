@@ -23,8 +23,9 @@ import {
 import { FaXmark } from "react-icons/fa6";
 import Button from "../../button/Button";
 import { DEFAULT_RADIUS, getRadiusClass, type Radius } from "../../shared/radius";
-import { errorClasses, fieldPlaceholderClasses, fieldValueClasses, focusBorderColors, focusTextColors, fieldsetBorderColors, getCalendarRadiusClass, getInputVariantClasses, getInteractiveBorderClass, getWrapperBaseClasses, inputDisabledWrapperClasses, labelClasses, labelFloatingClasses, stripInteractiveFieldClasses, underlineColors, type FieldColor } from "../../shared/fieldStyles";
+import { errorClasses, fieldPlaceholderClasses, fieldValueClasses, focusBorderColors, focusTextColors, fieldsetBorderColors, getCalendarRadiusClass, getFloatingLabelColorClass, getInputVariantClasses, getInteractiveBorderClass, getShowOutlinedFloated, getWrapperBaseClasses, inputDisabledWrapperClasses, labelClasses, labelFloatingClasses, stripInteractiveFieldClasses, underlineColors, type FieldColor } from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
+import { OutlinedFieldset, OutlinedMotionLabel } from "../../shared/OutlinedFieldLabel";
 import "../timePicker/index.css";
 
 const applyImportant = (classes: string) => {
@@ -1423,6 +1424,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   const isFloating = labelPlacement === "inside" || labelPlacement === "outside";
   const isOutsideLeft = labelPlacement === "outside-left";
   const shouldFloat = isOpen || hasValue || (isFloating && !!placeholder) || (isOutlined && !!placeholder);
+  const showOutlinedFloated = getShowOutlinedFloated(isOutlined, label, shouldFloat, isOpen, hasValue);
 
   const variantClass = isOutlined
     ? "bg-transparent border-none"
@@ -1475,11 +1477,9 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
   };
 
   const renderFloatingLabel = () => {
-    if (!label || (!isFloating && !isOutlined)) return null;
-    let animateProps: any;
-    if (isOutlined) {
-      animateProps = shouldFloat ? { y: sz.outlinedFloatY, x: 0, scale: 0.75 } : { y: sz.outlinedInitialY, x: 0, scale: 1 };
-    } else if (labelPlacement === "outside") {
+    if (!label || !isFloating || isOutlined) return null;
+    let animateProps: { y: number; x: number; scale: number };
+    if (labelPlacement === "outside") {
       animateProps = shouldFloat ? { y: sz.floatYOutside, x: sz.floatXOutside, scale: sz.floatScale } : { y: sz.initialY, x: sz.initialX, scale: 1 };
     } else {
       animateProps = shouldFloat ? { y: sz.floatY, x: sz.floatX, scale: sz.floatScale } : { y: sz.initialY, x: sz.initialX, scale: 1 };
@@ -1490,7 +1490,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
         initial={false}
         animate={animateProps}
         transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-        style={{ transformOrigin: isOutlined ? "left" : "top left" }}
+        style={{ transformOrigin: "top left" }}
         className={`absolute left-3 top-1/2 z-10 ${labelFloatingClasses} transition-colors duration-200 ${sz.textSize
           } ${labelClassName} ${
             hasError
@@ -1502,7 +1502,7 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
                     ? "text-neutral-800 dark:text-neutral-200"
                     : "text-neutral-700 dark:text-neutral-300"
                   : "text-neutral-400 dark:text-neutral-500"
-          } ${isOutlined ? "bg-white dark:bg-content1 px-1" : ""}`}
+          }`}
       >
         <FieldLabelContent label={label} isRequired={isRequired} />
       </motion.label>
@@ -1622,6 +1622,20 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
             aria-expanded={isOpen}
             aria-haspopup="dialog"
           >
+            {isOutlined && label && (
+              <OutlinedMotionLabel
+                htmlFor={fieldName}
+                label={label}
+                isRequired={isRequired}
+                size={size}
+                showFloated={showOutlinedFloated}
+                outlinedFloatY={sz.outlinedFloatY}
+                outlinedInitialY={sz.outlinedInitialY}
+                textSizeClass={sz.textSize}
+                labelClassName={labelClassName}
+                colorClassName={getFloatingLabelColorClass(resolvedVariant, color as FieldColor, showOutlinedFloated, isOpen, hasError)}
+              />
+            )}
             {renderFloatingLabel()}
 
             <div className={`flex-1 flex items-center overflow-hidden ${labelPlacement === "inside" && label && shouldFloat ? (size === "sm" ? "mt-3" : size === "lg" ? "mt-5" : "mt-4") : ""}`}>
@@ -1655,21 +1669,14 @@ const DateTimePicker: React.FC<DateTimePickerProps> = ({
             </div>
 
             {isOutlined && (
-              <fieldset className={`absolute inset-0 pointer-events-none border-2 transition-colors duration-200 m-0 p-0 ${radiusClass} ${isOpen && !hasError ? applyImportant(focusBorderColors[color] || "border-primary") : hasError ? "border-danger" : applyImportant(disabled ? stripInteractiveFieldClasses(fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700") : (fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700"))
-                }`}>
-                {label && (
-                  <legend
-                    className={`ml-2 font-medium select-none transition-all duration-200 block whitespace-nowrap overflow-hidden invisible ${shouldFloat ? "max-w-full px-1" : "max-w-0 px-0"
-                      }`}
-                    style={{
-                      fontSize: `${size === "sm" ? 9 : size === "lg" ? 12 : 10.5}px`,
-                      height: 0,
-                    }}
-                  >
-                    <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
-                  </legend>
-                )}
-              </fieldset>
+              <OutlinedFieldset
+                showFloated={showOutlinedFloated}
+                radiusClass={radiusClass}
+                borderClassName={`border-2 ${isOpen && !hasError ? applyImportant(focusBorderColors[color] || "border-primary") : hasError ? "border-danger" : applyImportant(disabled ? stripInteractiveFieldClasses(fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700") : (fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700"))}`}
+                label={label}
+                isRequired={isRequired}
+                size={size}
+              />
             )}
             {resolvedVariant === "underlined" && (
               <motion.div

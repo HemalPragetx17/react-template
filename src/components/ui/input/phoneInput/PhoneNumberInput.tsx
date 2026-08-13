@@ -10,16 +10,25 @@ import {
     errorClasses,
     fieldPlaceholderClasses,
     fieldValueClasses,
+    focusBorderColors,
+    fieldsetBorderColors,
+    getFloatingLabelColorClass,
     getInteractiveBorderClass,
+    getOutlinedLegendFontSize,
     getPhoneTwoBoxPartClasses,
+    getShowOutlinedFloated,
     getWrapperBaseClasses,
     inputDisabledInteractionClasses,
     inputDisabledOpacityClass,
     labelClasses,
     labelFloatingClasses,
+    outlinedLegendClasses,
+    outlinedLegendCollapsedClasses,
+    outlinedLegendFloatedClasses,
     type FieldColor,
 } from "../../shared/fieldStyles";
 import { FieldLabelContent } from "../../shared/FieldLabelContent";
+import { OutlinedFieldset, OutlinedMotionLabel } from "../../shared/OutlinedFieldLabel";
 
 // @ts-ignore
 const PhoneInput = (RPI.default || RPI) as any;
@@ -468,7 +477,9 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
     const isOutsideLeft = labelPlacement === "outside-left";
     const isFloating = labelPlacement === "inside" || labelPlacement === "outside";
     const hasValue = String(inputValue).length > 0 && String(inputValue) !== activeDialCode;
-    const shouldFloat = isFocused || hasValue || (isFloating && !!placeholder) || (isOutlined && !!placeholder);
+    const isEffectivelyFocused = isFocused || isDropdownOpen;
+    const shouldFloat = isEffectivelyFocused || hasValue || (isFloating && !!placeholder) || (isOutlined && !!placeholder);
+    const showOutlinedFloated = getShowOutlinedFloated(isOutlined, label, shouldFloat, isEffectivelyFocused, hasValue);
 
     // Build the dynamic container class names
     const containerClasses = `
@@ -501,8 +512,6 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
             </label>
         );
     };
-
-    const isEffectivelyFocused = isFocused || isDropdownOpen;
 
     const wrapperBaseClasses = getWrapperBaseClasses({
         wrapperClassName,
@@ -541,16 +550,31 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                             : ""}
                     `}
                 >
-                    {/* ── Outlined Fieldset Border + Legend Notch ────────────────────── */}
-                    {isOutlined && (
+                    {isOutlined && singleBorder && (
+                        <OutlinedFieldset
+                            showFloated={showOutlinedFloated}
+                            radiusClass={currentRadiusClass}
+                            borderClassName={
+                                hasError
+                                    ? "border-2 border-red-500 dark:border-red-500"
+                                    : isEffectivelyFocused
+                                        ? `border-2 ${focusBorderColors[color] || "border-primary"}`
+                                        : `border-2 ${fieldsetBorderColors[color] || "border-neutral-300 dark:border-neutral-700 group-hover:border-neutral-400 dark:group-hover:border-neutral-500"}`
+                            }
+                            label={label}
+                            isRequired={isRequired}
+                            size={size}
+                        />
+                    )}
+                    {isOutlined && !singleBorder && (
                         <fieldset
                             className={`
                                 absolute top-0 bottom-0 right-0 pointer-events-none transition-all duration-200 m-0 p-0
-                                ${singleBorder ? "left-0" : "left-[82px]"}
+                                left-[82px]
                                 ${currentRadiusClass}
                                 ${hasError
                                     ? "border-2 border-red-500 dark:border-red-500"
-                                    : isFocused
+                                    : isEffectivelyFocused
                                         ? "border-2 border-neutral-500 dark:border-neutral-500"
                                         : `border-2 border-neutral-300 dark:border-neutral-600 group-hover:border-neutral-400 dark:group-hover:border-neutral-500`
                                 }
@@ -558,14 +582,8 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                         >
                             {label && (
                                 <legend
-                                    className={`
-                                        ml-2 font-medium transition-all duration-200 ease-out block whitespace-nowrap overflow-hidden invisible
-                                        ${shouldFloat || isFocused || hasValue ? "max-w-full px-1" : "max-w-0 px-0"}
-                                    `}
-                                    style={{
-                                        fontSize: `${size === "sm" ? 9 : size === "lg" ? 12 : 10.5}px`,
-                                        height: 0,
-                                    }}
+                                    className={`${outlinedLegendClasses} ${showOutlinedFloated ? outlinedLegendFloatedClasses : outlinedLegendCollapsedClasses}`}
+                                    style={{ fontSize: getOutlinedLegendFontSize(size), height: 0 }}
                                 >
                                     <span><FieldLabelContent label={label} isRequired={isRequired} /></span>
                                 </legend>
@@ -573,43 +591,53 @@ const PhoneNumberInput: React.FC<PhoneNumberInputProps> = ({
                         </fieldset>
                     )}
 
-                    {(isFloating || isOutlined) && label && (
+                    {isOutlined && label && (
+                        <OutlinedMotionLabel
+                            htmlFor={fieldName}
+                            label={label}
+                            isRequired={isRequired}
+                            size={size}
+                            showFloated={showOutlinedFloated}
+                            outlinedFloatY={currentSize.outlinedFloatY}
+                            outlinedInitialY={currentSize.outlinedInitialY}
+                            textSizeClass={currentSize.textSize}
+                            initialX={currentSize.initialX}
+                            floatX={singleBorder ? 0 : 82}
+                            topClass={currentSize.top}
+                            labelClassName={labelClassName}
+                            colorClassName={getFloatingLabelColorClass(resolvedVariant, color as FieldColor, showOutlinedFloated, isEffectivelyFocused, hasError)}
+                        />
+                    )}
+
+                    {isFloating && !isOutlined && label && (
                         <motion.label
                             htmlFor={fieldName}
                             initial={false}
                             animate={{
-                                y: shouldFloat || (isOutlined && (isFocused || hasValue))
-                                    ? isOutlined
-                                        ? currentSize.outlinedFloatY
-                                        : (labelPlacement === "inside" ? currentSize.floatY : currentSize.outsideFloatY)
-                                    : isOutlined
-                                        ? currentSize.outlinedInitialY
-                                        : currentSize.initialY,
-                                x: shouldFloat || (isOutlined && (isFocused || hasValue))
+                                y: shouldFloat
+                                    ? (labelPlacement === "inside" ? currentSize.floatY : currentSize.outsideFloatY)
+                                    : currentSize.initialY,
+                                x: shouldFloat
                                     ? labelPlacement === "inside"
                                         ? (singleBorder ? (58 + (currentSize.paddingLeft || 14)) : (70 + (currentSize.paddingLeft || 14)))
                                         : labelPlacement === "outside"
                                             ? -12
-                                            : isOutlined
-                                                ? (singleBorder ? 0 : 82)
-                                                : (singleBorder ? 0 : 70)
+                                            : (singleBorder ? 0 : 70)
                                     : currentSize.initialX,
-                                scale: shouldFloat || (isOutlined && (isFocused || hasValue))
-                                    ? isOutlined ? 0.75 : currentSize.floatScale
-                                    : 1,
+                                scale: shouldFloat ? currentSize.floatScale : 1,
                             }}
                             transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
                             className={`
                                 absolute left-3 ${labelFloatingClasses} ${currentSize.top} z-20 transition-colors duration-200
                                 ${currentSize.textSize} ${labelClassName} ${
-                                    (shouldFloat || (isOutlined && (isFocused || hasValue)))
+                                    shouldFloat
                                         ? isFocused
                                             ? "text-neutral-800 dark:text-neutral-200"
                                             : "text-neutral-700 dark:text-neutral-300"
                                         : "text-neutral-400 dark:text-neutral-500"
                                 }
                             `}
-                            style={{ transformOrigin: isOutlined ? "left" : "top left" }}
+                            style={{ transformOrigin: "top left" }}
                         >
                             <FieldLabelContent label={label} isRequired={isRequired} />
                         </motion.label>

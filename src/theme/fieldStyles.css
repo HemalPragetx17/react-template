@@ -51,4 +51,19 @@
     .field-value {
         @apply text-foreground dark:text-neutral-200;
     }
+
+    /* Outlined labelPlacement — floated label centered on top border */
+    .field-outlined-float-label {
+        top: 0;
+        left: 12px;
+        padding: 0 4px;
+        transform: translateY(-50%);
+        transform-origin: left center;
+    }
+
+    /* Required asterisk inside outlined legend matches legend font-size */
+    fieldset legend .input-label-required {
+        font-size: 1em;
+        line-height: 1;
+    }
 }
