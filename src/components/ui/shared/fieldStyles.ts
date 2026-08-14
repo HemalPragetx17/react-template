@@ -56,7 +56,7 @@ export type FieldColor = "default" | "primary" | "secondary" | "success" | "warn
 /** Input value text — same for every color token (borders/bg stay themed) */
 export const fieldInputTextClasses = "text-foreground dark:text-neutral-200";
 
-/** Flat variant surface tokens (base + hover/focus) — shared by Input, PhoneNumberInput, etc. */
+/** Flat variant surface tokens (base + hover/focus) — shared by Input, PhoneInput, etc. */
 const flatSurfaceTokens: Record<FieldColor, { base: string; interactive: string }> = {
   default: {
     base: "bg-neutral-100 dark:bg-neutral-800",

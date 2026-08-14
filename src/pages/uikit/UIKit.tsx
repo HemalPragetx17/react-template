@@ -20,7 +20,7 @@ import {
   DropdownTrigger,
   FileInput,
   Input,
-  PhoneNumberInput,
+  PhoneInput,
   Popover,
   Radio,
   Rating,
@@ -142,11 +142,11 @@ const UIKit: React.FC = () => {
   const [phoneVal, setPhoneVal] = React.useState<Record<string, string>>(() => {
     const states: Record<string, string> = {};
     COLORS.forEach(c => {
-      states[`${c}-flat`] = "+1234567890";
-      states[`${c}-bordered`] = "+1234567890";
-      states[`${c}-faded`] = "+1234567890";
-      states[`${c}-underlined`] = "+1234567890";
-      states[`${c}-disabled`] = "+1234567890";
+      states[`${c}-flat`] = "+919876543210";
+      states[`${c}-bordered`] = "+919876543210";
+      states[`${c}-faded`] = "+919876543210";
+      states[`${c}-underlined`] = "+919876543210";
+      states[`${c}-disabled`] = "+919876543210";
     });
     return states;
   });
@@ -808,11 +808,11 @@ const UIKit: React.FC = () => {
           {COLORS.map((color) => (
             <div key={color} className="space-y-4 min-w-[200px]">
               <div className="text-xs font-bold text-neutral-400 capitalize mb-1">{color}</div>
-              <PhoneNumberInput variant="flat" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-flat`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-flat`]: val }))} size="sm" />
-              <PhoneNumberInput variant="bordered" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-bordered`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-bordered`]: val }))} size="sm" />
-              <PhoneNumberInput variant="faded" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-faded`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-faded`]: val }))} size="sm" />
-              <PhoneNumberInput variant="underlined" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-underlined`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-underlined`]: val }))} size="sm" />
-              <PhoneNumberInput variant="flat" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-disabled`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-disabled`]: val }))} size="sm" disabled />
+              <PhoneInput variant="flat" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-flat`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-flat`]: val }))} size="sm" />
+              <PhoneInput variant="bordered" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-bordered`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-bordered`]: val }))} size="sm" />
+              <PhoneInput variant="faded" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-faded`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-faded`]: val }))} size="sm" />
+              <PhoneInput variant="underlined" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-underlined`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-underlined`]: val }))} size="sm" />
+              <PhoneInput variant="flat" color={color} placeholder="Enter your phone number" value={phoneVal[`${color}-disabled`]} onChange={(val) => setPhoneVal(prev => ({ ...prev, [`${color}-disabled`]: val }))} size="sm" disabled />
             </div>
           ))}
         </div>

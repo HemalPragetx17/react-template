@@ -1,6 +1,6 @@
 import { Field, Form, Formik } from "formik";
 import React from "react";
-import { Button, Input, PhoneNumberInput, Switch } from "../../components/ui";
+import { Button, Input, PhoneInput, Switch } from "../../components/ui";
 import type { IUserModal } from "../../models/user";
 import { UserValidationSchema } from "../../validation/user";
 
@@ -37,7 +37,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onUserAdd, handleDialogClose 
       validateOnChange={true}
       enableReinitialize={true}
     >
-      {({ handleSubmit, values, setFieldValue }) => (
+      {({ handleSubmit, setFieldValue }) => (
         <Form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-4">
             <Field
@@ -60,21 +60,15 @@ const UserForm: React.FC<UserFormProps> = ({ user, onUserAdd, handleDialogClose 
               component={Input}
             />
             <Field
-              country={'in'}
-              type="tel"
-              name='phone'
+              name="phone"
+              defaultCountry="IN"
               label="Phone Number"
               placeholder="Enter phone number"
-              inputProps={{
-                name: 'phone',
-                required: true,
-              }}
-              value={values?.phone}
               onChange={(value: string, country: any) => {
-                setFieldValue('phoneCountry', `+${country.dialCode}`);
-                setFieldValue('phone', value);
+                setFieldValue("phone", value ?? "");
+                setFieldValue("phoneCountry", country ?? "");
               }}
-              component={PhoneNumberInput}
+              component={PhoneInput}
             />
             {user?._id && (
               <Field

@@ -38,7 +38,7 @@ const Dashboard = () => {
       bio: "nothing to say dear",
       startDate: "2026-05-14",
       endDate: "2026-05-28",
-      phone: "919724582730",
+      phone: "+919724582730",
       phoneCountry: "+91",
       profilePic: "https://umart-production.s3.af-south-1.amazonaws.com/category/categories/1751966524412_5390255224354014.png",
       image: "https://umart-production.s3.af-south-1.amazonaws.com/category/categories/1751966524412_5390255224354014.png",

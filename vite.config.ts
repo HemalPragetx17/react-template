@@ -13,7 +13,7 @@ function manualChunks(id: string): string | undefined {
     if (normalized.includes('react-datepicker') || normalized.includes('date-fns')) {
       return 'vendor-datepicker';
     }
-    if (normalized.includes('react-phone-input-2') || normalized.includes('libphonenumber-js')) {
+    if (normalized.includes('react-phone-number-input') || normalized.includes('libphonenumber-js')) {
       return 'vendor-phone';
     }
     if (normalized.includes('quill')) {
@@ -65,7 +65,7 @@ function manualChunks(id: string): string | undefined {
     return 'ui-time-picker';
   }
 
-  if (normalized.includes('components/ui/input/phoneInput')) {
+  if (normalized.includes('components/ui/input/phone-input')) {
     return 'ui-phone';
   }
 

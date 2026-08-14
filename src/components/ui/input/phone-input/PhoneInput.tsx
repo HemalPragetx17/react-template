@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import ReactPhoneInput, {
     getCountryCallingCode,
+    parsePhoneNumber,
     type Country,
     isPossiblePhoneNumber,
     isValidPhoneNumber,
@@ -67,7 +68,13 @@ export interface PhoneInputProps extends Partial<FieldProps> {
     labelPlacement?: "inside" | "outside" | "outside-left" | "outside-top" | "outlined";
     dropdownPosition?: "top" | "bottom";
     value?: string;
-    onChange?: (value: string | undefined) => void;
+    /** First arg: E.164 phone value (e.g. +12025551234). Second arg: dial code (e.g. +1). */
+    onChange?: (value: string | undefined, countryCode?: string) => void;
+    /**
+     * When true, allows international input (+…) so the country can be inferred while typing.
+     * Default false keeps national-only input for the selected/default country.
+     */
+    autoDetectCountry?: boolean;
     placeholder?: string;
     defaultCountry?: Country;
     disabled?: boolean;
@@ -78,6 +85,7 @@ export interface PhoneInputProps extends Partial<FieldProps> {
     validatePhone?: boolean;
     validationType?: "possible" | "valid";
     phoneErrorMessage?: string;
+    countryCodeEditable?: boolean;
     limitMaxLength?: boolean;
     [key: string]: any;
 }
@@ -100,6 +108,7 @@ const CustomCountrySelect: React.FC<CustomCountrySelectProps> = ({
     const buttonRef = useRef<HTMLDivElement>(null);
     const popoverRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
+    const selectedOptionRef = useRef<HTMLButtonElement>(null);
 
     const skipNextClose = useRef(false);
 
@@ -156,6 +165,7 @@ const CustomCountrySelect: React.FC<CustomCountrySelectProps> = ({
         if (isOpen) {
             setTimeout(() => {
                 searchInputRef.current?.focus();
+                selectedOptionRef.current?.scrollIntoView({ block: "nearest" });
             }, 50);
         } else {
             setSearchQuery("");
@@ -293,13 +303,14 @@ const CustomCountrySelect: React.FC<CustomCountrySelectProps> = ({
                                     return (
                                         <button
                                             key={countryCode || "ZZ"}
+                                            ref={isSelected ? selectedOptionRef : null}
                                             type="button"
                                             onClick={() => {
                                                 onChange(countryCode);
                                                 toggleOpen(false);
                                             }}
                                             className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors duration-100 cursor-pointer text-left ${isSelected
-                                                ? "bg-neutral-100 dark:bg-neutral-700 font-normal text-neutral-900 dark:text-neutral-100"
+                                                ? "bg-primary-50 dark:bg-neutral-700/80 text-primary-600 dark:text-primary-400 font-medium"
                                                 : "hover:bg-neutral-100 dark:hover:bg-neutral-700/60 text-neutral-800 dark:text-neutral-200 active:bg-neutral-200/70 dark:active:bg-neutral-600/50"
                                                 }`}
                                         >
@@ -313,13 +324,20 @@ const CustomCountrySelect: React.FC<CustomCountrySelectProps> = ({
                                                 ) : (
                                                     <div className="w-5 h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded-[2px] shrink-0 flex items-center justify-center text-[8px]">🌐</div>
                                                 )}
-                                                <span className="truncate text-sm font-normal text-neutral-800 dark:text-neutral-200">{option.label}</span>
+                                                <span className={`truncate text-sm ${isSelected ? "font-semibold text-primary-600 dark:text-primary-400" : "font-normal text-neutral-800 dark:text-neutral-200"}`}>{option.label}</span>
                                             </div>
-                                            {callingCode && (
-                                                <span className="text-sm text-neutral-400 dark:text-neutral-500 shrink-0 font-normal">
-                                                    +{callingCode}
-                                                </span>
-                                            )}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                {callingCode && (
+                                                    <span className={`text-sm ${isSelected ? "text-primary-600 dark:text-primary-400 font-medium" : "text-neutral-400 dark:text-neutral-500 font-normal"}`}>
+                                                        +{callingCode}
+                                                    </span>
+                                                )}
+                                                {isSelected && (
+                                                    <svg className="w-4 h-4 text-primary-600 dark:text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                )}
+                                            </div>
                                         </button>
                                     );
                                 })
@@ -356,16 +374,19 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         dropdownPosition,
         value,
         onChange,
+        autoDetectCountry = false,
+        initialValueFormat = "national",
         placeholder = "",
         defaultCountry = undefined,
         disabled = false,
-        enableSearch = false,
+        enableSearch = true,
         searchPlaceholder = "Search country...",
         searchNotFound = "No country found",
         className = "",
         validatePhone = false,
         validationType = "possible",
         phoneErrorMessage = "Invalid phone number",
+        countryCodeEditable = false,
         limitMaxLength = true,
         ...rest
     } = props;
@@ -424,6 +445,44 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     const getNested = (obj: any, path: string) => (path && obj ? path.split('.').reduce((acc, part) => acc?.[part], obj) : undefined);
 
     const inputValue = value !== undefined ? value : (field?.value ?? "");
+
+    const resolveCountryFromValue = useCallback((val?: string): Country | undefined => {
+        if (!val) return undefined;
+        try {
+            return parsePhoneNumber(val)?.country;
+        } catch {
+            return undefined;
+        }
+    }, []);
+
+    const [selectedCountry, setSelectedCountry] = useState<Country | undefined>(() => {
+        return resolveCountryFromValue(String(inputValue || "")) || defaultCountry;
+    });
+
+    const userSelectedCountryRef = useRef<Country | undefined>(selectedCountry);
+    const activeCountryRef = useRef<Country | undefined>(selectedCountry);
+
+    useEffect(() => {
+        activeCountryRef.current = selectedCountry;
+    }, [selectedCountry]);
+
+    const toCountryCode = useCallback((country?: Country): string | undefined => {
+        if (!country) return undefined;
+        try {
+            return `+${getCountryCallingCode(country)}`;
+        } catch {
+            return undefined;
+        }
+    }, []);
+
+    useEffect(() => {
+        const countryFromValue = resolveCountryFromValue(String(inputValue || ""));
+        if (countryFromValue) {
+            userSelectedCountryRef.current = countryFromValue;
+            setSelectedCountry(countryFromValue);
+            activeCountryRef.current = countryFromValue;
+        }
+    }, [inputValue, resolveCountryFromValue]);
 
     // Validation handler
     const validatePhoneNumber = useCallback((val: string | undefined) => {
@@ -486,17 +545,61 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     const fieldError = baseError || phoneValidationError || undefined;
     const hasError = Boolean(fieldTouched && fieldError);
 
-    const handleChange = (val: string | undefined) => {
+    const emitChange = useCallback((val: string | undefined, country?: Country) => {
+        const resolvedCountry =
+            country ??
+            (!countryCodeEditable ? userSelectedCountryRef.current : undefined) ??
+            resolveCountryFromValue(val) ??
+            selectedCountry ??
+            activeCountryRef.current ??
+            defaultCountry;
+
+        if (resolvedCountry && resolvedCountry !== selectedCountry) {
+            setSelectedCountry(resolvedCountry);
+            activeCountryRef.current = resolvedCountry;
+        }
+
+        const countryCode = toCountryCode(resolvedCountry);
+
         if (onChange) {
-            onChange(val);
+            onChange(val, countryCode);
         } else if (field?.onChange) {
-            const syntheticEvent = {
+            field.onChange({
                 target: {
                     name: field.name,
                     value: val,
                 },
-            };
-            field.onChange(syntheticEvent);
+            });
+        }
+    }, [onChange, field, defaultCountry, selectedCountry, countryCodeEditable, resolveCountryFromValue, toCountryCode]);
+
+    const handleChange = (val: string | undefined) => {
+        emitChange(val);
+        if (fieldName && form) {
+            setTimeout(() => {
+                form.validateField(fieldName);
+            }, 0);
+        }
+    };
+
+    const handleCountryChange = (country?: Country) => {
+        const targetCountry = countryCodeEditable
+            ? (country || defaultCountry)
+            : (userSelectedCountryRef.current || country || defaultCountry);
+
+        if (targetCountry && targetCountry !== selectedCountry) {
+            setSelectedCountry(targetCountry);
+            activeCountryRef.current = targetCountry;
+            if (!countryCodeEditable && country) {
+                userSelectedCountryRef.current = country;
+            }
+        }
+        const currentValue = inputValue ? String(inputValue) : undefined;
+        emitChange(currentValue || undefined, targetCountry);
+        if (fieldName && form) {
+            setTimeout(() => {
+                form.validateField(fieldName);
+            }, 0);
         }
     };
 
@@ -508,6 +611,12 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         setIsFocused(false);
         setLocalTouched(true);
+        if (fieldName && form) {
+            form.setFieldTouched(fieldName, true, true);
+            setTimeout(() => {
+                form.validateField(fieldName);
+            }, 0);
+        }
         if (props.onBlur) props.onBlur(e);
         if (field?.onBlur) field.onBlur(e);
     };
@@ -637,6 +746,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         (selectProps: any) => (
             <CustomCountrySelect
                 {...selectProps}
+                value={!countryCodeEditable ? (userSelectedCountryRef.current || selectedCountry || selectProps.value) : selectProps.value}
                 disabled={disabled}
                 buttonClassName={finalButtonClass}
                 dropdownPosition={dropdownPosition}
@@ -645,10 +755,18 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                 searchNotFound={searchNotFound}
                 onDropdownToggle={setIsDropdownOpen}
                 onWidthChange={setCountrySelectWidth}
+                onChange={(c?: Country) => {
+                    if (c) {
+                        userSelectedCountryRef.current = c;
+                        setSelectedCountry(c);
+                        activeCountryRef.current = c;
+                    }
+                    selectProps.onChange(c);
+                }}
             />
         ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [disabled, finalButtonClass, dropdownPosition, enableSearch, searchPlaceholder, searchNotFound, setCountrySelectWidth]
+        [disabled, finalButtonClass, dropdownPosition, enableSearch, searchPlaceholder, searchNotFound, setCountrySelectWidth, selectedCountry, countryCodeEditable]
     );
     
     const isOutlined = labelPlacement === "outlined";
@@ -753,10 +871,13 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
 
                     {/* Phone Input Core Wrapper */}
                     <ReactPhoneInput
-                        defaultCountry={defaultCountry}
+                        country={selectedCountry}
+                        defaultCountry={countryCodeEditable ? defaultCountry : (selectedCountry || defaultCountry)}
                         value={inputValue}
                         onChange={handleChange}
-                        international={false}
+                        onCountryChange={handleCountryChange}
+                        international={autoDetectCountry ? undefined : false}
+                        initialValueFormat={initialValueFormat as any}
                         disabled={disabled}
                         limitMaxLength={limitMaxLength}
                         placeholder={(!isFloating && !isOutlined) || shouldFloat ? placeholder : ""}

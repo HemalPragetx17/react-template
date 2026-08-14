@@ -1,6 +1,6 @@
 import { Field, Form, Formik } from "formik";
 import React from "react";
-import { Button, Checkbox, CheckboxGroup, DateInput, DateTimePicker, FileInput, Input, PhoneNumberInput, Radio, SelectDropdown, Switch, Textarea, TimePicker } from "../../components/ui";
+import { Button, Checkbox, CheckboxGroup, DateInput, DateTimePicker, FileInput, Input, PhoneInput, Radio, SelectDropdown, Switch, Textarea, TimePicker } from "../../components/ui";
 import type { IFormModal } from "../../models/dashboard";
 import { FormValidationSchema } from "../../validation/dashboard";
 
@@ -26,7 +26,7 @@ const initialState: IFormModal = {
     startDate: null,
     endDate: null,
     phone: "",
-    phoneCountry: "",
+    phoneCountry: "+1",
     profilePic: "",
     image: "",
     images: [],
@@ -71,8 +71,6 @@ const DemoForm: React.FC<DemoFormProps> = ({ user, onUserAdd, handleDialogClose 
     ];
 
     const handleSubmit = (value: IFormModal) => {
-        console.log("🚀 ~ handleSubmit ~ value:", value)
-
         const { images: _, ...data } = {
             ...value,
             productImages: value.images?.filter((img) => typeof img.url !== 'string').map((img) => img?.url)
@@ -131,201 +129,197 @@ const DemoForm: React.FC<DemoFormProps> = ({ user, onUserAdd, handleDialogClose 
             validateOnChange={true}
             enableReinitialize={true}
         >
-            {({ handleSubmit, values, setFieldValue }) => (
-                <Form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Profile Pic */}
-                    <Field
-                        label="Profile Pic"
-                        name="profilePic"
-                        radius="full"
-                        mode="profile"
-                        component={FileInput}
-                    />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Full Name */}
+            {({ handleSubmit, setFieldValue }) => {
+                return (
+                    <Form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Profile Pic */}
                         <Field
-                            name="name"
-                            label="Full Name"
-                            placeholder="Enter full name"
-                            component={Input}
+                            label="Profile Pic"
+                            name="profilePic"
+                            radius="full"
+                            mode="profile"
+                            component={FileInput}
                         />
 
-                        {/* Email Address */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Full Name */}
+                            <Field
+                                name="name"
+                                label="Full Name"
+                                placeholder="Enter full name"
+                                component={Input}
+                            />
+
+                            {/* Email Address */}
+                            <Field
+                                name="email"
+                                type="email"
+                                label="Email Address"
+                                placeholder="Enter email address"
+                                component={Input}
+                            />
+
+                            {/* Joining Date */}
+                            <Field
+                                name="joiningDate"
+                                label="Joining Date"
+                                placeholder="Select joining date"
+                                isClearable={true}
+                                component={DateInput}
+                            />
+
+                            <Field
+                                name="phone"
+                                defaultCountry="US"
+                                label="Phone Number"
+                                placeholder="Enter phone number"
+                                onChange={(value: string, country: any) => {
+                                    setFieldValue("phone", value ?? "");
+                                    setFieldValue("phoneCountry", country ?? "");
+                                }}
+                                component={PhoneInput}
+                            />
+
+                            {/* Document */}
+                            <Field
+                                name="document"
+                                label="Document"
+                                placeholder="Enter document"
+                                component={FileInput}
+                            />
+
+                            {/* Age */}
+                            <Field
+                                name="age"
+                                type="number"
+                                label="Age"
+                                placeholder="Enter age"
+                                component={Input}
+                            />
+
+                            {/* Birth Time */}
+                            <Field
+                                name="birthTime"
+                                label="Birth Time"
+                                mode="clock"
+                                isClearable={true}
+                                component={TimePicker}
+                            />
+
+                            {/* Appointment */}
+                            <Field
+                                name="appointment"
+                                label="Appointment"
+                                timeMode="clock"
+                                isClearable={true}
+                                component={DateTimePicker}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Gender (Radio) */}
+                            <Field
+                                name="gender"
+                                label="Gender"
+                                orientation="horizontal"
+                                component={Radio}
+                                options={genderOptions}
+                            />
+
+                            {/* Status (Switch) */}
+                            <Field
+                                name="status"
+                                label="Account Status"
+                                component={Switch}
+                                activeLabel="Active"
+                                inactiveLabel="Inactive"
+                            />
+                        </div>
+
                         <Field
-                            name="email"
-                            type="email"
-                            label="Email Address"
-                            placeholder="Enter email address"
-                            component={Input}
+                            label="Image"
+                            name="image"
+                            size="sm"
+                            mode="dropzone"
+                            component={FileInput}
                         />
 
-                        {/* Joining Date */}
                         <Field
-                            name="joiningDate"
-                            label="Joining Date"
-                            placeholder="Select joining date"
+                            name="images"
+                            deleteName="imageToDelete"
+                            imageArray={user?.images ?? []}
+                            label="Images"
+                            size="sm"
+                            mode="multi"
+                            component={FileInput}
+                        />
+
+                        {/* Technologies Stack (SelectDropdown - multi select) */}
+                        <Field
+                            name="technologies"
+                            label="Technologies Stack"
+                            component={SelectDropdown}
+                            options={technologyOptions}
+                            isMulti
+                            isClearable
+                            showCheckbox
+                        />
+
+                        <Field
+                            name="hobbies"
+                            label="Hobbies"
+                            component={CheckboxGroup}
+                            options={hobbiesOptions}
+                            orientation="horizontal"
+                        />
+
+                        {/* Role (SelectDropdown - single select) */}
+                        <Field
+                            name="role"
+                            label="Role"
+                            component={SelectDropdown}
+                            options={roleOptions}
+                        />
+
+                        <Field
+                            name="startDate"
+                            endDateName="endDate"
+                            label="Project Duration"
+                            placeholder="Select date range"
+                            selectsRange={true}
                             isClearable={true}
                             component={DateInput}
                         />
 
-                        {/* Phone Number */}
+                        {/* User Bio / Notes (Textarea) */}
                         <Field
-                            country={'in'}
-                            type="tel"
-                            name='phone'
-                            label="Phone Number"
-                            inputProps={{
-                                name: 'phone',
-                                required: true,
-                            }}
-                            value={values?.phone}
-                            onChange={(value: string, country: any) => {
-                                setFieldValue('phoneCountry', `+${country.dialCode}`);
-                                setFieldValue('phone', value);
-                            }}
-                            component={PhoneNumberInput}
-                        />
-
-                        {/* Document */}
-                        <Field
-                            name="document"
-                            label="Document"
-                            placeholder="Enter document"
-                            component={FileInput}
-                        />
-
-                        {/* Age */}
-                        <Field
-                            name="age"
-                            type="number"
-                            label="Age"
-                            placeholder="Enter age"
-                            component={Input}
-                        />
-
-                        {/* Birth Time */}
-                        <Field
-                            name="birthTime"
-                            label="Birth Time"
-                            mode="clock"
+                            name="bio"
+                            label="User Bio / Notes (Optional)"
+                            placeholder="Enter short bio or background notes"
                             isClearable={true}
-                            component={TimePicker}
+                            component={Textarea}
+                            rows={3}
                         />
 
-                        {/* Appointment */}
+                        {/* Agree to Terms Checkbox */}
                         <Field
-                            name="appointment"
-                            label="Appointment"
-                            timeMode="clock"
-                            isClearable={true}
-                            component={DateTimePicker}
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Gender (Radio) */}
-                        <Field
-                            name="gender"
-                            label="Gender"
-                            orientation="horizontal"
-                            component={Radio}
-                            options={genderOptions}
+                            name="agreeToTerms"
+                            label="Agree to terms"
+                            component={Checkbox}
                         />
 
-                        {/* Status (Switch) */}
-                        <Field
-                            name="status"
-                            label="Account Status"
-                            component={Switch}
-                            activeLabel="Active"
-                            inactiveLabel="Inactive"
-                        />
-                    </div>
-
-                    <Field
-                        label="Image"
-                        name="image"
-                        size="sm"
-                        mode="dropzone"
-                        component={FileInput}
-                    />
-
-                    <Field
-                        name="images"
-                        deleteName="imageToDelete"
-                        imageArray={user?.images ?? []}
-                        label="Images"
-                        size="sm"
-                        mode="multi"
-                        component={FileInput}
-                    />
-
-                    {/* Technologies Stack (SelectDropdown - multi select) */}
-                    <Field
-                        name="technologies"
-                        label="Technologies Stack"
-                        component={SelectDropdown}
-                        options={technologyOptions}
-                        isMulti
-                        isClearable
-                        showCheckbox
-                    />
-
-                    <Field
-                        name="hobbies"
-                        label="Hobbies"
-                        component={CheckboxGroup}
-                        options={hobbiesOptions}
-                        orientation="horizontal"
-                    />
-
-                    {/* Role (SelectDropdown - single select) */}
-                    <Field
-                        name="role"
-                        label="Role"
-                        component={SelectDropdown}
-                        options={roleOptions}
-                    />
-
-                    <Field
-                        name="startDate"
-                        endDateName="endDate"
-                        label="Project Duration"
-                        placeholder="Select date range"
-                        selectsRange={true}
-                        isClearable={true}
-                        component={DateInput}
-                    />
-
-                    {/* User Bio / Notes (Textarea) */}
-                    <Field
-                        name="bio"
-                        label="User Bio / Notes (Optional)"
-                        placeholder="Enter short bio or background notes"
-                        isClearable={true}
-                        component={Textarea}
-                        rows={3}
-                    />
-
-                    {/* Agree to Terms Checkbox */}
-                    <Field
-                        name="agreeToTerms"
-                        label="Agree to terms"
-                        component={Checkbox}
-                    />
-
-                    {/* Footer Action Area */}
-                    <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
-                        <Button type="button" variant="bordered" color="danger" onClick={handleDialogClose}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" variant="solid" color="primary">
-                            Add User
-                        </Button>
-                    </div>
-                </Form>
-            )}
+                        {/* Footer Action Area */}
+                        <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-100">
+                            <Button type="button" variant="bordered" color="danger" onClick={handleDialogClose}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" variant="solid" color="primary">
+                                Add User
+                            </Button>
+                        </div>
+                    </Form>
+                );
+            }}
         </Formik>
     );
 };

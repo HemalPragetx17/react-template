@@ -10,7 +10,7 @@ import {
     DateTimePicker,
     FileInput,
     Input,
-    PhoneNumberInput,
+    PhoneInput,
     Radio,
     SelectDropdown,
     Switch,
@@ -190,20 +190,15 @@ const DemoFormPage: React.FC = () => {
 
                                             {/* Phone Number */}
                                             <Field
-                                                country={'in'}
-                                                type="tel"
-                                                name='phone'
+                                                name="phone"
+                                                defaultCountry="IN"
                                                 label="Phone Number"
-                                                inputProps={{
-                                                    name: 'phone',
-                                                    required: true,
-                                                }}
-                                                value={values?.phone}
+                                                placeholder="Enter phone number"
                                                 onChange={(value: string, country: any) => {
-                                                    setFieldValue('phoneCountry', `+${country.dialCode}`);
-                                                    setFieldValue('phone', value);
+                                                    setFieldValue("phone", value ?? "");
+                                                    setFieldValue("phoneCountry", country ?? "");
                                                 }}
-                                                component={PhoneNumberInput}
+                                                component={PhoneInput}
                                             />
 
                                             {/* Document */}
