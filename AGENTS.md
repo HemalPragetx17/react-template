@@ -243,21 +243,15 @@ fieldPlaceholderClasses                  // .field-placeholder
 
 Outlined placement uses `fieldsetBorderColors` / `focusBorderColors` instead of `getInputVariantClasses`.
 
-### PhoneNumberInput — special rules
+### PhoneInput — rules
 
-`PhoneNumberInput` wraps **react-phone-input-2**. Its flag dropdown and phone `<input>` are styled by library CSS, so the same Tailwind variant classes used on other wrappers **do not reliably apply** to inner parts (library `#fff` / `#f5f5f5` wins; runtime `!bg-*` classes are often missing from the Tailwind bundle).
+`PhoneInput` wraps **react-phone-number-input** with custom country selection dropdown popover (`CustomCountrySelect`).
 
 | Rule | Detail |
 |------|--------|
-| **Layout + library overrides** | `src/components/ui/input/phoneInput/index.css` — sizes, two-box vs single-border, dropdown, dividers, `!important` overrides |
-| **Color scope on container** | TS adds `phone-input-color-${color}` and `phone-input-variant-${variant}` on `.react-tel-input` |
-| **Flat / faded surfaces in CSS** | Define `--phone-flat-bg`, `--phone-flat-bg-hover`, `--phone-faded-bg`, etc. on `.phone-input-color-*` in `index.css` — **keep in sync** with `getFlatSurfaceClasses` / `flatColorClasses` in `fieldStyles.ts` |
-| **`singleBorder={false}` (default, two-box)** | Separate flag + input boxes; surfaces applied per-part in `index.css`; shell classes from `getPhoneTwoBoxPartClasses()` |
-| **`singleBorder={true}` (unified shell)** | One border/background on container; inner flag + input stay transparent; flag/input divider via `::after` on flat, bordered, faded, underlined |
-| **Disabled height** | Do **not** put fixed `h-*` + extra border on the outer wrapper when disabled — disabled chrome belongs on the `.react-tel-input` container (single-border) or per-part rules (two-box) so height matches enabled state |
-| **Value / placeholder** | Still use `fieldValueClasses` + `fieldPlaceholderClasses` on inner classes — same neutral text rule as other inputs |
-
-When changing flat primary (or any color) project-wide: update **both** `flatSurfaceTokens` / `flatColorClasses` in `fieldStyles.ts` **and** the matching `--phone-flat-bg` block in `phoneInput/index.css`.
+| **Unified Outer Shell** | Uses standard input wrapper styling (`getInputVariantClasses`, `getWrapperBaseClasses`, `getInteractiveBorderClass`, `getInputDisabledClasses`). |
+| **Value / placeholder** | Uses `fieldValueClasses` + `fieldPlaceholderClasses` on inner `<input>` — same neutral text rule as `Input.tsx`. |
+| **Controlled Country** | Controlled country state (`selectedCountry`) persists across input clear unless `countryCodeEditable={true}` is explicitly enabled. |
 
 ### What lives in `fieldStyles.ts`
 
@@ -265,8 +259,7 @@ When changing flat primary (or any color) project-wide: update **both** `flatSur
 |----------------|-------------------|
 | `flatColorClasses`, `borderedColorClasses`, `fadedColorClasses`, `underlinedColorClasses` | Variant + color background, border, hover, focus-within |
 | `getInputVariantClasses(variant, color)` | Building wrapper variant classes — **use this in components; do not copy the maps** |
-| `getFlatSurfaceClasses(color)` | Flat tint source of truth — mirror in PhoneInput CSS vars when editing flat |
-| `getPhoneTwoBoxPartClasses(variant, color, disabled)` | Two-box phone shell only (borders/layout); surfaces from `index.css` |
+| `getFlatSurfaceClasses(color)` | Flat tint source of truth |
 | `inputWrapperDefaultClasses`, `getWrapperBaseClasses`, `getInteractiveBorderClass` | Extra wrapper layer (bordered white fill in light mode, focus border override) |
 | `labelClasses`, `labelFloatingClasses`, `labelGroupClasses`, `errorClasses`, `requiredIndicatorClasses` | Label/error class name strings → styles in `fieldStyles.css` |
 | `fieldValueClasses`, `fieldPlaceholderClasses` | Value + placeholder typography/color → styles in `fieldStyles.css` |
@@ -281,7 +274,6 @@ When changing flat primary (or any color) project-wide: update **both** `flatSur
 - `.input-label`, `.input-label-floating`, `.input-label-group`, `.input-error`, `.input-label-required`
 - `.field-placeholder`, `.field-value` (neutral value text — **not** theme-colored)
 - `:root { --input-disabled-opacity }` — keep in sync with `inputDisabledOpacityClass` in TS
-- `.dark { --input-surface-bg, --input-border-subtle, --input-border-hover, --input-border-focus }` — dark surfaces; PhoneInput `index.css` reads these for bordered/faded/underlined two-box
 
 **Rule:** If you add a new utility class string in `fieldStyles.ts` (e.g. `labelClasses = "input-label"`), define its CSS in `fieldStyles.css`, not inline in components.
 
@@ -291,7 +283,7 @@ All of the following import from `shared/fieldStyles` (and `shared/radius` for w
 
 - `Input.tsx`, `Textarea.tsx`, `SelectDropdown.tsx`
 - `DateInput.tsx`, `TimePicker.tsx`, `DateTimePicker.tsx`
-- `FileInput.tsx`, `PhoneNumberInput.tsx`
+- `FileInput.tsx`, `PhoneInput.tsx`
 - `Checkbox.tsx`, `Radio.tsx`, `Switch.tsx`
 
 When adding a new field-like component, wire it to the same helpers so UIKit and forms stay consistent.
@@ -300,11 +292,9 @@ When adding a new field-like component, wire it to the same helpers so UIKit and
 
 | Location | Scope |
 |----------|--------|
-| `src/components/ui/input/phoneInput/index.css` | Phone flag/input layout, `phone-input-color-*` CSS vars, two-box vs `singleBorder`, react-tel-input overrides, disabled per-part chrome |
+| `src/components/ui/input/phone-input/index.css` | Phone flag/input layout, flag select dropdown popover styling |
 | `src/components/ui/input/dateInput/index.css` | Calendar popover, day grid, range selection; day radius uses `--calendar-radius` |
 | `src/components/ui/input/fileInput/index.css` | Upload dropzone/preview layout only |
-
-PhoneNumberInput TS still uses `getPhoneTwoBoxPartClasses`, `getInputDisabledClasses`, `getWrapperBaseClasses`, etc. from `fieldStyles.ts` for the outer wrapper.
 
 ### Decision guide for agents
 

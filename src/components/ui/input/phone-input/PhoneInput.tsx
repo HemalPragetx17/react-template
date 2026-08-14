@@ -15,14 +15,15 @@ import "./index.css";
 import { DEFAULT_RADIUS, getImportantRadiusClass, type Radius } from "../../shared/radius";
 import {
     errorClasses,
-    getFlatSurfaceClasses,
     labelClasses,
     labelFloatingClasses,
     type FieldColor,
     getInputDisabledClasses,
+    getInputVariantClasses,
+    getWrapperBaseClasses,
+    getInteractiveBorderClass,
     fieldValueClasses,
     fieldPlaceholderClasses,
-    underlinedColorClasses,
     focusBorderColors,
     fieldsetBorderColors,
     getFloatingLabelColorClass,
@@ -310,7 +311,7 @@ const CustomCountrySelect: React.FC<CustomCountrySelectProps> = ({
                                                 toggleOpen(false);
                                             }}
                                             className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg transition-colors duration-100 cursor-pointer text-left ${isSelected
-                                                ? "bg-primary-50 dark:bg-neutral-700/80 text-primary-600 dark:text-primary-400 font-medium"
+                                                ? "bg-neutral-200 dark:bg-neutral-700/80 text-neutral-800 dark:text-neutral-200 font-medium"
                                                 : "hover:bg-neutral-100 dark:hover:bg-neutral-700/60 text-neutral-800 dark:text-neutral-200 active:bg-neutral-200/70 dark:active:bg-neutral-600/50"
                                                 }`}
                                         >
@@ -324,16 +325,16 @@ const CustomCountrySelect: React.FC<CustomCountrySelectProps> = ({
                                                 ) : (
                                                     <div className="w-5 h-3.5 bg-neutral-200 dark:bg-neutral-700 rounded-[2px] shrink-0 flex items-center justify-center text-[8px]">🌐</div>
                                                 )}
-                                                <span className={`truncate text-sm ${isSelected ? "font-semibold text-primary-600 dark:text-primary-400" : "font-normal text-neutral-800 dark:text-neutral-200"}`}>{option.label}</span>
+                                                <span className={`truncate text-sm ${isSelected ? "font-semibold text-neutral-900 dark:text-neutral-100" : "font-normal text-neutral-800 dark:text-neutral-200"}`}>{option.label}</span>
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
                                                 {callingCode && (
-                                                    <span className={`text-sm ${isSelected ? "text-primary-600 dark:text-primary-400 font-medium" : "text-neutral-400 dark:text-neutral-500 font-normal"}`}>
+                                                    <span className={`text-sm ${isSelected ? "text-neutral-600 dark:text-neutral-400 font-medium" : "text-neutral-400 dark:text-neutral-500 font-normal"}`}>
                                                         +{callingCode}
                                                     </span>
                                                 )}
                                                 {isSelected && (
-                                                    <svg className="w-4 h-4 text-primary-600 dark:text-primary-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                                    <svg className="w-4 h-4 text-neutral-700 dark:text-neutral-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                     </svg>
                                                 )}
@@ -681,61 +682,34 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
 
     const errorBorderClass = hasError ? "!border-red-500 dark:!border-red-500" : "";
 
-    const focusBorderClassMap: Record<FieldColor, string> = {
-        default: "focus-within:!border-neutral-500 dark:focus-within:!border-neutral-400",
-        primary: "focus-within:!border-primary dark:focus-within:!border-primary",
-        secondary: "focus-within:!border-secondary dark:focus-within:!border-secondary",
-        success: "focus-within:!border-success dark:focus-within:!border-success",
-        warning: "focus-within:!border-warning dark:focus-within:!border-warning",
-        danger: "focus-within:!border-danger dark:focus-within:!border-danger",
+    // Variant Configurations
+    const variantConfigs = {
+        flat: getInputVariantClasses("flat", color as FieldColor),
+        bordered: getInputVariantClasses("bordered", color as FieldColor),
+        underlined: getInputVariantClasses("underlined", color as FieldColor),
+        faded: getInputVariantClasses("faded", color as FieldColor),
     };
 
-    const activeFocusBorderMap: Record<FieldColor, string> = {
-        default: "!border-neutral-500 dark:!border-neutral-400",
-        primary: "!border-primary dark:!border-primary",
-        secondary: "!border-secondary dark:!border-secondary",
-        success: "!border-success dark:!border-success",
-        warning: "!border-warning dark:!border-warning",
-        danger: "!border-danger dark:!border-danger",
-    };
+    const isOutlined = labelPlacement === "outlined";
+    const currentVariantClass = isOutlined
+        ? "bg-transparent border-none"
+        : (variantConfigs[resolvedVariant] || variantConfigs.flat);
 
-    const activeFocusBottomBorderMap: Record<FieldColor, string> = {
-        default: "!border-b-neutral-500 dark:!border-b-neutral-400",
-        primary: "!border-b-primary dark:!border-b-primary",
-        secondary: "!border-b-secondary dark:!border-b-secondary",
-        success: "!border-b-success dark:!border-b-success",
-        warning: "!border-b-warning dark:!border-b-warning",
-        danger: "!border-b-danger dark:!border-b-danger",
-    };
+    const wrapperBaseClasses = getWrapperBaseClasses({
+        wrapperClassName,
+        variant: resolvedVariant,
+        isOutlined,
+        isActive: isEffectivelyFocused,
+        hasError,
+    });
 
-    // When there's an error, keep border red even on focus
-    const currentFocusBorder = hasError
-        ? "!border-red-500 dark:!border-red-500"
-        : isEffectivelyFocused
-            ? (activeFocusBorderMap[color as FieldColor] || activeFocusBorderMap.primary)
-            : (focusBorderClassMap[color as FieldColor] || focusBorderClassMap.primary);
-
-    // Static singleBorder classes without default hover border color changes but with active focus border color
-    const getSingleBorderVariantClasses = () => {
-        switch (resolvedVariant) {
-            case "flat":
-                return `border-2 border-transparent ${getFlatSurfaceClasses(color as FieldColor)}`;
-            case "bordered":
-                return `border-2 border-neutral-300 dark:border-neutral-600 bg-white dark:bg-transparent ${currentFocusBorder}`;
-            case "faded":
-                return `border-2 border-neutral-200 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-800 ${currentFocusBorder}`;
-            case "underlined":
-                return `border-b rounded-none relative bg-transparent ${
-                    hasError
-                        ? "!border-b-red-500 dark:!border-b-red-500"
-                        : isEffectivelyFocused
-                            ? (activeFocusBottomBorderMap[color as FieldColor] || activeFocusBottomBorderMap.primary)
-                            : (underlinedColorClasses[color as FieldColor] || underlinedColorClasses.default)
-                }`;
-            default:
-                return `border-2 border-neutral-300 dark:border-neutral-600 bg-white dark:bg-transparent ${currentFocusBorder}`;
-        }
-    };
+    const interactiveBorderClass = getInteractiveBorderClass({
+        variant: resolvedVariant,
+        isOutlined,
+        isActive: isEffectivelyFocused,
+        hasError,
+        color: color as FieldColor,
+    });
 
     const finalButtonClass = `${errorBorderClass} ${currentRadiusClass} ${buttonClassName}`.trim();
 
@@ -769,7 +743,6 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         [disabled, finalButtonClass, dropdownPosition, enableSearch, searchPlaceholder, searchNotFound, setCountrySelectWidth, selectedCountry, countryCodeEditable]
     );
     
-    const isOutlined = labelPlacement === "outlined";
     const isOutsideLeft = labelPlacement === "outside-left";
     const isFloating = labelPlacement === "inside" || labelPlacement === "outside";
     const hasValue = String(inputValue).length > 0;
@@ -796,9 +769,9 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                 <div
                     className={`
                         relative w-full group transition-all duration-200 ease-in-out
-                        flex items-center ${getSingleBorderVariantClasses()} ${errorBorderClass} ${currentRadiusClass}
+                        flex items-center ${currentVariantClass} ${currentRadiusClass}
+                        ${wrapperBaseClasses} ${interactiveBorderClass}
                         ${labelPlacement === "inside" && shouldFloat ? "phone-input-inside-floating" : ""}
-                        ${isOutlined ? "bg-transparent border-none" : ""}
                         ${wrapperHeight}
                         ${labelPlacement === "inside" ? "" : (isFloating && label && !isOutlined ? "mt-6" : "")}
                         ${isOutlined && label ? "mt-[10px]" : ""}

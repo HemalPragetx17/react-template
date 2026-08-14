@@ -117,39 +117,6 @@ export function getFlatSurfaceClasses(
   return important ? withImportantUtilities(raw) : raw;
 }
 
-/**
- * Two-box phone (singleBorder=false) — each part uses the same chrome as the
- * single-border container: flat surfaces, bordered/faded variant tokens, 2px borders.
- */
-export function getPhoneTwoBoxPartClasses(
-  variant: Exclude<InputWrapperVariant, "outlined">,
-  color: FieldColor = "default",
-  disabled = false,
-): string {
-  const shell = "transition-all duration-200 ease-in-out box-border !border-2";
-
-  if (variant === "flat") {
-    // Flat bg comes from phone index.css (--phone-flat-bg on .phone-input-color-*)
-    // because runtime !bg-* utilities are not in the Tailwind bundle.
-    const disabledCls = disabled ? inputDisabledOpacityClass : "";
-    return `${shell} !border-transparent ${fieldInputTextClasses} ${disabledCls}`.trim();
-  }
-
-  if (variant === "bordered" || variant === "faded") {
-    // Bordered/faded chrome (bg + borders) comes from phone index.css for two-box.
-    const disabledCls = disabled ? getInputDisabledClasses(variant, color) : "";
-    return `${shell} ${fieldInputTextClasses} ${disabledCls}`.trim();
-  }
-
-  const variantCls = withImportantUtilities(getInputVariantClasses(variant, color));
-  const disabledCls = disabled ? getInputDisabledClasses(variant, color) : "";
-  const combined = disabled
-    ? stripInteractiveFieldClasses(`${variantCls} ${disabledCls}`)
-    : variantCls;
-
-  return `${shell} ${combined}`.trim();
-}
-
 /** Flat variant — color-tinted backgrounds; value text uses default foreground */
 export const flatColorClasses: Record<FieldColor, string> = {
   default: `${getFlatSurfaceClasses("default")} ${fieldInputTextClasses}`,

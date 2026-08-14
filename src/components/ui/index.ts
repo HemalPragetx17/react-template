@@ -26,7 +26,6 @@ export {
   outlinedFieldsetClasses,
   outlinedFloatLabelClasses,
   outlinedLegendClasses,
-  getPhoneTwoBoxPartClasses,
   focusBorderColors,
   focusTextColors,
   getCalendarRadiusClass,
