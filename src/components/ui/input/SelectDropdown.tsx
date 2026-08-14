@@ -77,6 +77,7 @@ interface SelectDropdownProps extends Omit<FieldProps, 'meta'> {
   isSearchable?: boolean;
   showCheckbox?: boolean;
   closeMenuOnSelect?: boolean;
+  hideSelectedOptions?: boolean;
   /** Max chips shown before showing "+N more" badge (default: 3) */
   maxVisibleChips?: number;
 
@@ -86,6 +87,9 @@ interface SelectDropdownProps extends Omit<FieldProps, 'meta'> {
    */
   onChange?: (value: any) => void;
   onInputChange?: (value: string) => void;
+  onMenuOpen?: () => void;
+  onMenuClose?: () => void;
+  onMenuScrollToBottom?: (event: WheelEvent | TouchEvent) => void;
   isLoading?: boolean;
   isApiSearch?: boolean;
   /** Allow creating a new option from search text when it is not in the list */
@@ -420,9 +424,13 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   isSearchable = false,
   showCheckbox = false,
   closeMenuOnSelect,
+  hideSelectedOptions = false,
   maxVisibleChips,
   onChange: onValueChange,
   onInputChange,
+  onMenuOpen,
+  onMenuClose,
+  onMenuScrollToBottom,
   isLoading = false,
   isApiSearch = false,
   isSearchWithCreate = false,
@@ -849,7 +857,10 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
               isSearchable={resolvedSearchable}
               inputValue={isSearchWithCreate ? searchInput : undefined}
               closeMenuOnSelect={closeMenuOnSelect ?? (!isMulti)}
-              hideSelectedOptions={false}
+              hideSelectedOptions={hideSelectedOptions}
+              onMenuOpen={onMenuOpen}
+              onMenuClose={onMenuClose}
+              onMenuScrollToBottom={onMenuScrollToBottom}
               menuPortalTarget={typeof document !== "undefined" ? document.body : null}
               menuPosition="fixed"
               placeholder={
