@@ -38,7 +38,7 @@ const Login = () => {
     <div className='h-screen w-full flex flex-col justify-center items-center overflow-hidden relative bg-background'>
       <div className="fixed -bottom-[500px] -left-[500px] max-w-[1000px] w-[1000px] h-[1000px] z-0 opacity-50 animate-rotate-bg"></div>
       <div className="flex justify-center items-center w-full z-10">
-        <div className="max-w-[450px] w-full shadow-[0px_18px_50px_-10px_rgba(0,0,0,0.2)] border-none px-[40px] py-[50px] z-10 bg-white rounded-xl">
+        <div className="max-w-[450px] w-full shadow-[0px_18px_50px_-10px_rgba(0,0,0,0.2)] border-none px-[40px] py-[50px] z-10 bg-content1 rounded-xl">
           <div className="text-center">
             <div className="max-w-[100px] w-full mx-auto flex justify-center">
               <img src="/favicon.svg" alt='' />

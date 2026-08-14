@@ -78,7 +78,7 @@ const LoginTwoColumn = () => {
 
       {/* Right Column */}
       <div className='flex-1 flex justify-center items-center p-8 bg-background'>
-        <div className="w-full max-w-md bg-content1 border border-default-200/50 dark:border-default-100/10 p-8 sm:p-10 rounded-2xl shadow-sm">
+        <div className="w-full max-w-md bg-content1 p-8 sm:p-10 rounded-2xl">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50 leading-snug">
               Please sign in to your<br />admin account!
