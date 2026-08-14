@@ -145,7 +145,7 @@ const DemoFormPage: React.FC = () => {
                     validateOnChange={true}
                     enableReinitialize={true}
                 >
-                    {({ handleSubmit, values, setFieldValue }) => (
+                    {({ handleSubmit, setFieldValue }) => (
                         <Form onSubmit={handleSubmit} className="flex flex-col h-full relative">
                             {/* Scrollable Form Body */}
                             <div className="p-6 md:p-8 space-y-10">
