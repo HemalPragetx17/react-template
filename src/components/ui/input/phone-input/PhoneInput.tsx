@@ -2,6 +2,7 @@ import type { FieldProps } from "formik";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { FaChevronDown } from "react-icons/fa";
 import ReactPhoneInput, {
     getCountryCallingCode,
     parsePhoneNumber,
@@ -49,6 +50,7 @@ interface CustomCountrySelectProps {
     searchNotFound?: string;
     onDropdownToggle?: (isOpen: boolean) => void;
     onWidthChange?: (width: number) => void;
+    dropdownIcon?: boolean;
 }
 
 export interface PhoneInputProps extends Partial<FieldProps> {
@@ -87,6 +89,7 @@ export interface PhoneInputProps extends Partial<FieldProps> {
     validationType?: "possible" | "valid";
     phoneErrorMessage?: string;
     countryCodeEditable?: boolean;
+    dropdownIcon?: boolean;
     limitMaxLength?: boolean;
     [key: string]: any;
 }
@@ -103,6 +106,7 @@ const CustomCountrySelect: React.FC<CustomCountrySelectProps> = ({
     searchNotFound = "No country found",
     onDropdownToggle,
     onWidthChange,
+    dropdownIcon = false,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -247,7 +251,11 @@ const CustomCountrySelect: React.FC<CustomCountrySelectProps> = ({
                         +{selectedCallingCode}
                     </span>
                 )}
-                <div className={`phone-select-arrow ${isOpen ? "open" : ""}`} />
+                {dropdownIcon && (
+                    <FaChevronDown
+                        className={`w-3 h-3 text-neutral-500 dark:text-neutral-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                    />
+                )}
             </button>
             <div className="absolute right-0 top-2.5 bottom-2.5 w-[2px] bg-neutral-200 dark:bg-neutral-700/80 pointer-events-none" />
 
@@ -388,6 +396,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
         validationType = "possible",
         phoneErrorMessage = "Invalid phone number",
         countryCodeEditable = false,
+        dropdownIcon = false,
         limitMaxLength = true,
         ...rest
     } = props;
@@ -729,6 +738,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
                 searchNotFound={searchNotFound}
                 onDropdownToggle={setIsDropdownOpen}
                 onWidthChange={setCountrySelectWidth}
+                dropdownIcon={dropdownIcon}
                 onChange={(c?: Country) => {
                     if (c) {
                         userSelectedCountryRef.current = c;
@@ -740,7 +750,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
             />
         ),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [disabled, finalButtonClass, dropdownPosition, enableSearch, searchPlaceholder, searchNotFound, setCountrySelectWidth, selectedCountry, countryCodeEditable]
+        [disabled, finalButtonClass, dropdownPosition, enableSearch, searchPlaceholder, searchNotFound, setCountrySelectWidth, selectedCountry, countryCodeEditable, dropdownIcon]
     );
     
     const isOutsideLeft = labelPlacement === "outside-left";
